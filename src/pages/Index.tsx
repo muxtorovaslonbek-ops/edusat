@@ -394,6 +394,29 @@ const Index = () => {
   const [feedbackName, setFeedbackName] = useState("");
   const [feedbackText, setFeedbackText] = useState("");
   const [feedbackSent, setFeedbackSent] = useState(false);
+  const [examTimer, setExamTimer] = useState(0);
+  const [examRunning, setExamRunning] = useState(false);
+  const [purchasedItems, setPurchasedItems] = useState<Record<string, boolean>>({});
+  const [shopMessage, setShopMessage] = useState("");
+  const [reviewSaved, setReviewSaved] = useState(false);
+
+  useEffect(() => {
+    if (!examRunning) return;
+    const interval = setInterval(() => setExamTimer((current) => (current > 0 ? current - 1 : 0)), 1000);
+    return () => clearInterval(interval);
+  }, [examRunning]);
+
+  useEffect(() => {
+    if (examRunning && examTimer === 0) setExamRunning(false);
+  }, [examRunning, examTimer]);
+
+  useEffect(() => {
+    if (!shopMessage) return;
+    const t = setTimeout(() => setShopMessage(""), 2500);
+    return () => clearTimeout(t);
+  }, [shopMessage]);
+
+  const formatTimer = (seconds: number) => `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);
@@ -406,6 +429,15 @@ const Index = () => {
 
   const t = translations[lang];
   const displayName = userName.trim() || t.guest;
+  const initials = (displayName === "Mehmon" || displayName === "Guest" || displayName === "Гость")
+    ? "M"
+    : (displayName.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join("") || "M");
+
+  const AvatarBlock = ({ size = "md" }: { size?: "sm" | "md" | "lg" }) => {
+    const dim = size === "lg" ? "h-28 w-28 text-4xl" : size === "sm" ? "h-11 w-11 text-base" : "h-14 w-14 text-xl";
+    if (avatar) return <img src={avatar} alt="Profil rasmi" className={`${dim} rounded-full border-2 border-primary/40 object-cover shadow-glow`} />;
+    return <span className={`${dim} grid place-items-center rounded-full border-2 border-primary/40 bg-primary/15 font-black text-primary shadow-glow`}>{initials}</span>;
+  };
   const normalizedSearch = searchQuery.trim().toLowerCase();
   const searchableItems = useMemo(() => [
     ...sections.map((section) => ({ title: section.label, category: "Bo‘lim", section: section.id })),
@@ -651,19 +683,20 @@ const Index = () => {
         <GlassCard>
           <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-4">
-              <img src={avatar || aslonbekImg} alt="Profil rasmi" className="h-28 w-28 rounded-full border-4 border-primary/30 object-cover shadow-glow" />
+              <AvatarBlock size="lg" />
               <div>
                 <Pill>1-bosqich • Shaxsiy profil</Pill>
                 <h3 className="mt-3 text-3xl font-black text-foreground">{displayName}</h3>
-                <p className="text-muted-foreground">EduSAT Academy foydalanuvchisi</p>
+                <p className="text-muted-foreground">{avatar ? "EduSAT Academy foydalanuvchisi" : "Profil rasmi qo‘yilmagan — istasangiz yuklab qo‘ying"}</p>
               </div>
             </div>
             <div className="flex flex-wrap gap-2">
               <label className="inline-flex cursor-pointer rounded-2xl bg-primary px-5 py-3 text-sm font-black text-primary-foreground">
-                Rasmni tahrirlash
+                {avatar ? "Rasmni o‘zgartirish" : "Rasm yuklash"}
                 <input type="file" accept="image/*" className="hidden" onChange={handleAvatar} />
               </label>
-              <button className="rounded-2xl border border-border px-5 py-3 text-sm font-black text-foreground hover:bg-accent" onClick={() => { setIsAuthenticated(false); setUserName("Mehmon"); setProfileName("Mehmon"); setAuthEmail(""); setAuthPassword(""); setActive("home"); }}>Profildan chiqish</button>
+              {avatar && <button className="rounded-2xl border border-border px-5 py-3 text-sm font-black text-foreground hover:bg-accent" onClick={() => setAvatar(null)}>Rasmni olib tashlash</button>}
+              <button className="rounded-2xl border border-border px-5 py-3 text-sm font-black text-foreground hover:bg-accent" onClick={() => { setIsAuthenticated(false); setUserName("Mehmon"); setProfileName("Mehmon"); setAvatar(null); setAuthEmail(""); setAuthPassword(""); setActive("home"); }}>Profildan chiqish</button>
             </div>
           </div>
         </GlassCard>
@@ -700,22 +733,48 @@ const Index = () => {
     </section>
   );
 
-  const renderSat = () => (
-    <section>
-      <SectionTitle kicker="SAT/OTM" title="Real exam simulyatsiya va natija analizi" text="Timer, namunaviy savollar, javoblar va tezkor tahlil bilan imtihon muhitini sinab ko‘ring." />
-      <div className="grid gap-5 lg:grid-cols-3">
-        {["Namunaviy testlar", "Real exam simulyatsiya", "Natija analizi"].map((title, index) => (
-          <GlassCard key={title}>
-            <Timer className="mb-4 h-8 w-8 text-primary" />
-            <h3 className="text-2xl font-black text-foreground">{title}</h3>
-            <p className="mt-3 text-muted-foreground">{index === 1 ? "90 daqiqalik timer va bloklar bo‘yicha test muhiti." : "Savollar, javoblar va kuchli/kuchsiz tomonlar tahlili."}</p>
-            <button className="mt-5 rounded-2xl border border-border px-4 py-2 font-black text-foreground hover:bg-accent" onClick={() => completeActivity(35)}>Boshlash +35 coin</button>
-          </GlassCard>
-        ))}
-      </div>
-      <TestRunner testId="sat-otm" questions={satOtmQuestions} />
-    </section>
-  );
+  const renderSat = () => {
+    const startExam = (minutes: number) => { setExamTimer(minutes * 60); setExamRunning(true); completeActivity(35); };
+    return (
+      <section>
+        <SectionTitle kicker="SAT/OTM" title="Real exam simulyatsiya va natija analizi" text="Timer, namunaviy savollar, javoblar va tezkor tahlil bilan imtihon muhitini sinab ko‘ring." />
+        <GlassCard className="mb-5">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="grid h-16 w-16 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-glow"><Timer className="h-8 w-8" /></div>
+              <div>
+                <Pill>Imtihon timeri</Pill>
+                <p className="mt-2 font-mono text-4xl font-black text-foreground">{formatTimer(examTimer)}</p>
+                <p className="text-sm font-bold text-muted-foreground">{examRunning ? "Imtihon davom etmoqda — savollarni quyida yeching." : examTimer > 0 ? "Pauza qilingan" : "Boshlash uchun davomiylikni tanlang"}</p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button className="premium-button rounded-2xl px-4 py-3 text-sm font-black" onClick={() => startExam(15)}>15 daqiqa</button>
+              <button className="premium-button rounded-2xl px-4 py-3 text-sm font-black" onClick={() => startExam(45)}>45 daqiqa</button>
+              <button className="premium-button rounded-2xl px-4 py-3 text-sm font-black" onClick={() => startExam(90)}>90 daqiqa</button>
+              {examRunning ? (
+                <button className="rounded-2xl border border-border px-4 py-3 text-sm font-black text-foreground hover:bg-accent" onClick={() => setExamRunning(false)}>Pauza</button>
+              ) : examTimer > 0 ? (
+                <button className="rounded-2xl border border-border px-4 py-3 text-sm font-black text-foreground hover:bg-accent" onClick={() => setExamRunning(true)}>Davom etish</button>
+              ) : null}
+              <button className="rounded-2xl border border-border px-4 py-3 text-sm font-black text-foreground hover:bg-accent" onClick={() => { setExamRunning(false); setExamTimer(0); }}>Reset</button>
+            </div>
+          </div>
+        </GlassCard>
+        <div className="grid gap-5 lg:grid-cols-3">
+          {["Namunaviy testlar", "Real exam simulyatsiya", "Natija analizi"].map((title, index) => (
+            <GlassCard key={title}>
+              <Timer className="mb-4 h-8 w-8 text-primary" />
+              <h3 className="text-2xl font-black text-foreground">{title}</h3>
+              <p className="mt-3 text-muted-foreground">{index === 1 ? "90 daqiqalik timer va bloklar bo‘yicha test muhiti." : "Savollar, javoblar va kuchli/kuchsiz tomonlar tahlili."}</p>
+              <button className="mt-5 rounded-2xl border border-border px-4 py-2 font-black text-foreground hover:bg-accent" onClick={() => index === 1 ? startExam(90) : completeActivity(35)}>{index === 1 ? "Real exam boshlash" : "Boshlash +35 coin"}</button>
+            </GlassCard>
+          ))}
+        </div>
+        <TestRunner testId="sat-otm" questions={satOtmQuestions} />
+      </section>
+    );
+  };
 
   const QuestionGrid = () => (
     <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -934,24 +993,52 @@ const Index = () => {
     </section>
   );
 
-  const renderCoinShop = () => (
-    <section>
-      <SectionTitle kicker="Coin do‘koni" title="Coin evaziga kontent va chegirmalar" text="Darslar, mock testlar va kitoblarga coin orqali chegirma oling." />
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {coinShopItems.map((item) => (
-          <GlassCard key={item.title}>
-            <div className="mb-4 grid h-24 place-items-center rounded-3xl bg-primary/15 text-3xl font-black text-primary shadow-glow">{item.image}</div>
-            <h3 className="text-xl font-black text-foreground">{item.title}</h3>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">{item.description}</p>
-            <div className="mt-4 flex items-center justify-between gap-3">
-              <p className="text-2xl font-black text-primary">{item.price} coin</p>
-              <button className="rounded-2xl border border-border px-3 py-2 text-sm font-black text-foreground hover:bg-accent" onClick={() => setCoins((current) => Math.max(0, current - item.price))}>Olish</button>
+  const renderCoinShop = () => {
+    const buy = (title: string, price: number) => {
+      if (purchasedItems[title]) { setShopMessage(`✓ "${title}" allaqachon ochilgan`); return; }
+      if (coins < price) { setShopMessage(`Coin yetarli emas. Yana ${price - coins} coin kerak.`); return; }
+      setCoins((current) => current - price);
+      setPurchasedItems((current) => ({ ...current, [title]: true }));
+      setShopMessage(`✓ "${title}" muvaffaqiyatli ochildi!`);
+    };
+    return (
+      <section>
+        <SectionTitle kicker="Coin do‘koni" title="Coin evaziga kontent va chegirmalar" text="Darslar, mock testlar va kitoblarga coin orqali chegirma oling." />
+        <GlassCard className="mb-5 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-primary text-primary-foreground"><Coins className="h-6 w-6" /></div>
+            <div>
+              <p className="text-sm font-bold text-muted-foreground">Joriy balans</p>
+              <p className="text-2xl font-black text-foreground">{coins} coin</p>
             </div>
-          </GlassCard>
-        ))}
-      </div>
-    </section>
-  );
+          </div>
+          {shopMessage && <p className="rounded-2xl border border-primary/30 bg-primary/10 px-4 py-2 text-sm font-black text-primary">{shopMessage}</p>}
+        </GlassCard>
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {coinShopItems.map((item) => {
+            const owned = purchasedItems[item.title];
+            return (
+              <GlassCard key={item.title} className={owned ? "ring-2 ring-primary" : ""}>
+                <div className="mb-4 grid h-24 place-items-center rounded-3xl bg-primary/15 text-3xl font-black text-primary shadow-glow">{item.image}</div>
+                <h3 className="text-xl font-black text-foreground">{item.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">{item.description}</p>
+                <div className="mt-4 flex items-center justify-between gap-3">
+                  <p className="text-2xl font-black text-primary">{item.price} coin</p>
+                  <button
+                    disabled={owned}
+                    className={`rounded-2xl px-3 py-2 text-sm font-black ${owned ? "bg-primary text-primary-foreground" : "border border-border text-foreground hover:bg-accent"}`}
+                    onClick={() => buy(item.title, item.price)}
+                  >
+                    {owned ? "Ochilgan" : "Olish"}
+                  </button>
+                </div>
+              </GlassCard>
+            );
+          })}
+        </div>
+      </section>
+    );
+  };
 
   const renderMarket = () => (
     <section>
@@ -1128,21 +1215,35 @@ const Index = () => {
     );
   };
 
-  const renderReviews = () => (
-    <section>
-      <SectionTitle kicker="Baholash" title="Xizmatlarni 1 dan 5 gacha baholang" text="Baholashlar ilovani yaxshilash uchun demo ko‘rinishda saqlanadi." />
-      <GlassCard>
-        {["Bepul darslar", "Kutubxona", "3D qo‘llanmalar", "Edu market", "Free testlar"].map((item) => (
-          <div key={item} className="flex flex-wrap items-center justify-between gap-3 border-b border-border/50 py-4 last:border-b-0">
-            <p className="font-black text-foreground">{item}</p>
-            <div className="flex gap-1">
-              {[1, 2, 3, 4, 5].map((score) => <button key={score} onClick={() => setRatings({ ...ratings, [item]: score })} className={`rounded-xl p-2 ${score <= (ratings[item] || 0) ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"}`}><Star className="h-4 w-4" /></button>)}
-            </div>
+  const renderReviews = () => {
+    const reviewItems = ["Bepul darslar", "Kutubxona", "3D qo‘llanmalar", "Edu market", "Free testlar"];
+    const totalRated = reviewItems.filter((item) => ratings[item]).length;
+    const avgRating = totalRated > 0 ? (reviewItems.reduce((sum, item) => sum + (ratings[item] || 0), 0) / totalRated).toFixed(1) : "—";
+    return (
+      <section>
+        <SectionTitle kicker="Baholash" title="Xizmatlarni 1 dan 5 gacha baholang" text="Baholashlar ilovani yaxshilash uchun demo ko‘rinishda saqlanadi." />
+        <GlassCard className="mb-5 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <Pill>Sizning baholashlaringiz</Pill>
+            <p className="mt-2 text-3xl font-black text-foreground">O‘rtacha: <span className="text-primary">{avgRating}</span> / 5</p>
+            <p className="text-sm font-bold text-muted-foreground">{totalRated}/{reviewItems.length} ta xizmat baholandi</p>
           </div>
-        ))}
-      </GlassCard>
-    </section>
-  );
+          <button className="premium-button rounded-2xl px-5 py-3 font-black" onClick={() => { if (totalRated === 0) return; setReviewSaved(true); completeActivity(20); setTimeout(() => setReviewSaved(false), 3000); }}>Baholashni saqlash +20 coin</button>
+        </GlassCard>
+        {reviewSaved && <div className="mb-5 rounded-2xl border border-primary/30 bg-primary/10 px-4 py-3 text-sm font-black text-primary">✓ Baholashlaringiz qabul qilindi. Rahmat!</div>}
+        <GlassCard>
+          {reviewItems.map((item) => (
+            <div key={item} className="flex flex-wrap items-center justify-between gap-3 border-b border-border/50 py-4 last:border-b-0">
+              <p className="font-black text-foreground">{item}</p>
+              <div className="flex gap-1">
+                {[1, 2, 3, 4, 5].map((score) => <button key={score} onClick={() => setRatings({ ...ratings, [item]: score })} className={`rounded-xl p-2 ${score <= (ratings[item] || 0) ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"}`}><Star className="h-4 w-4" /></button>)}
+              </div>
+            </div>
+          ))}
+        </GlassCard>
+      </section>
+    );
+  };
 
   const renderAbout = () => (
     <section>
@@ -1265,8 +1366,13 @@ const Index = () => {
             <div className="flex items-center gap-3">
               <button
                 className="rounded-2xl p-3 hover:bg-accent"
-                onClick={() => { setSidebarOpen(true); setSidebarHidden(false); }}
-                aria-label="Menyuni ochish"
+                onClick={() => {
+                  // Toggle: hide if currently visible, otherwise show.
+                  const visible = sidebarOpen || !sidebarHidden;
+                  if (visible) { setSidebarOpen(false); setSidebarHidden(true); }
+                  else { setSidebarOpen(true); setSidebarHidden(false); }
+                }}
+                aria-label="Menyuni ochish/yopish"
               >
                 <Menu />
               </button>
@@ -1283,7 +1389,7 @@ const Index = () => {
                 {langOpen && <div className="absolute right-0 top-14 z-40 w-40 rounded-3xl border border-border bg-card/95 p-2 shadow-premium backdrop-blur-xl">{languageOptions.map((option) => <button key={option.code} className={`w-full rounded-2xl px-3 py-2 text-left text-sm font-black ${lang === option.code ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-accent"}`} onClick={() => { setLang(option.code); setLangOpen(false); }}>{option.label}</button>)}</div>}
               </div>
               <button className="hidden rounded-2xl bg-primary px-4 py-3 font-black text-primary-foreground md:inline-flex" onClick={() => { if (isAuthenticated) { setActive("profile"); } else { setAuthMode("register"); setAuthOpen(true); } }}><LogIn className="mr-2 h-4 w-4" />{isAuthenticated ? "Profil" : t.register}</button>
-              <button onClick={() => { if (isAuthenticated) { setActive("profile"); } else { setAuthMode("register"); setAuthOpen(true); } }} aria-label="Profilga o‘tish"><img src={avatar || aslonbekImg} alt="Profil" className="h-11 w-11 rounded-full border-2 border-primary/40 object-cover" /></button>
+              <button onClick={() => { if (isAuthenticated) { setActive("profile"); } else { setAuthMode("register"); setAuthOpen(true); } }} aria-label="Profilga o‘tish"><AvatarBlock size="sm" /></button>
             </div>
           </header>
           <div className="pb-8">{content()}</div>
