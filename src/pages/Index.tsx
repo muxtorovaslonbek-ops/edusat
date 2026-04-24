@@ -59,6 +59,38 @@ const sections = [
 const subjects = ["Matematika", "Ingliz tili", "Rus tili", "Biologiya", "Kimyo", "Fizika", "Tarix"];
 const science3d = ["Biologiya", "Kimyo", "Fizika", "Tarix", "Geografiya"];
 const levels = ["C", "C+", "B", "B+", "A", "A+"];
+const languageOptions: Array<{ code: Lang; label: string }> = [
+  { code: "uz", label: "O‘zbek" },
+  { code: "en", label: "English" },
+  { code: "ru", label: "Русский" },
+];
+
+const libraryBooks = [
+  { title: "O‘tkan kunlar", author: "Abdulla Qodiriy", level: "Adabiyot", formats: ["PDF", "Audio", "Tahlil"], cover: "OQ" },
+  { title: "Mehrobdan chayon", author: "Abdulla Qodiriy", level: "Roman", formats: ["PDF", "Audio"], cover: "MC" },
+  { title: "Boburnoma", author: "Zahiriddin Bobur", level: "Tarix", formats: ["PDF", "Xarita", "Izoh"], cover: "BN" },
+  { title: "Alpomish", author: "Xalq dostoni", level: "Doston", formats: ["PDF", "Audio", "Film"], cover: "AL" },
+  { title: "1984", author: "George Orwell", level: "English B2", formats: ["PDF", "Audio", "Vocab"], cover: "84" },
+  { title: "Hamlet", author: "William Shakespeare", level: "English C1", formats: ["PDF", "Audio", "Scene"], cover: "HL" },
+  { title: "The Old Man and the Sea", author: "Ernest Hemingway", level: "English B1", formats: ["PDF", "Audio"], cover: "OS" },
+  { title: "War and Peace", author: "Leo Tolstoy", level: "Russian C1", formats: ["PDF", "Audio", "Film"], cover: "WP" },
+];
+
+const coinShopItems = [
+  { title: "Premium test ochish", price: 300, image: "PT", description: "Daraja va SAT mini mock testlariga kirish." },
+  { title: "Bepul dars bonus", price: 450, image: "BD", description: "Tanlangan video dars uchun qo‘shimcha materiallar." },
+  { title: "Mock test chegirmasi", price: 700, image: "MT", description: "IELTS/Multi-level mock test uchun 50% chegirma." },
+  { title: "Kitob paketi", price: 900, image: "KP", description: "Kutubxona PDF/audio resurslarini ochish." },
+];
+
+const marketItems = [
+  { title: "SAT Math workbook", category: "SAT", price: "79 000 so‘m", image: "SM", description: "Algebra, problem solving va practice setlar." },
+  { title: "OTM blok to‘plami", category: "OTM", price: "69 000 so‘m", image: "OB", description: "Majburiy fanlar va asosiy blok savollari." },
+  { title: "IELTS Writing kit", category: "IELTS", price: "89 000 so‘m", image: "IW", description: "Task 1/2 shablonlari, band descriptor va namunalar." },
+  { title: "Milliy sertifikat paketi", category: "Sertifikat", price: "59 000 so‘m", image: "MS", description: "Fanlar kesimida nazariya va mavzuli testlar." },
+  { title: "Biologiya 3D atlas", category: "3D", price: "49 000 so‘m", image: "BA", description: "Anatomiya, hujayra va organlar bo‘yicha vizual atlas." },
+  { title: "Kimyo formula kartalari", category: "Kimyo", price: "39 000 so‘m", image: "KF", description: "Reaksiya, molekula va formulalar uchun tezkor kartalar." },
+];
 
 const statCards: Array<{ label: string; value: string | number; icon: LucideIcon }> = [
   { label: "Coin balans", value: 1280, icon: Coins },
@@ -219,6 +251,9 @@ const Index = () => {
   const [authError, setAuthError] = useState("");
   const [avatar, setAvatar] = useState<string | null>(null);
   const [ratings, setRatings] = useState<Record<string, number>>({});
+  const [searchQuery, setSearchQuery] = useState("");
+  const [langOpen, setLangOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);
@@ -231,6 +266,21 @@ const Index = () => {
 
   const t = translations[lang];
   const displayName = userName.trim() || t.guest;
+  const normalizedSearch = searchQuery.trim().toLowerCase();
+  const searchableItems = useMemo(() => [
+    ...sections.map((section) => ({ title: section.label, category: "Bo‘lim", section: section.id })),
+    ...subjects.map((subject) => ({ title: subject, category: "Fan", section: "courses" as SectionId })),
+    ...libraryBooks.map((book) => ({ title: book.title, category: book.author, section: "library" as SectionId })),
+    ...coinShopItems.map((item) => ({ title: item.title, category: `${item.price} coin`, section: "coin-shop" as SectionId })),
+    ...marketItems.map((item) => ({ title: item.title, category: item.category, section: "market" as SectionId })),
+    ...freeTestPacks.map((pack) => ({ title: pack.title, category: pack.meta, section: "free-tests" as SectionId })),
+  ], []);
+  const searchResults = normalizedSearch
+    ? searchableItems.filter((item) => `${item.title} ${item.category}`.toLowerCase().includes(normalizedSearch)).slice(0, 8)
+    : [];
+  const filteredSections = normalizedSearch
+    ? sections.filter((section) => section.label.toLowerCase().includes(normalizedSearch))
+    : sections;
 
   const completeActivity = (reward = 25) => setCoins((current) => current + reward);
 
@@ -247,14 +297,16 @@ const Index = () => {
       setAuthError("Ro‘yxatdan o‘tish uchun ismni kiriting.");
       return;
     }
-    if (!email.includes("@") || authPassword.length < 6) {
-      setAuthError("Email va kamida 6 belgili parol kiriting.");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || authPassword.length < 6) {
+      setAuthError("To‘g‘ri email va kamida 6 belgili parol kiriting.");
       return;
     }
     setUserName(name || email.split("@")[0] || "Foydalanuvchi");
+    setIsAuthenticated(true);
+    setActive("profile");
     setAuthError("");
     setAuthOpen(false);
-    completeActivity(100);
+    completeActivity(authMode === "register" ? 100 : 50);
   };
 
   const nav = (
@@ -275,10 +327,10 @@ const Index = () => {
       </div>
       <div className="mb-4 flex items-center gap-2 rounded-2xl border border-border/60 bg-secondary/50 p-2">
         <Search className="h-4 w-4 text-muted-foreground" />
-        <input className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground" placeholder={t.search} />
+        <input className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground" placeholder={t.search} value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} />
       </div>
       <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto pr-1">
-        {sections.map(({ id, label, icon: Icon }) => (
+        {filteredSections.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
             onClick={() => {
@@ -293,6 +345,7 @@ const Index = () => {
             <span>{label}</span>
           </button>
         ))}
+        {filteredSections.length === 0 && <p className="px-3 py-4 text-sm font-bold text-muted-foreground">Natija topilmadi</p>}
       </nav>
     </aside>
   );
