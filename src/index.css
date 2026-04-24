@@ -8,8 +8,8 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
 
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
@@ -17,16 +17,16 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 222.2 47.4% 11.2%;
+    --primary: 190 95% 39%;
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 210 40% 96.1%;
+    --secondary: 210 40% 94%;
     --secondary-foreground: 222.2 47.4% 11.2%;
 
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 210 40% 96.1%;
+    --accent: 190 95% 92%;
     --accent-foreground: 222.2 47.4% 11.2%;
 
     --destructive: 0 84.2% 60.2%;
@@ -34,7 +34,11 @@ All colors MUST be HSL.
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --ring: 190 95% 39%;
+
+    --premium-glow: 190 95% 39%;
+    --premium-violet: 259 83% 67%;
+    --glass: 0 0% 100% / 0.68;
 
     --radius: 0.5rem;
 
@@ -56,25 +60,25 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
+    --background: 222 47% 7%;
     --foreground: 210 40% 98%;
 
-    --card: 222.2 84% 4.9%;
+    --card: 222 47% 10%;
     --card-foreground: 210 40% 98%;
 
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 188 92% 48%;
+    --primary-foreground: 222 47% 8%;
 
-    --secondary: 217.2 32.6% 17.5%;
+    --secondary: 217 33% 16%;
     --secondary-foreground: 210 40% 98%;
 
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
 
-    --accent: 217.2 32.6% 17.5%;
+    --accent: 222 47% 18%;
     --accent-foreground: 210 40% 98%;
 
     --destructive: 0 62.8% 30.6%;
@@ -82,7 +86,10 @@ All colors MUST be HSL.
 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --ring: 188 92% 48%;
+    --premium-glow: 188 92% 48%;
+    --premium-violet: 259 83% 67%;
+    --glass: 222 47% 11% / 0.68;
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -101,5 +108,40 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .glass-panel {
+    border: 1px solid hsl(var(--border) / 0.55);
+    background: hsl(var(--glass));
+    backdrop-filter: blur(22px);
+  }
+
+  .bg-premium-radial {
+    background:
+      radial-gradient(circle at 18% 12%, hsl(var(--primary) / 0.24), transparent 32%),
+      radial-gradient(circle at 82% 8%, hsl(var(--premium-violet) / 0.18), transparent 30%),
+      linear-gradient(135deg, hsl(var(--background)), hsl(var(--secondary)));
+  }
+
+  .premium-button {
+    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--premium-violet)));
+    color: hsl(var(--primary-foreground));
+    box-shadow: 0 18px 50px -24px hsl(var(--premium-glow) / 0.9);
+    transition: transform 180ms ease, box-shadow 180ms ease;
+  }
+
+  .premium-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 22px 60px -26px hsl(var(--premium-glow) / 1);
+  }
+
+  .shadow-premium {
+    box-shadow: 0 24px 80px -40px hsl(222 47% 4% / 0.45);
+  }
+
+  .shadow-glow {
+    box-shadow: 0 18px 50px -22px hsl(var(--premium-glow) / 0.95);
   }
 }
