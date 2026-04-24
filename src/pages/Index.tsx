@@ -262,6 +262,7 @@ const Index = () => {
   const [profileEmail, setProfileEmail] = useState("demo@edusat.uz");
   const [avatar, setAvatar] = useState<string | null>(null);
   const [ratings, setRatings] = useState<Record<string, number>>({});
+  const [favorites, setFavorites] = useState<Array<{ id: string; title: string; category: string; section: SectionId }>>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [langOpen, setLangOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -341,6 +342,20 @@ const Index = () => {
     setAuthOpen(false);
     completeActivity(authMode === "register" ? 100 : 50);
   };
+
+  const isFavorite = (id: string) => favorites.some((item) => item.id === id);
+  const toggleFavorite = (item: { id: string; title: string; category: string; section: SectionId }) => {
+    setFavorites((current) => current.some((favorite) => favorite.id === item.id) ? current.filter((favorite) => favorite.id !== item.id) : [item, ...current]);
+  };
+
+  const FavoriteButton = ({ item }: { item: { id: string; title: string; category: string; section: SectionId } }) => (
+    <button
+      className={`inline-flex items-center gap-2 rounded-2xl border px-3 py-2 text-sm font-black ${isFavorite(item.id) ? "border-primary bg-primary text-primary-foreground" : "border-border text-foreground hover:bg-accent"}`}
+      onClick={() => toggleFavorite(item)}
+    >
+      <Heart className="h-4 w-4" /> {isFavorite(item.id) ? "Saqlangan" : "Sevimli"}
+    </button>
+  );
 
   const nav = (
     <aside className="glass-panel fixed inset-y-3 left-3 z-40 flex w-[min(84vw,320px)] flex-col rounded-3xl p-4 shadow-premium transition-transform duration-300 lg:sticky lg:top-3 lg:h-[calc(100vh-1.5rem)] lg:w-80 lg:translate-x-0 data-[open=false]:-translate-x-[110%]" data-open={sidebarOpen}>
@@ -728,10 +743,32 @@ const Index = () => {
 
   const renderFavorites = () => (
     <section>
-      <SectionTitle kicker="Sevimli" title="Saqlangan kontentlar" text="Bepul darslar, kutubxona, 3D qo‘llanmalar, market tovarlari va free testlar shu yerda saqlanadi." />
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-        {["Bepul darslar", "Kutubxona", "3D qo‘llanmalar", "Edu market", "Free testlar"].map((item) => <GlassCard key={item}><Heart className="mb-4 h-7 w-7 text-primary" /><h3 className="font-black text-foreground">{item}</h3><p className="mt-2 text-sm text-muted-foreground">Sevimlilarga qo‘shilgan</p></GlassCard>)}
-      </div>
+      <SectionTitle kicker="Sevimli" title="Saqlangan kontentlar" text="Kurs, test, kitob, 3D model va darslarni sevimlilarga qo‘shib, shu yerdan tez oching." />
+      {favorites.length === 0 ? (
+        <GlassCard className="text-center">
+          <Heart className="mx-auto mb-4 h-12 w-12 text-primary" />
+          <h3 className="text-2xl font-black text-foreground">Hali sevimlilar yo‘q</h3>
+          <p className="mt-2 text-muted-foreground">Kontentlardagi “Sevimli” tugmasini bosing — ular shu yerda yig‘iladi.</p>
+        </GlassCard>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {favorites.map((item) => (
+            <GlassCard key={item.id}>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <Pill>{item.category}</Pill>
+                  <h3 className="mt-4 text-2xl font-black text-foreground">{item.title}</h3>
+                </div>
+                <Heart className="h-7 w-7 shrink-0 text-primary" />
+              </div>
+              <div className="mt-5 flex flex-wrap gap-2">
+                <button className="premium-button rounded-2xl px-4 py-2 text-sm font-black" onClick={() => setActive(item.section)}>Ochish</button>
+                <button className="rounded-2xl border border-border px-4 py-2 text-sm font-black text-foreground hover:bg-accent" onClick={() => toggleFavorite(item)}>Olib tashlash</button>
+              </div>
+            </GlassCard>
+          ))}
+        </div>
+      )}
     </section>
   );
 
@@ -909,7 +946,7 @@ const Index = () => {
               <button className="rounded-2xl p-3 hover:bg-accent lg:hidden" onClick={() => setSidebarOpen(true)} aria-label="Menyuni ochish"><Menu /></button>
               <div>
                 <p className="text-xs font-black uppercase text-primary">{sections.find((s) => s.id === active)?.label}</p>
-                <p className="hidden text-sm text-muted-foreground sm:block">3 til • light/dark • responsive premium platforma</p>
+                <p className="hidden text-sm text-muted-foreground sm:block">Bilim, test, 3D qo‘llanma va premium tayyorgarlik markazi</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
