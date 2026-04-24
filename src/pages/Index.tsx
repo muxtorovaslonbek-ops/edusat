@@ -352,6 +352,11 @@ const Index = () => {
           <button
             key={id}
             onClick={() => {
+              if (id === "profile" && !isAuthenticated) {
+                setAuthMode("register");
+                setAuthOpen(true);
+                return;
+              }
               setActive(id);
               setSidebarOpen(false);
             }}
@@ -796,9 +801,12 @@ const Index = () => {
             <div className="flex items-center gap-2">
               <div className="hidden items-center gap-2 rounded-2xl border border-border bg-secondary/50 px-3 py-2 font-black text-foreground sm:flex"><Coins className="h-4 w-4 text-primary" />{coins}</div>
               <button className="rounded-2xl p-3 hover:bg-accent" onClick={() => setDark(!dark)} aria-label="Theme almashtirish">{dark ? <Sun /> : <Moon />}</button>
-          <button className="inline-flex items-center gap-2 rounded-2xl border border-border bg-secondary/50 px-3 py-3 font-black text-foreground hover:bg-accent" onClick={() => setLang(lang === "uz" ? "en" : lang === "en" ? "ru" : "uz")} aria-label="Til almashtirish"><Languages className="h-5 w-5" /><span className="text-xs uppercase">{lang}</span></button>
-              <button className="hidden rounded-2xl bg-primary px-4 py-3 font-black text-primary-foreground md:inline-flex" onClick={() => { setAuthMode("login"); setAuthOpen(true); }}><LogIn className="mr-2 h-4 w-4" />{t.login}</button>
-              <img src={avatar || aslonbekImg} alt="Profil" className="h-11 w-11 rounded-full border-2 border-primary/40 object-cover" />
+              <div className="relative">
+                <button className="inline-flex items-center gap-2 rounded-2xl border border-border bg-secondary/50 px-3 py-3 font-black text-foreground hover:bg-accent" onClick={() => setLangOpen(!langOpen)} aria-label="Til tanlash"><Languages className="h-5 w-5" /><span className="text-xs uppercase">{lang}</span></button>
+                {langOpen && <div className="absolute right-0 top-14 z-40 w-40 rounded-3xl border border-border bg-card/95 p-2 shadow-premium backdrop-blur-xl">{languageOptions.map((option) => <button key={option.code} className={`w-full rounded-2xl px-3 py-2 text-left text-sm font-black ${lang === option.code ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-accent"}`} onClick={() => { setLang(option.code); setLangOpen(false); }}>{option.label}</button>)}</div>}
+              </div>
+              <button className="hidden rounded-2xl bg-primary px-4 py-3 font-black text-primary-foreground md:inline-flex" onClick={() => { isAuthenticated ? setActive("profile") : setAuthOpen(true); setAuthMode("login"); }}><LogIn className="mr-2 h-4 w-4" />{isAuthenticated ? "Profil" : t.login}</button>
+              <button onClick={() => { isAuthenticated ? setActive("profile") : setAuthOpen(true); }} aria-label="Profilga o‘tish"><img src={avatar || aslonbekImg} alt="Profil" className="h-11 w-11 rounded-full border-2 border-primary/40 object-cover" /></button>
             </div>
           </header>
           <div className="pb-8">{content()}</div>
