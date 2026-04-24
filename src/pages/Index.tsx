@@ -310,6 +310,7 @@ const Index = () => {
     const email = authEmail.trim();
     if (authMode === "login" && !email && !authPassword) {
       setUserName("Foydalanuvchi");
+      setProfileName("Foydalanuvchi");
       setIsAuthenticated(true);
       setActive("profile");
       setAuthError("");
