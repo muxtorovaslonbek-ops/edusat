@@ -389,6 +389,7 @@ const Index = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [active3dSubject, setActive3dSubject] = useState("Hammasi");
   const [activeLevelTest, setActiveLevelTest] = useState<string | null>(null);
+  const [activeQuiz, setActiveQuiz] = useState<{ subject: string; mode: string } | null>(null);
   const [feedbackName, setFeedbackName] = useState("");
   const [feedbackText, setFeedbackText] = useState("");
   const [feedbackSent, setFeedbackSent] = useState(false);
@@ -770,12 +771,42 @@ const Index = () => {
               <Timer className="text-primary" />
             </div>
             <div className="mt-4 grid grid-cols-2 gap-2">
-              {['Quiz', 'Fan testlari', 'Full exam', 'Random'].map((item) => <button key={item} className="rounded-2xl bg-secondary/70 px-3 py-3 text-sm font-black text-secondary-foreground hover:bg-accent">{item}</button>)}
+              {['Quiz', 'Fan testlari', 'Full exam', 'Random'].map((item) => (
+                <button
+                  key={item}
+                  onClick={() => { setActiveQuiz({ subject, mode: item }); setSubmittedTests((current) => ({ ...current, [`quiz-${subject}-${item}`]: false })); }}
+                  className={`rounded-2xl px-3 py-3 text-sm font-black hover:bg-accent ${activeQuiz?.subject === subject && activeQuiz?.mode === item ? "bg-primary text-primary-foreground" : "bg-secondary/70 text-secondary-foreground"}`}
+                >
+                  {item}
+                </button>
+              ))}
             </div>
             <div className="mt-4"><FavoriteButton item={{ id: `subject-test-${subject}`, title: `${subject} free testi`, category: "Fan testi", section: "free-tests" }} /></div>
           </GlassCard>
         ))}
       </div>
+      {activeQuiz && quizBank[activeQuiz.subject] && (() => {
+        const meta = quizModeMeta[activeQuiz.mode];
+        const bank = quizBank[activeQuiz.subject];
+        const count = Math.min(meta.count, bank.length);
+        const questions = (activeQuiz.mode === "Random" ? [...bank].sort(() => 0.5 - Math.random()) : bank).slice(0, count).map((q) => ({ subject: `${activeQuiz.subject} ${activeQuiz.mode}`, question: q.question, answer: q.answer }));
+        const testId = `quiz-${activeQuiz.subject}-${activeQuiz.mode}`;
+        return (
+          <div className="mt-6">
+            <GlassCard>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <Pill>{meta.label}</Pill>
+                  <h3 className="mt-3 text-2xl font-black text-foreground">{activeQuiz.subject} — {activeQuiz.mode}</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">Javoblarni yozing va tekshirish tugmasini bosing.</p>
+                </div>
+                <button className="rounded-2xl border border-border px-4 py-2 text-sm font-black text-foreground hover:bg-accent" onClick={() => setActiveQuiz(null)}>Yopish</button>
+              </div>
+              <TestRunner testId={testId} questions={questions} />
+            </GlassCard>
+          </div>
+        );
+      })()}
       <TestRunner testId="free-subjects" questions={sampleQuestions} />
       <TestRunner testId="free-sat-otm" questions={satOtmQuestions} />
     </section>
