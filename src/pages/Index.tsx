@@ -66,14 +66,14 @@ const languageOptions: Array<{ code: Lang; label: string }> = [
 ];
 
 const libraryBooks = [
-  { title: "O‘tkan kunlar", author: "Abdulla Qodiriy", level: "Adabiyot", formats: ["PDF", "Audio", "Tahlil"], cover: "OQ" },
-  { title: "Mehrobdan chayon", author: "Abdulla Qodiriy", level: "Roman", formats: ["PDF", "Audio"], cover: "MC" },
-  { title: "Boburnoma", author: "Zahiriddin Bobur", level: "Tarix", formats: ["PDF", "Xarita", "Izoh"], cover: "BN" },
-  { title: "Alpomish", author: "Xalq dostoni", level: "Doston", formats: ["PDF", "Audio", "Film"], cover: "AL" },
-  { title: "1984", author: "George Orwell", level: "English B2", formats: ["PDF", "Audio", "Vocab"], cover: "84" },
-  { title: "Hamlet", author: "William Shakespeare", level: "English C1", formats: ["PDF", "Audio", "Scene"], cover: "HL" },
-  { title: "The Old Man and the Sea", author: "Ernest Hemingway", level: "English B1", formats: ["PDF", "Audio"], cover: "OS" },
-  { title: "War and Peace", author: "Leo Tolstoy", level: "Russian C1", formats: ["PDF", "Audio", "Film"], cover: "WP" },
+  { title: "O‘tkan kunlar", author: "Abdulla Qodiriy", level: "Adabiyot", formats: ["PDF", "Audio", "Tahlil"], cover: "OQ", scene: "Tarixiy roman" },
+  { title: "Mehrobdan chayon", author: "Abdulla Qodiriy", level: "Roman", formats: ["PDF", "Audio"], cover: "MC", scene: "Klassik asar" },
+  { title: "Boburnoma", author: "Zahiriddin Bobur", level: "Tarix", formats: ["PDF", "Xarita", "Izoh"], cover: "BN", scene: "Xotira va tarix" },
+  { title: "Alpomish", author: "Xalq dostoni", level: "Doston", formats: ["PDF", "Audio", "Film"], cover: "AL", scene: "Qahramonlik" },
+  { title: "1984", author: "George Orwell", level: "English B2", formats: ["PDF", "Audio", "Vocab"], cover: "84", scene: "Dystopia" },
+  { title: "Hamlet", author: "William Shakespeare", level: "English C1", formats: ["PDF", "Audio", "Scene"], cover: "HL", scene: "Drama" },
+  { title: "The Old Man and the Sea", author: "Ernest Hemingway", level: "English B1", formats: ["PDF", "Audio"], cover: "OS", scene: "Sea story" },
+  { title: "War and Peace", author: "Leo Tolstoy", level: "Russian C1", formats: ["PDF", "Audio", "Film"], cover: "WP", scene: "Epic novel" },
 ];
 
 const coinShopItems = [
@@ -122,10 +122,17 @@ const sampleQuestions = [
 const satOtmQuestions = [
   { subject: "SAT Math", question: "If f(x)=2x²-3x+1, find f(3).", answer: "10" },
   { subject: "SAT Reading", question: "Main idea savolida avval nimani aniqlash kerak?", answer: "Matnning umumiy g‘oyasi" },
+  { subject: "SAT Writing", question: "Choose the concise version: Due to the fact that it rained, the match was delayed.", answer: "Because it rained, the match was delayed." },
+  { subject: "SAT Algebra", question: "2x - 5 = 13 bo‘lsa, x nechaga teng?", answer: "9" },
+  { subject: "SAT Data", question: "Agar 40 ning 25% i so‘ralsa, javob nechchi?", answer: "10" },
   { subject: "OTM Matematika", question: "Kvadrat tenglama diskriminanti formulasi qanday?", answer: "D=b²-4ac" },
   { subject: "OTM Ona tili", question: "Gap bo‘laklari nechta asosiy turga bo‘linadi?", answer: "5 ta" },
   { subject: "OTM Tarix", question: "Mustaqillik deklaratsiyasi qachon qabul qilingan?", answer: "1990-yil 20-iyun" },
   { subject: "OTM Ingliz tili", question: "Choose: I have lived here ___ 2020.", answer: "since" },
+  { subject: "OTM Biologiya", question: "DNK tarkibidagi azotli asoslardan biri qaysi?", answer: "Adenin" },
+  { subject: "OTM Kimyo", question: "NaCl moddasining nomi nima?", answer: "Natriy xlorid" },
+  { subject: "OTM Fizika", question: "Tezlik formulasi qanday?", answer: "v=s/t" },
+  { subject: "OTM Geografiya", question: "Yerning eng katta okeani qaysi?", answer: "Tinch okeani" },
 ];
 
 const freeTestPacks = [
