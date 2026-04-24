@@ -681,12 +681,13 @@ const Index = () => {
           <button className="rounded-2xl p-2 hover:bg-accent" onClick={() => setAuthOpen(false)}><X /></button>
         </div>
         <div className="mt-5 space-y-3">
-          <input className="h-12 w-full rounded-2xl border border-border bg-background/70 px-4 outline-none focus:ring-2 focus:ring-ring" placeholder="Ismingiz" onChange={(e) => setUserName(e.target.value)} />
-          <input className="h-12 w-full rounded-2xl border border-border bg-background/70 px-4 outline-none focus:ring-2 focus:ring-ring" placeholder="Email" type="email" />
-          <input className="h-12 w-full rounded-2xl border border-border bg-background/70 px-4 outline-none focus:ring-2 focus:ring-ring" placeholder="Parol" type="password" />
-          <button className="premium-button w-full rounded-2xl py-3 font-black" onClick={() => { setAuthOpen(false); completeActivity(100); }}>{authMode === "login" ? "Kirish" : "Ro‘yxatdan o‘tish"} +100 coin</button>
+          <input className="h-12 w-full rounded-2xl border border-border bg-background/70 px-4 outline-none focus:ring-2 focus:ring-ring" placeholder="Ismingiz" value={authName} onChange={(e) => setAuthName(e.target.value)} />
+          <input className="h-12 w-full rounded-2xl border border-border bg-background/70 px-4 outline-none focus:ring-2 focus:ring-ring" placeholder="Email" type="email" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} />
+          <input className="h-12 w-full rounded-2xl border border-border bg-background/70 px-4 outline-none focus:ring-2 focus:ring-ring" placeholder="Parol" type="password" value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} />
+          {authError && <p className="rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm font-bold text-destructive">{authError}</p>}
+          <button className="premium-button w-full rounded-2xl py-3 font-black" onClick={handleAuthSubmit}>{authMode === "login" ? "Kirish" : "Ro‘yxatdan o‘tish"} +100 coin</button>
         </div>
-        <button className="mt-4 text-sm font-bold text-primary" onClick={() => setAuthMode(authMode === "login" ? "register" : "login")}>{authMode === "login" ? "Hisob yo‘qmi? Ro‘yxatdan o‘ting" : "Hisobingiz bormi? Kirish"}</button>
+        <button className="mt-4 text-sm font-bold text-primary" onClick={() => { setAuthError(""); setAuthMode(authMode === "login" ? "register" : "login"); }}>{authMode === "login" ? "Hisob yo‘qmi? Ro‘yxatdan o‘ting" : "Hisobingiz bormi? Kirish"}</button>
       </div>
     </div>
   ) : null;
