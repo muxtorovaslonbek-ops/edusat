@@ -15,10 +15,12 @@ import {
   Lock,
   LogIn,
   Menu,
+  MessageCircle,
   Moon,
   PlayCircle,
   Rocket,
   Search,
+  Send,
   ShieldCheck,
   ShoppingBag,
   Star,
@@ -264,6 +266,9 @@ const Index = () => {
   const [langOpen, setLangOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [active3dSubject, setActive3dSubject] = useState("Hammasi");
+  const [feedbackName, setFeedbackName] = useState("");
+  const [feedbackText, setFeedbackText] = useState("");
+  const [feedbackSent, setFeedbackSent] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);
@@ -785,12 +790,62 @@ const Index = () => {
   const renderAbout = () => (
     <section>
       <SectionTitle kicker="Ilova haqida" title="EduSAT Academy — ishonchli ta’lim hamrohingiz" text="SAT, OTM va xalqaro imtihonlarga tayyorgarlik uchun yaratilgan zamonaviy ta’lim ilovasi." />
-      <div className="space-y-5">
-        <GlassCard><h3 className="text-2xl font-black text-foreground">BIZ HAQIMIZDA</h3><p className="mt-3 leading-7 text-muted-foreground">EduSAT Academy — bu SAT, OTM va xalqaro imtihonlarga tayyorgarlik uchun yaratilgan zamonaviy ta’lim ilovasi. Ilova orqali foydalanuvchilar video darslar, testlar, 3D qo‘llanmalar va real imtihon simulyatsiyalari yordamida bilimlarini mustahkamlashlari mumkin.</p></GlassCard>
-        <GlassCard><h3 className="text-2xl font-black text-foreground">BIZNING MAQSADIMIZ</h3><p className="mt-3 leading-7 text-muted-foreground">Har bir foydalanuvchining ichki salohiyatini ochish, zamonaviy bilim va ko‘nikmalar bilan qurollantirish hamda global raqobatga tayyor kuchli avlodni shakllantirish.</p></GlassCard>
-        <GlassCard><h3 className="mb-5 text-2xl font-black text-foreground">Minnatdorchilik</h3><div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">{mentors.map((person) => <PersonCard key={person.name} {...person} />)}</div></GlassCard>
-        <GlassCard><h3 className="mb-5 text-2xl font-black text-foreground">Jamoa A’zolari</h3><div className="grid gap-4 md:grid-cols-2">{team.map((person) => <PersonCard key={person.name} {...person} />)}</div></GlassCard>
-        <GlassCard><h3 className="text-2xl font-black text-foreground">FIKR VA TAKLIFLAR UCHUN</h3><p className="mt-3 leading-7 text-muted-foreground">Sizning fikr va takliflaringiz biz uchun juda muhim. Aloqa: Navoiy, O‘zbekiston • Telegram: @ASLONBEK_MUXTOROV • BIOSTEP_EDUCATION_bot</p></GlassCard>
+      <div className="grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
+        <div className="space-y-5">
+          <GlassCard className="overflow-hidden">
+            <div className="grid gap-5 md:grid-cols-[auto_1fr] md:items-center">
+              <div className="grid h-24 w-24 place-items-center rounded-full bg-primary text-primary-foreground shadow-glow">
+                <Award className="h-11 w-11" />
+              </div>
+              <div>
+                <Pill>Premium ta’lim platformasi</Pill>
+                <h3 className="mt-4 text-3xl font-black leading-tight text-foreground">Bilim, test va 3D qo‘llanmalar bitta joyda</h3>
+                <p className="mt-3 leading-7 text-muted-foreground">EduSAT Academy foydalanuvchilarga video darslar, testlar, kutubxona, 3D qo‘llanmalar va real imtihon simulyatsiyalari orqali bilimini bosqichma-bosqich mustahkamlashga yordam beradi.</p>
+              </div>
+            </div>
+          </GlassCard>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            {["1. Maqsad", "2. O‘rganish", "3. Natija"].map((title, index) => (
+              <GlassCard key={title}>
+                <div className="mb-4 grid h-12 w-12 place-items-center rounded-full bg-primary/15 text-lg font-black text-primary">{index + 1}</div>
+                <h3 className="text-xl font-black text-foreground">{title}</h3>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">{index === 0 ? "Aniq reja va daraja bo‘yicha yo‘nalish tanlanadi." : index === 1 ? "Darslar, kitoblar va 3D vizual qo‘llanmalar bilan mustahkamlanadi." : "Testlar va reyting orqali o‘sish kuzatib boriladi."}</p>
+              </GlassCard>
+            ))}
+          </div>
+
+          <GlassCard>
+            <h3 className="mb-5 text-2xl font-black text-foreground">Minnatdorchilik</h3>
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">{mentors.map((person) => <PersonCard key={person.name} {...person} />)}</div>
+          </GlassCard>
+          <GlassCard>
+            <h3 className="mb-5 text-2xl font-black text-foreground">Jamoa A’zolari</h3>
+            <div className="grid gap-4 md:grid-cols-2">{team.map((person) => <PersonCard key={person.name} {...person} />)}</div>
+          </GlassCard>
+        </div>
+
+        <div className="space-y-5">
+          <GlassCard>
+            <MessageCircle className="mb-4 h-9 w-9 text-primary" />
+            <h3 className="text-2xl font-black text-foreground">Fikr va taklif qoldirish</h3>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">Ilovani yaxshilash uchun taklifingizni yozib qoldiring.</p>
+            <form className="mt-5 space-y-3" onSubmit={(event) => { event.preventDefault(); if (feedbackText.trim()) { setFeedbackSent(true); setFeedbackText(""); } }}>
+              <input className="h-12 w-full rounded-2xl border border-input bg-card px-4 text-foreground outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring" placeholder="Ismingiz" value={feedbackName} onChange={(event) => setFeedbackName(event.target.value)} />
+              <textarea className="min-h-32 w-full resize-none rounded-2xl border border-input bg-card px-4 py-3 text-foreground outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring" placeholder="Fikr yoki taklifingizni yozing..." value={feedbackText} onChange={(event) => setFeedbackText(event.target.value)} />
+              {feedbackSent && <p className="rounded-2xl border border-primary/30 bg-primary/10 px-4 py-3 text-sm font-bold text-primary">Taklifingiz qabul qilindi. Rahmat!</p>}
+              <button type="submit" className="premium-button inline-flex w-full items-center justify-center gap-2 rounded-2xl py-3 font-black"><Send className="h-4 w-4" /> Yuborish</button>
+            </form>
+          </GlassCard>
+          <GlassCard>
+            <h3 className="text-2xl font-black text-foreground">Aloqa</h3>
+            <div className="mt-4 space-y-3 text-sm font-bold text-muted-foreground">
+              <p>Navoiy, O‘zbekiston</p>
+              <p>Telegram: @ASLONBEK_MUXTOROV</p>
+              <p>BIOSTEP_EDUCATION_bot</p>
+            </div>
+          </GlassCard>
+        </div>
       </div>
     </section>
   );
