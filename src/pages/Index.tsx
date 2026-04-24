@@ -429,6 +429,15 @@ const Index = () => {
 
   const t = translations[lang];
   const displayName = userName.trim() || t.guest;
+  const initials = (displayName === "Mehmon" || displayName === "Guest" || displayName === "Гость")
+    ? "M"
+    : (displayName.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join("") || "M");
+
+  const AvatarBlock = ({ size = "md" }: { size?: "sm" | "md" | "lg" }) => {
+    const dim = size === "lg" ? "h-28 w-28 text-4xl" : size === "sm" ? "h-11 w-11 text-base" : "h-14 w-14 text-xl";
+    if (avatar) return <img src={avatar} alt="Profil rasmi" className={`${dim} rounded-full border-2 border-primary/40 object-cover shadow-glow`} />;
+    return <span className={`${dim} grid place-items-center rounded-full border-2 border-primary/40 bg-primary/15 font-black text-primary shadow-glow`}>{initials}</span>;
+  };
   const normalizedSearch = searchQuery.trim().toLowerCase();
   const searchableItems = useMemo(() => [
     ...sections.map((section) => ({ title: section.label, category: "Bo‘lim", section: section.id })),
