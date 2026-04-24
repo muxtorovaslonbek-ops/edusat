@@ -474,11 +474,14 @@ const Index = () => {
             <h3 className="text-2xl font-black text-foreground">{subject}</h3>
             <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
               {(sketchfab[subject as keyof typeof sketchfab] || []).map((url, index) => (
-                <a key={url} href={url} target="_blank" rel="noreferrer" className="group rounded-3xl border border-border/60 bg-secondary/40 p-4 transition hover:bg-accent">
-                  <Boxes className="mb-8 h-8 w-8 text-primary transition group-hover:scale-110" />
-                  <p className="font-black text-foreground">3D model {index + 1}</p>
-                  <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">Modelni ochish <ChevronRight className="h-4 w-4" /></p>
-                </a>
+                <div key={url} className="overflow-hidden rounded-3xl border border-border/60 bg-secondary/40">
+                  <iframe src={getSketchfabEmbed(url)} title={`${subject} 3D model ${index + 1}`} className="h-56 w-full" allow="autoplay; fullscreen; xr-spatial-tracking" allowFullScreen />
+                  <div className="p-4">
+                    <Boxes className="mb-3 h-7 w-7 text-primary" />
+                    <p className="font-black text-foreground">3D model {index + 1}</p>
+                    <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">Shu oynada ko‘rish <ChevronRight className="h-4 w-4" /></p>
+                  </div>
+                </div>
               ))}
             </div>
           </GlassCard>
@@ -562,9 +565,12 @@ const Index = () => {
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {videos.map(([subject, url]) => (
           <GlassCard key={subject}>
-            <PlayCircle className="mb-5 h-10 w-10 text-primary" />
+            <div className="mb-4 overflow-hidden rounded-3xl border border-border/60 bg-secondary/40">
+              <iframe src={getYoutubeEmbed(url)} title={`${subject} bepul dars`} className="aspect-video w-full" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
+            </div>
+            <PlayCircle className="mb-3 h-8 w-8 text-primary" />
             <h3 className="text-2xl font-black text-foreground">{subject}</h3>
-            <a href={url} target="_blank" rel="noreferrer" className="mt-5 inline-flex rounded-2xl bg-primary px-5 py-3 font-black text-primary-foreground">Darsni ochish</a>
+            <p className="mt-2 text-sm text-muted-foreground">Video dars shu oynaning ichida ochiladi.</p>
           </GlassCard>
         ))}
       </div>
