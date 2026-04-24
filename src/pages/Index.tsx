@@ -553,7 +553,10 @@ const Index = () => {
               {['Video darslik', 'PDF darslik', 'Qo‘llanma', 'Sinov testlari'].map((tag) => <Pill key={tag}>{tag}</Pill>)}
             </div>
             <ProgressBar value={35 + index * 7} />
-            <button className="mt-5 premium-button rounded-2xl px-4 py-2 text-sm font-black" onClick={() => completeActivity(20)}>Kursga kirish +20 coin</button>
+            <div className="mt-5 flex flex-wrap gap-2">
+              <button className="premium-button rounded-2xl px-4 py-2 text-sm font-black" onClick={() => completeActivity(20)}>Kursga kirish +20 coin</button>
+              <FavoriteButton item={{ id: `course-${subject}`, title: `${subject} kursi`, category: "Kurs", section: "courses" }} />
+            </div>
           </GlassCard>
         ))}
       </div>
@@ -570,7 +573,10 @@ const Index = () => {
             <h3 className="text-xl font-black text-foreground">{pack.title}</h3>
             <p className="mt-2 text-sm font-bold text-muted-foreground">{pack.meta}</p>
             <div className="mt-4 flex flex-wrap gap-2">{pack.items.map((item) => <Pill key={item}>{item}</Pill>)}</div>
-            <button className="mt-5 premium-button w-full rounded-2xl px-4 py-3 text-sm font-black" onClick={() => completeActivity(30)}>Bepul boshlash +30 coin</button>
+            <div className="mt-5 flex flex-wrap gap-2">
+              <button className="premium-button rounded-2xl px-4 py-3 text-sm font-black" onClick={() => completeActivity(30)}>Bepul boshlash +30 coin</button>
+              <FavoriteButton item={{ id: `test-pack-${pack.title}`, title: pack.title, category: "Free test", section: "free-tests" }} />
+            </div>
           </GlassCard>
         ))}
       </div>
@@ -587,6 +593,7 @@ const Index = () => {
             <div className="mt-4 grid grid-cols-2 gap-2">
               {['Quiz', 'Fan testlari', 'Full exam', 'Random'].map((item) => <button key={item} className="rounded-2xl bg-secondary/70 px-3 py-3 text-sm font-black text-secondary-foreground hover:bg-accent">{item}</button>)}
             </div>
+            <div className="mt-4"><FavoriteButton item={{ id: `subject-test-${subject}`, title: `${subject} free testi`, category: "Fan testi", section: "free-tests" }} /></div>
           </GlassCard>
         ))}
       </div>
