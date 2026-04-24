@@ -59,6 +59,38 @@ const sections = [
 const subjects = ["Matematika", "Ingliz tili", "Rus tili", "Biologiya", "Kimyo", "Fizika", "Tarix"];
 const science3d = ["Biologiya", "Kimyo", "Fizika", "Tarix", "Geografiya"];
 const levels = ["C", "C+", "B", "B+", "A", "A+"];
+const languageOptions: Array<{ code: Lang; label: string }> = [
+  { code: "uz", label: "O‘zbek" },
+  { code: "en", label: "English" },
+  { code: "ru", label: "Русский" },
+];
+
+const libraryBooks = [
+  { title: "O‘tkan kunlar", author: "Abdulla Qodiriy", level: "Adabiyot", formats: ["PDF", "Audio", "Tahlil"], cover: "OQ" },
+  { title: "Mehrobdan chayon", author: "Abdulla Qodiriy", level: "Roman", formats: ["PDF", "Audio"], cover: "MC" },
+  { title: "Boburnoma", author: "Zahiriddin Bobur", level: "Tarix", formats: ["PDF", "Xarita", "Izoh"], cover: "BN" },
+  { title: "Alpomish", author: "Xalq dostoni", level: "Doston", formats: ["PDF", "Audio", "Film"], cover: "AL" },
+  { title: "1984", author: "George Orwell", level: "English B2", formats: ["PDF", "Audio", "Vocab"], cover: "84" },
+  { title: "Hamlet", author: "William Shakespeare", level: "English C1", formats: ["PDF", "Audio", "Scene"], cover: "HL" },
+  { title: "The Old Man and the Sea", author: "Ernest Hemingway", level: "English B1", formats: ["PDF", "Audio"], cover: "OS" },
+  { title: "War and Peace", author: "Leo Tolstoy", level: "Russian C1", formats: ["PDF", "Audio", "Film"], cover: "WP" },
+];
+
+const coinShopItems = [
+  { title: "Premium test ochish", price: 300, image: "PT", description: "Daraja va SAT mini mock testlariga kirish." },
+  { title: "Bepul dars bonus", price: 450, image: "BD", description: "Tanlangan video dars uchun qo‘shimcha materiallar." },
+  { title: "Mock test chegirmasi", price: 700, image: "MT", description: "IELTS/Multi-level mock test uchun 50% chegirma." },
+  { title: "Kitob paketi", price: 900, image: "KP", description: "Kutubxona PDF/audio resurslarini ochish." },
+];
+
+const marketItems = [
+  { title: "SAT Math workbook", category: "SAT", price: "79 000 so‘m", image: "SM", description: "Algebra, problem solving va practice setlar." },
+  { title: "OTM blok to‘plami", category: "OTM", price: "69 000 so‘m", image: "OB", description: "Majburiy fanlar va asosiy blok savollari." },
+  { title: "IELTS Writing kit", category: "IELTS", price: "89 000 so‘m", image: "IW", description: "Task 1/2 shablonlari, band descriptor va namunalar." },
+  { title: "Milliy sertifikat paketi", category: "Sertifikat", price: "59 000 so‘m", image: "MS", description: "Fanlar kesimida nazariya va mavzuli testlar." },
+  { title: "Biologiya 3D atlas", category: "3D", price: "49 000 so‘m", image: "BA", description: "Anatomiya, hujayra va organlar bo‘yicha vizual atlas." },
+  { title: "Kimyo formula kartalari", category: "Kimyo", price: "39 000 so‘m", image: "KF", description: "Reaksiya, molekula va formulalar uchun tezkor kartalar." },
+];
 
 const statCards: Array<{ label: string; value: string | number; icon: LucideIcon }> = [
   { label: "Coin balans", value: 1280, icon: Coins },
@@ -219,6 +251,9 @@ const Index = () => {
   const [authError, setAuthError] = useState("");
   const [avatar, setAvatar] = useState<string | null>(null);
   const [ratings, setRatings] = useState<Record<string, number>>({});
+  const [searchQuery, setSearchQuery] = useState("");
+  const [langOpen, setLangOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);
@@ -231,6 +266,21 @@ const Index = () => {
 
   const t = translations[lang];
   const displayName = userName.trim() || t.guest;
+  const normalizedSearch = searchQuery.trim().toLowerCase();
+  const searchableItems = useMemo(() => [
+    ...sections.map((section) => ({ title: section.label, category: "Bo‘lim", section: section.id })),
+    ...subjects.map((subject) => ({ title: subject, category: "Fan", section: "courses" as SectionId })),
+    ...libraryBooks.map((book) => ({ title: book.title, category: book.author, section: "library" as SectionId })),
+    ...coinShopItems.map((item) => ({ title: item.title, category: `${item.price} coin`, section: "coin-shop" as SectionId })),
+    ...marketItems.map((item) => ({ title: item.title, category: item.category, section: "market" as SectionId })),
+    ...freeTestPacks.map((pack) => ({ title: pack.title, category: pack.meta, section: "free-tests" as SectionId })),
+  ], []);
+  const searchResults = normalizedSearch
+    ? searchableItems.filter((item) => `${item.title} ${item.category}`.toLowerCase().includes(normalizedSearch)).slice(0, 8)
+    : [];
+  const filteredSections = normalizedSearch
+    ? sections.filter((section) => section.label.toLowerCase().includes(normalizedSearch))
+    : sections;
 
   const completeActivity = (reward = 25) => setCoins((current) => current + reward);
 
@@ -247,14 +297,16 @@ const Index = () => {
       setAuthError("Ro‘yxatdan o‘tish uchun ismni kiriting.");
       return;
     }
-    if (!email.includes("@") || authPassword.length < 6) {
-      setAuthError("Email va kamida 6 belgili parol kiriting.");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || authPassword.length < 6) {
+      setAuthError("To‘g‘ri email va kamida 6 belgili parol kiriting.");
       return;
     }
     setUserName(name || email.split("@")[0] || "Foydalanuvchi");
+    setIsAuthenticated(true);
+    setActive("profile");
     setAuthError("");
     setAuthOpen(false);
-    completeActivity(100);
+    completeActivity(authMode === "register" ? 100 : 50);
   };
 
   const nav = (
@@ -275,13 +327,36 @@ const Index = () => {
       </div>
       <div className="mb-4 flex items-center gap-2 rounded-2xl border border-border/60 bg-secondary/50 p-2">
         <Search className="h-4 w-4 text-muted-foreground" />
-        <input className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground" placeholder={t.search} />
+        <input className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground" placeholder={t.search} value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} />
       </div>
+      {searchResults.length > 0 && (
+        <div className="mb-4 space-y-1 rounded-3xl border border-border/60 bg-card/70 p-2">
+          {searchResults.map((item) => (
+            <button
+              key={`${item.section}-${item.title}`}
+              className="w-full rounded-2xl px-3 py-2 text-left hover:bg-accent"
+              onClick={() => {
+                setActive(item.section);
+                setSearchQuery("");
+                setSidebarOpen(false);
+              }}
+            >
+              <span className="block text-sm font-black text-foreground">{item.title}</span>
+              <span className="text-xs font-bold text-muted-foreground">{item.category}</span>
+            </button>
+          ))}
+        </div>
+      )}
       <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto pr-1">
-        {sections.map(({ id, label, icon: Icon }) => (
+        {filteredSections.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
             onClick={() => {
+              if (id === "profile" && !isAuthenticated) {
+                setAuthMode("register");
+                setAuthOpen(true);
+                return;
+              }
               setActive(id);
               setSidebarOpen(false);
             }}
@@ -293,6 +368,7 @@ const Index = () => {
             <span>{label}</span>
           </button>
         ))}
+        {filteredSections.length === 0 && <p className="px-3 py-4 text-sm font-bold text-muted-foreground">Natija topilmadi</p>}
       </nav>
     </aside>
   );
@@ -300,22 +376,23 @@ const Index = () => {
   const renderHome = () => (
     <>
       <section className="grid gap-5 xl:grid-cols-[1.35fr_0.65fr]">
-        <GlassCard className="overflow-hidden p-7 md:p-9">
-          <div className="relative z-10">
-            <Pill>Modern Glassmorphism • Premium Tech</Pill>
-            <h1 className="mt-5 max-w-4xl text-4xl font-black leading-tight text-foreground md:text-6xl">
-              {t.greeting}, {displayName === "Mehmon" ? t.guest : displayName}
+        <GlassCard className="relative min-h-[360px] overflow-hidden p-7 md:p-10">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_78%_30%,hsl(var(--primary)/0.2),transparent_34%)]" />
+          <div className="relative z-10 flex h-full flex-col justify-center">
+            <h1 className="max-w-4xl text-4xl font-black leading-tight text-foreground md:text-6xl">
+              EduSAT <span className="text-primary">Academy</span><br />Sizning <span className="text-primary">Muvaffaqiyat</span> Yo‘lingiz
             </h1>
-            <p className="mt-4 max-w-2xl text-lg leading-8 text-muted-foreground">
-              SAT, OTM, IELTS, Multi-level va Milliy sertifikat tayyorgarligi uchun testlar, 3D qo‘llanmalar, kurslar va coin rag‘bat tizimi.
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-muted-foreground">
+              {t.greeting}, <b className="text-foreground">{displayName === "Mehmon" ? t.guest : displayName}</b>! SAT, OTM va xalqaro imtihonlarga premium tayyorlaning.
             </p>
-            <div className="mt-7 flex flex-wrap gap-3">
+            <div className="mt-8 flex flex-wrap gap-3">
               {["Daraja aniqlash", "Free Testlar", "3D qo‘llanmalar", "Bepul darslar"].map((item) => (
                 <button key={item} className="premium-button rounded-2xl px-5 py-3 text-sm font-black" onClick={() => setActive(sections.find((s) => s.label === item)?.id ?? "level")}>
                   {item}
                 </button>
               ))}
             </div>
+            <div className="pointer-events-none absolute bottom-4 right-6 text-[180px] font-black leading-none text-primary/10">”</div>
           </div>
         </GlassCard>
         <GlassCard>
@@ -492,15 +569,18 @@ const Index = () => {
       <div className="space-y-5">
         {science3d.map((subject) => (
           <GlassCard key={subject}>
-            <h3 className="text-2xl font-black text-foreground">{subject}</h3>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h3 className="text-2xl font-black text-foreground">{subject}</h3>
+              <Pill>{(sketchfab[subject as keyof typeof sketchfab] || []).length} ta interaktiv model</Pill>
+            </div>
             <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
               {(sketchfab[subject as keyof typeof sketchfab] || []).map((url, index) => (
                 <div key={url} className="overflow-hidden rounded-3xl border border-border/60 bg-secondary/40">
                   <iframe src={getSketchfabEmbed(url)} title={`${subject} 3D model ${index + 1}`} className="h-56 w-full" allow="autoplay; fullscreen; xr-spatial-tracking" allowFullScreen />
                   <div className="p-4">
                     <Boxes className="mb-3 h-7 w-7 text-primary" />
-                    <p className="font-black text-foreground">3D model {index + 1}</p>
-                    <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">Shu oynada ko‘rish <ChevronRight className="h-4 w-4" /></p>
+                    <p className="font-black text-foreground">{subject} modeli {index + 1}</p>
+                    <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">Bo‘limcha ichida ochiladi <ChevronRight className="h-4 w-4" /></p>
                   </div>
                 </div>
               ))}
@@ -515,11 +595,13 @@ const Index = () => {
     <section>
       <SectionTitle kicker="Kutubxona" title="Badiiy asarlar va jahon adabiyoti" text="Har bir kitob uchun PDF, audio va film formatlari namuna sifatida joylashtirildi." />
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {["Alpomish", "O‘tkan kunlar", "The Old Man and the Sea", "War and Peace", "Hamlet", "Boburnoma", "1984", "Pride and Prejudice"].map((book) => (
-          <GlassCard key={book}>
-            <Library className="mb-5 h-8 w-8 text-primary" />
-            <h3 className="text-xl font-black text-foreground">{book}</h3>
-            <div className="mt-4 flex flex-wrap gap-2"><Pill>PDF</Pill><Pill>Audio</Pill><Pill>Film</Pill></div>
+        {libraryBooks.map((book) => (
+          <GlassCard key={book.title}>
+            <div className="mb-5 grid h-28 place-items-center rounded-3xl border border-border/60 bg-primary/15 text-4xl font-black text-primary shadow-glow">{book.cover}</div>
+            <Pill>{book.level}</Pill>
+            <h3 className="mt-4 text-xl font-black text-foreground">{book.title}</h3>
+            <p className="mt-1 text-sm font-bold text-muted-foreground">{book.author}</p>
+            <div className="mt-4 flex flex-wrap gap-2">{book.formats.map((format) => <Pill key={format}>{format}</Pill>)}</div>
           </GlassCard>
         ))}
       </div>
@@ -530,11 +612,15 @@ const Index = () => {
     <section>
       <SectionTitle kicker="Coin do‘koni" title="Coin evaziga kontent va chegirmalar" text="Darslar, mock testlar va kitoblarga coin orqali chegirma oling." />
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {["Premium test ochish", "Darslarga 30% chegirma", "Mock test 50% chegirma", "Kitoblar 70% chegirma"].map((item, index) => (
-          <GlassCard key={item}>
-            <Coins className="mb-4 h-8 w-8 text-primary" />
-            <h3 className="text-xl font-black text-foreground">{item}</h3>
-            <p className="mt-3 text-2xl font-black text-primary">{[300, 500, 700, 900][index]} coin</p>
+        {coinShopItems.map((item) => (
+          <GlassCard key={item.title}>
+            <div className="mb-4 grid h-24 place-items-center rounded-3xl bg-primary/15 text-3xl font-black text-primary shadow-glow">{item.image}</div>
+            <h3 className="text-xl font-black text-foreground">{item.title}</h3>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">{item.description}</p>
+            <div className="mt-4 flex items-center justify-between gap-3">
+              <p className="text-2xl font-black text-primary">{item.price} coin</p>
+              <button className="rounded-2xl border border-border px-3 py-2 text-sm font-black text-foreground hover:bg-accent" onClick={() => setCoins((current) => Math.max(0, current - item.price))}>Olish</button>
+            </div>
           </GlassCard>
         ))}
       </div>
@@ -545,12 +631,17 @@ const Index = () => {
     <section>
       <SectionTitle kicker="Edu market" title="Qo‘llanmalar, test kitoblari va adabiyotlar" text="Fanlar bo‘yicha mavzulashtirilgan kitoblar va badiiy adabiyotlarni xarid qiling." />
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {subjects.map((subject, index) => (
-          <GlassCard key={subject}>
-            <ShoppingBag className="mb-4 h-8 w-8 text-primary" />
-            <h3 className="text-2xl font-black text-foreground">{subject} to‘plami</h3>
-            <p className="mt-2 text-muted-foreground">Qo‘llanma + mavzulashtirilgan test kitobi</p>
-            <p className="mt-4 text-2xl font-black text-primary">{(39 + index * 5).toLocaleString()} 000 so‘m</p>
+        {marketItems.map((item) => (
+          <GlassCard key={item.title}>
+            <div className="mb-4 flex items-center gap-4">
+              <div className="grid h-20 w-20 shrink-0 place-items-center rounded-3xl bg-primary/15 text-2xl font-black text-primary shadow-glow">{item.image}</div>
+              <div>
+                <Pill>{item.category}</Pill>
+                <h3 className="mt-3 text-2xl font-black text-foreground">{item.title}</h3>
+              </div>
+            </div>
+            <p className="text-muted-foreground">{item.description}</p>
+            <p className="mt-4 text-2xl font-black text-primary">{item.price}</p>
           </GlassCard>
         ))}
       </div>
@@ -710,9 +801,12 @@ const Index = () => {
             <div className="flex items-center gap-2">
               <div className="hidden items-center gap-2 rounded-2xl border border-border bg-secondary/50 px-3 py-2 font-black text-foreground sm:flex"><Coins className="h-4 w-4 text-primary" />{coins}</div>
               <button className="rounded-2xl p-3 hover:bg-accent" onClick={() => setDark(!dark)} aria-label="Theme almashtirish">{dark ? <Sun /> : <Moon />}</button>
-          <button className="inline-flex items-center gap-2 rounded-2xl border border-border bg-secondary/50 px-3 py-3 font-black text-foreground hover:bg-accent" onClick={() => setLang(lang === "uz" ? "en" : lang === "en" ? "ru" : "uz")} aria-label="Til almashtirish"><Languages className="h-5 w-5" /><span className="text-xs uppercase">{lang}</span></button>
-              <button className="hidden rounded-2xl bg-primary px-4 py-3 font-black text-primary-foreground md:inline-flex" onClick={() => { setAuthMode("login"); setAuthOpen(true); }}><LogIn className="mr-2 h-4 w-4" />{t.login}</button>
-              <img src={avatar || aslonbekImg} alt="Profil" className="h-11 w-11 rounded-full border-2 border-primary/40 object-cover" />
+              <div className="relative">
+                <button className="inline-flex items-center gap-2 rounded-2xl border border-border bg-secondary/50 px-3 py-3 font-black text-foreground hover:bg-accent" onClick={() => setLangOpen(!langOpen)} aria-label="Til tanlash"><Languages className="h-5 w-5" /><span className="text-xs uppercase">{lang}</span></button>
+                {langOpen && <div className="absolute right-0 top-14 z-40 w-40 rounded-3xl border border-border bg-card/95 p-2 shadow-premium backdrop-blur-xl">{languageOptions.map((option) => <button key={option.code} className={`w-full rounded-2xl px-3 py-2 text-left text-sm font-black ${lang === option.code ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-accent"}`} onClick={() => { setLang(option.code); setLangOpen(false); }}>{option.label}</button>)}</div>}
+              </div>
+              <button className="hidden rounded-2xl bg-primary px-4 py-3 font-black text-primary-foreground md:inline-flex" onClick={() => { isAuthenticated ? setActive("profile") : setAuthOpen(true); setAuthMode("login"); }}><LogIn className="mr-2 h-4 w-4" />{isAuthenticated ? "Profil" : t.login}</button>
+              <button onClick={() => { isAuthenticated ? setActive("profile") : setAuthOpen(true); }} aria-label="Profilga o‘tish"><img src={avatar || aslonbekImg} alt="Profil" className="h-11 w-11 rounded-full border-2 border-primary/40 object-cover" /></button>
             </div>
           </header>
           <div className="pb-8">{content()}</div>
