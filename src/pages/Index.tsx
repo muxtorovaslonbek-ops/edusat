@@ -174,6 +174,100 @@ const levelTestQuestions: Record<string, Array<{ subject: string; question: stri
   ],
 };
 
+const quizBank: Record<string, Array<{ question: string; answer: string }>> = {
+  Matematika: [
+    { question: "12 × 8 = ?", answer: "96" },
+    { question: "144 ning kvadrat ildizi?", answer: "12" },
+    { question: "3x = 27 bo‘lsa, x = ?", answer: "9" },
+    { question: "5! (faktorial) nechaga teng?", answer: "120" },
+    { question: "Aylananing yuzi formulasi (S = ?)", answer: "πr²" },
+    { question: "1 km nechta metr?", answer: "1000" },
+    { question: "Eng kichik tub son qaysi?", answer: "2" },
+    { question: "log10(1000) = ?", answer: "3" },
+    { question: "sin(90°) = ?", answer: "1" },
+    { question: "2^10 = ?", answer: "1024" },
+  ],
+  "Ingliz tili": [
+    { question: "Past tense of 'go'?", answer: "went" },
+    { question: "Antonym of 'happy'?", answer: "sad" },
+    { question: "Plural of 'child'?", answer: "children" },
+    { question: "Article: ___ apple a day.", answer: "an" },
+    { question: "Choose: She ___ to school every day.", answer: "goes" },
+    { question: "Synonym of 'big'?", answer: "large" },
+    { question: "Past participle of 'write'?", answer: "written" },
+    { question: "Comparative of 'good'?", answer: "better" },
+    { question: "How many letters in the English alphabet?", answer: "26" },
+    { question: "Capital of England?", answer: "London" },
+  ],
+  "Rus tili": [
+    { question: "Сколько падежей в русском языке?", answer: "6" },
+    { question: "Множественное число от 'дом'?", answer: "дома" },
+    { question: "Антоним слова 'белый'?", answer: "черный" },
+    { question: "Столица России?", answer: "Москва" },
+    { question: "Глагол: я ___ книгу (читать)", answer: "читаю" },
+    { question: "Синоним слова 'большой'?", answer: "огромный" },
+    { question: "Сколько букв в русском алфавите?", answer: "33" },
+    { question: "Прошедшее время от 'идти'?", answer: "шёл" },
+    { question: "Перевод 'apple' на русский?", answer: "яблоко" },
+    { question: "Число 'пять' цифрами?", answer: "5" },
+  ],
+  Biologiya: [
+    { question: "Fotosintezda ajraladigan gaz?", answer: "Kislorod" },
+    { question: "Inson tanasida nechta xromosoma?", answer: "46" },
+    { question: "Hujayraning energiya stansiyasi?", answer: "Mitoxondriya" },
+    { question: "Qonni tozalovchi organ?", answer: "Buyrak" },
+    { question: "Eng katta organ?", answer: "Teri" },
+    { question: "DNK to‘liq nomi?", answer: "Dezoksiribonuklein kislota" },
+    { question: "Yurakda nechta bo‘lma bor?", answer: "4" },
+    { question: "O‘simliklarda yashil pigment?", answer: "Xlorofill" },
+    { question: "Inson skeletida nechta suyak bor?", answer: "206" },
+    { question: "Qon guruhlari nechta?", answer: "4" },
+  ],
+  Kimyo: [
+    { question: "Suvning formulasi?", answer: "H2O" },
+    { question: "Oltinning kimyoviy belgisi?", answer: "Au" },
+    { question: "Davriy jadvalda nechta element bor (taxminan)?", answer: "118" },
+    { question: "NaCl nomi?", answer: "Natriy xlorid" },
+    { question: "Kislorodning belgisi?", answer: "O" },
+    { question: "pH 7 bu qanday muhit?", answer: "Neytral" },
+    { question: "Vodorod belgisi?", answer: "H" },
+    { question: "CO2 nomi?", answer: "Karbonat angidrid" },
+    { question: "Eng yengil element?", answer: "Vodorod" },
+    { question: "Temirning belgisi?", answer: "Fe" },
+  ],
+  Fizika: [
+    { question: "Tezlik formulasi?", answer: "v=s/t" },
+    { question: "Tok kuchi birligi?", answer: "Amper" },
+    { question: "Erkin tushish tezlanishi (g)?", answer: "9.8" },
+    { question: "Quvvat birligi?", answer: "Vatt" },
+    { question: "Yorug‘lik tezligi (km/s)?", answer: "300000" },
+    { question: "Massa birligi (SI)?", answer: "kg" },
+    { question: "F = ma — bu kimning qonuni?", answer: "Nyuton" },
+    { question: "Kuchlanish birligi?", answer: "Volt" },
+    { question: "Energiya birligi?", answer: "Joul" },
+    { question: "Temperatura birligi (SI)?", answer: "Kelvin" },
+  ],
+  Tarix: [
+    { question: "Mustaqillik yili?", answer: "1991" },
+    { question: "Amir Temur poytaxti?", answer: "Samarqand" },
+    { question: "Birinchi jahon urushi qachon boshlangan?", answer: "1914" },
+    { question: "Ikkinchi jahon urushi tugagan yili?", answer: "1945" },
+    { question: "Mustaqillik kuni (sana)?", answer: "1-sentyabr" },
+    { question: "Bobur qaysi davlatga asos solgan?", answer: "Boburiylar" },
+    { question: "Konstitutsiya qabul qilingan yil?", answer: "1992" },
+    { question: "Sovet Ittifoqi tarqalgan yil?", answer: "1991" },
+    { question: "Birinchi prezident?", answer: "Islom Karimov" },
+    { question: "Ipak yo‘li qaysi qit’alarni bog‘lagan?", answer: "Osiyo va Yevropa" },
+  ],
+};
+
+const quizModeMeta: Record<string, { count: number; label: string }> = {
+  Quiz: { count: 5, label: "Tezkor 5 savol" },
+  "Fan testlari": { count: 10, label: "To‘liq fan 10 savol" },
+  "Full exam": { count: 10, label: "Full exam 10 savol" },
+  Random: { count: 7, label: "Random 7 savol" },
+};
+
 const sketchfab = {
   Biologiya: [
     "https://sketchfab.com/3d-models/modern-human-skeletal-organs-c06468c7f4444e08a397e90bc84381d3",
@@ -295,6 +389,7 @@ const Index = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [active3dSubject, setActive3dSubject] = useState("Hammasi");
   const [activeLevelTest, setActiveLevelTest] = useState<string | null>(null);
+  const [activeQuiz, setActiveQuiz] = useState<{ subject: string; mode: string } | null>(null);
   const [feedbackName, setFeedbackName] = useState("");
   const [feedbackText, setFeedbackText] = useState("");
   const [feedbackSent, setFeedbackSent] = useState(false);
@@ -676,12 +771,42 @@ const Index = () => {
               <Timer className="text-primary" />
             </div>
             <div className="mt-4 grid grid-cols-2 gap-2">
-              {['Quiz', 'Fan testlari', 'Full exam', 'Random'].map((item) => <button key={item} className="rounded-2xl bg-secondary/70 px-3 py-3 text-sm font-black text-secondary-foreground hover:bg-accent">{item}</button>)}
+              {['Quiz', 'Fan testlari', 'Full exam', 'Random'].map((item) => (
+                <button
+                  key={item}
+                  onClick={() => { setActiveQuiz({ subject, mode: item }); setSubmittedTests((current) => ({ ...current, [`quiz-${subject}-${item}`]: false })); }}
+                  className={`rounded-2xl px-3 py-3 text-sm font-black hover:bg-accent ${activeQuiz?.subject === subject && activeQuiz?.mode === item ? "bg-primary text-primary-foreground" : "bg-secondary/70 text-secondary-foreground"}`}
+                >
+                  {item}
+                </button>
+              ))}
             </div>
             <div className="mt-4"><FavoriteButton item={{ id: `subject-test-${subject}`, title: `${subject} free testi`, category: "Fan testi", section: "free-tests" }} /></div>
           </GlassCard>
         ))}
       </div>
+      {activeQuiz && quizBank[activeQuiz.subject] && (() => {
+        const meta = quizModeMeta[activeQuiz.mode];
+        const bank = quizBank[activeQuiz.subject];
+        const count = Math.min(meta.count, bank.length);
+        const questions = (activeQuiz.mode === "Random" ? [...bank].sort(() => 0.5 - Math.random()) : bank).slice(0, count).map((q) => ({ subject: `${activeQuiz.subject} ${activeQuiz.mode}`, question: q.question, answer: q.answer }));
+        const testId = `quiz-${activeQuiz.subject}-${activeQuiz.mode}`;
+        return (
+          <div className="mt-6">
+            <GlassCard>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <Pill>{meta.label}</Pill>
+                  <h3 className="mt-3 text-2xl font-black text-foreground">{activeQuiz.subject} — {activeQuiz.mode}</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">Javoblarni yozing va tekshirish tugmasini bosing.</p>
+                </div>
+                <button className="rounded-2xl border border-border px-4 py-2 text-sm font-black text-foreground hover:bg-accent" onClick={() => setActiveQuiz(null)}>Yopish</button>
+              </div>
+              <TestRunner testId={testId} questions={questions} />
+            </GlassCard>
+          </div>
+        );
+      })()}
       <TestRunner testId="free-subjects" questions={sampleQuestions} />
       <TestRunner testId="free-sat-otm" questions={satOtmQuestions} />
     </section>
