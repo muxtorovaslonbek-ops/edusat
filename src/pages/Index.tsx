@@ -511,18 +511,28 @@ const Index = () => {
   const renderProfile = () => (
     <section>
       <SectionTitle kicker="Profil" title="Foydalanuvchi ma’lumotlari va statistika" text="Profil rasmini tahrirlang, natijalar, coinlar va o‘quv progressini kuzating." />
-      <div className="grid gap-5 lg:grid-cols-[0.75fr_1.25fr]">
-        <GlassCard className="text-center">
-          <img src={avatar || aslonbekImg} alt="Profil rasmi" className="mx-auto h-32 w-32 rounded-full border-4 border-primary/30 object-cover shadow-glow" />
-          <h3 className="mt-4 text-2xl font-black text-foreground">{displayName}</h3>
-          <p className="text-muted-foreground">EduSAT Academy foydalanuvchisi</p>
-          <label className="mt-5 inline-flex cursor-pointer rounded-2xl bg-primary px-5 py-3 text-sm font-black text-primary-foreground">
-            Rasmni tahrirlash
-            <input type="file" accept="image/*" className="hidden" onChange={handleAvatar} />
-          </label>
-          <button className="mt-3 w-full rounded-2xl border border-border px-5 py-3 text-sm font-black text-foreground hover:bg-accent" onClick={() => { setIsAuthenticated(false); setUserName("Mehmon"); setProfileName("Mehmon"); setAuthEmail(""); setAuthPassword(""); setActive("home"); }}>Profildan chiqish</button>
+      <div className="space-y-5">
+        <GlassCard>
+          <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-center gap-4">
+              <img src={avatar || aslonbekImg} alt="Profil rasmi" className="h-28 w-28 rounded-full border-4 border-primary/30 object-cover shadow-glow" />
+              <div>
+                <Pill>1-bosqich • Shaxsiy profil</Pill>
+                <h3 className="mt-3 text-3xl font-black text-foreground">{displayName}</h3>
+                <p className="text-muted-foreground">EduSAT Academy foydalanuvchisi</p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <label className="inline-flex cursor-pointer rounded-2xl bg-primary px-5 py-3 text-sm font-black text-primary-foreground">
+                Rasmni tahrirlash
+                <input type="file" accept="image/*" className="hidden" onChange={handleAvatar} />
+              </label>
+              <button className="rounded-2xl border border-border px-5 py-3 text-sm font-black text-foreground hover:bg-accent" onClick={() => { setIsAuthenticated(false); setUserName("Mehmon"); setProfileName("Mehmon"); setAuthEmail(""); setAuthPassword(""); setActive("home"); }}>Profildan chiqish</button>
+            </div>
+          </div>
         </GlassCard>
         <GlassCard>
+          <Pill>2-bosqich • Ma’lumotlarni tahrirlash</Pill>
           <div className="mb-5 grid gap-3 md:grid-cols-2">
             <label className="space-y-2 text-sm font-black text-foreground">
               Ism familiya
@@ -537,6 +547,9 @@ const Index = () => {
               <input className="h-12 w-full rounded-2xl border border-input bg-card px-4 font-bold text-foreground outline-none focus:ring-2 focus:ring-ring" defaultValue="SAT/OTM imtihonlariga tayyorgarlik" />
             </label>
           </div>
+        </GlassCard>
+        <GlassCard>
+          <Pill>3-bosqich • O‘quv progressi</Pill>
           <div className="grid gap-4 md:grid-cols-2">
             {["SAT/OTM progress", "Free test aniqligi", "Daraja testi", "Kurs ishtiroki"].map((item, index) => (
               <div key={item} className="rounded-2xl border border-border/60 bg-secondary/40 p-4">
