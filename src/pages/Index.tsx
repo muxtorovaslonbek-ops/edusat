@@ -993,24 +993,52 @@ const Index = () => {
     </section>
   );
 
-  const renderCoinShop = () => (
-    <section>
-      <SectionTitle kicker="Coin do‘koni" title="Coin evaziga kontent va chegirmalar" text="Darslar, mock testlar va kitoblarga coin orqali chegirma oling." />
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {coinShopItems.map((item) => (
-          <GlassCard key={item.title}>
-            <div className="mb-4 grid h-24 place-items-center rounded-3xl bg-primary/15 text-3xl font-black text-primary shadow-glow">{item.image}</div>
-            <h3 className="text-xl font-black text-foreground">{item.title}</h3>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">{item.description}</p>
-            <div className="mt-4 flex items-center justify-between gap-3">
-              <p className="text-2xl font-black text-primary">{item.price} coin</p>
-              <button className="rounded-2xl border border-border px-3 py-2 text-sm font-black text-foreground hover:bg-accent" onClick={() => setCoins((current) => Math.max(0, current - item.price))}>Olish</button>
+  const renderCoinShop = () => {
+    const buy = (title: string, price: number) => {
+      if (purchasedItems[title]) { setShopMessage(`✓ "${title}" allaqachon ochilgan`); return; }
+      if (coins < price) { setShopMessage(`Coin yetarli emas. Yana ${price - coins} coin kerak.`); return; }
+      setCoins((current) => current - price);
+      setPurchasedItems((current) => ({ ...current, [title]: true }));
+      setShopMessage(`✓ "${title}" muvaffaqiyatli ochildi!`);
+    };
+    return (
+      <section>
+        <SectionTitle kicker="Coin do‘koni" title="Coin evaziga kontent va chegirmalar" text="Darslar, mock testlar va kitoblarga coin orqali chegirma oling." />
+        <GlassCard className="mb-5 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-primary text-primary-foreground"><Coins className="h-6 w-6" /></div>
+            <div>
+              <p className="text-sm font-bold text-muted-foreground">Joriy balans</p>
+              <p className="text-2xl font-black text-foreground">{coins} coin</p>
             </div>
-          </GlassCard>
-        ))}
-      </div>
-    </section>
-  );
+          </div>
+          {shopMessage && <p className="rounded-2xl border border-primary/30 bg-primary/10 px-4 py-2 text-sm font-black text-primary">{shopMessage}</p>}
+        </GlassCard>
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {coinShopItems.map((item) => {
+            const owned = purchasedItems[item.title];
+            return (
+              <GlassCard key={item.title} className={owned ? "ring-2 ring-primary" : ""}>
+                <div className="mb-4 grid h-24 place-items-center rounded-3xl bg-primary/15 text-3xl font-black text-primary shadow-glow">{item.image}</div>
+                <h3 className="text-xl font-black text-foreground">{item.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">{item.description}</p>
+                <div className="mt-4 flex items-center justify-between gap-3">
+                  <p className="text-2xl font-black text-primary">{item.price} coin</p>
+                  <button
+                    disabled={owned}
+                    className={`rounded-2xl px-3 py-2 text-sm font-black ${owned ? "bg-primary text-primary-foreground" : "border border-border text-foreground hover:bg-accent"}`}
+                    onClick={() => buy(item.title, item.price)}
+                  >
+                    {owned ? "Ochilgan" : "Olish"}
+                  </button>
+                </div>
+              </GlassCard>
+            );
+          })}
+        </div>
+      </section>
+    );
+  };
 
   const renderMarket = () => (
     <section>
