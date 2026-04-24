@@ -254,6 +254,7 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [langOpen, setLangOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [active3dSubject, setActive3dSubject] = useState("Hammasi");
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);
@@ -281,6 +282,11 @@ const Index = () => {
   const filteredSections = normalizedSearch
     ? sections.filter((section) => section.label.toLowerCase().includes(normalizedSearch))
     : sections;
+  const all3dModels = useMemo(
+    () => science3d.flatMap((subject) => (sketchfab[subject as keyof typeof sketchfab] || []).map((url, index) => ({ subject, url, index }))),
+    []
+  );
+  const visible3dModels = active3dSubject === "Hammasi" ? all3dModels : all3dModels.filter((model) => model.subject === active3dSubject);
 
   const completeActivity = (reward = 25) => setCoins((current) => current + reward);
 
