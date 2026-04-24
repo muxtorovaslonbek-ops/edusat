@@ -683,19 +683,20 @@ const Index = () => {
         <GlassCard>
           <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-4">
-              <img src={avatar || aslonbekImg} alt="Profil rasmi" className="h-28 w-28 rounded-full border-4 border-primary/30 object-cover shadow-glow" />
+              <AvatarBlock size="lg" />
               <div>
                 <Pill>1-bosqich • Shaxsiy profil</Pill>
                 <h3 className="mt-3 text-3xl font-black text-foreground">{displayName}</h3>
-                <p className="text-muted-foreground">EduSAT Academy foydalanuvchisi</p>
+                <p className="text-muted-foreground">{avatar ? "EduSAT Academy foydalanuvchisi" : "Profil rasmi qo‘yilmagan — istasangiz yuklab qo‘ying"}</p>
               </div>
             </div>
             <div className="flex flex-wrap gap-2">
               <label className="inline-flex cursor-pointer rounded-2xl bg-primary px-5 py-3 text-sm font-black text-primary-foreground">
-                Rasmni tahrirlash
+                {avatar ? "Rasmni o‘zgartirish" : "Rasm yuklash"}
                 <input type="file" accept="image/*" className="hidden" onChange={handleAvatar} />
               </label>
-              <button className="rounded-2xl border border-border px-5 py-3 text-sm font-black text-foreground hover:bg-accent" onClick={() => { setIsAuthenticated(false); setUserName("Mehmon"); setProfileName("Mehmon"); setAuthEmail(""); setAuthPassword(""); setActive("home"); }}>Profildan chiqish</button>
+              {avatar && <button className="rounded-2xl border border-border px-5 py-3 text-sm font-black text-foreground hover:bg-accent" onClick={() => setAvatar(null)}>Rasmni olib tashlash</button>}
+              <button className="rounded-2xl border border-border px-5 py-3 text-sm font-black text-foreground hover:bg-accent" onClick={() => { setIsAuthenticated(false); setUserName("Mehmon"); setProfileName("Mehmon"); setAvatar(null); setAuthEmail(""); setAuthPassword(""); setActive("home"); }}>Profildan chiqish</button>
             </div>
           </div>
         </GlassCard>
