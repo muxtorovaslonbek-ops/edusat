@@ -461,8 +461,23 @@ const Index = () => {
             Rasmni tahrirlash
             <input type="file" accept="image/*" className="hidden" onChange={handleAvatar} />
           </label>
+          <button className="mt-3 w-full rounded-2xl border border-border px-5 py-3 text-sm font-black text-foreground hover:bg-accent" onClick={() => { setIsAuthenticated(false); setUserName("Mehmon"); setProfileName("Mehmon"); setAuthEmail(""); setAuthPassword(""); setActive("home"); }}>Profildan chiqish</button>
         </GlassCard>
         <GlassCard>
+          <div className="mb-5 grid gap-3 md:grid-cols-2">
+            <label className="space-y-2 text-sm font-black text-foreground">
+              Ism familiya
+              <input className="h-12 w-full rounded-2xl border border-input bg-card px-4 font-bold text-foreground outline-none focus:ring-2 focus:ring-ring" value={profileName} onChange={(event) => { setProfileName(event.target.value); setUserName(event.target.value || "Mehmon"); }} />
+            </label>
+            <label className="space-y-2 text-sm font-black text-foreground">
+              Email
+              <input className="h-12 w-full rounded-2xl border border-input bg-card px-4 font-bold text-foreground outline-none focus:ring-2 focus:ring-ring" type="email" value={profileEmail} onChange={(event) => setProfileEmail(event.target.value)} />
+            </label>
+            <label className="space-y-2 text-sm font-black text-foreground md:col-span-2">
+              Maqsad
+              <input className="h-12 w-full rounded-2xl border border-input bg-card px-4 font-bold text-foreground outline-none focus:ring-2 focus:ring-ring" defaultValue="SAT/OTM imtihonlariga tayyorgarlik" />
+            </label>
+          </div>
           <div className="grid gap-4 md:grid-cols-2">
             {["SAT/OTM progress", "Free test aniqligi", "Daraja testi", "Kurs ishtiroki"].map((item, index) => (
               <div key={item} className="rounded-2xl border border-border/60 bg-secondary/40 p-4">
