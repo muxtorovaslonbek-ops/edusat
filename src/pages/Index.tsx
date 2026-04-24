@@ -213,6 +213,10 @@ const Index = () => {
   const [userName, setUserName] = useState("Mehmon");
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
+  const [authName, setAuthName] = useState("");
+  const [authEmail, setAuthEmail] = useState("");
+  const [authPassword, setAuthPassword] = useState("");
+  const [authError, setAuthError] = useState("");
   const [avatar, setAvatar] = useState<string | null>(null);
   const [ratings, setRatings] = useState<Record<string, number>>({});
 
@@ -234,6 +238,23 @@ const Index = () => {
     const file = event.target.files?.[0];
     if (!file) return;
     setAvatar(URL.createObjectURL(file));
+  };
+
+  const handleAuthSubmit = () => {
+    const name = authName.trim();
+    const email = authEmail.trim();
+    if (authMode === "register" && name.length < 2) {
+      setAuthError("Ro‘yxatdan o‘tish uchun ismni kiriting.");
+      return;
+    }
+    if (!email.includes("@") || authPassword.length < 6) {
+      setAuthError("Email va kamida 6 belgili parol kiriting.");
+      return;
+    }
+    setUserName(name || email.split("@")[0] || "Foydalanuvchi");
+    setAuthError("");
+    setAuthOpen(false);
+    completeActivity(100);
   };
 
   const nav = (
