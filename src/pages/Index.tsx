@@ -263,6 +263,8 @@ const Index = () => {
   const [avatar, setAvatar] = useState<string | null>(null);
   const [ratings, setRatings] = useState<Record<string, number>>({});
   const [favorites, setFavorites] = useState<Array<{ id: string; title: string; category: string; section: SectionId }>>([]);
+  const [testAnswers, setTestAnswers] = useState<Record<string, string>>({});
+  const [submittedTests, setSubmittedTests] = useState<Record<string, boolean>>({});
   const [searchQuery, setSearchQuery] = useState("");
   const [langOpen, setLangOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -302,6 +304,12 @@ const Index = () => {
     []
   );
   const visible3dModels = active3dSubject === "Hammasi" ? all3dModels : all3dModels.filter((model) => model.subject === active3dSubject);
+  const favoriteCategoryOrder = ["Kurs", "Free test", "Fan testi", "Kitob", "3D qo‘llanma", "Bepul dars", "Edu market"];
+  const groupedFavorites = favoriteCategoryOrder
+    .map((category) => ({ category, items: favorites.filter((item) => item.category === category) }))
+    .filter((group) => group.items.length > 0);
+  const normalizeAnswer = (value: string) => value.trim().toLowerCase().replace(/[’']/g, "'").replace(/\s+/g, " ");
+  const getTestScore = (testId: string, questions: typeof sampleQuestions) => questions.filter((q) => normalizeAnswer(testAnswers[`${testId}-${q.subject}`] || "") === normalizeAnswer(q.answer)).length;
 
   const completeActivity = (reward = 25) => setCoins((current) => current + reward);
 
@@ -356,6 +364,37 @@ const Index = () => {
       <Heart className="h-4 w-4" /> {isFavorite(item.id) ? "Saqlangan" : "Sevimli"}
     </button>
   );
+
+  const TestRunner = ({ testId, questions }: { testId: string; questions: typeof sampleQuestions }) => {
+    const submitted = submittedTests[testId];
+    const score = getTestScore(testId, questions);
+
+    return (
+      <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {questions.map((q, index) => {
+          const answerKey = `${testId}-${q.subject}`;
+          const isCorrect = normalizeAnswer(testAnswers[answerKey] || "") === normalizeAnswer(q.answer);
+          return (
+            <div key={`${testId}-${q.subject}-${index}`} className="rounded-3xl border border-border/60 bg-card/70 p-5">
+              <Pill>{q.subject}</Pill>
+              <p className="mt-4 font-black text-foreground">{q.question}</p>
+              <input className="mt-4 h-11 w-full rounded-2xl border border-input bg-background px-4 font-bold text-foreground outline-none focus:ring-2 focus:ring-ring" placeholder="Javob yozing" value={testAnswers[answerKey] || ""} onChange={(event) => setTestAnswers({ ...testAnswers, [answerKey]: event.target.value })} />
+              {submitted && <p className={`mt-3 text-sm font-black ${isCorrect ? "text-primary" : "text-destructive"}`}>{isCorrect ? "To‘g‘ri javob" : `Noto‘g‘ri. To‘g‘ri javob: ${q.answer}`}</p>}
+            </div>
+          );
+        })}
+        <GlassCard className="md:col-span-2 xl:col-span-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h3 className="text-2xl font-black text-foreground">Test natijasi</h3>
+              <p className="mt-1 text-sm text-muted-foreground">{submitted ? `${score}/${questions.length} ta to‘g‘ri javob` : "Javoblarni yozib, tekshirish tugmasini bosing."}</p>
+            </div>
+            <button className="premium-button rounded-2xl px-5 py-3 font-black" onClick={() => { setSubmittedTests({ ...submittedTests, [testId]: true }); completeActivity(30); }}>Tekshirish +30 coin</button>
+          </div>
+        </GlassCard>
+      </div>
+    );
+  };
 
   const nav = (
     <aside className="glass-panel fixed inset-y-3 left-3 z-40 flex w-[min(84vw,320px)] flex-col rounded-3xl p-4 shadow-premium transition-transform duration-300 lg:sticky lg:top-3 lg:h-[calc(100vh-1.5rem)] lg:w-80 lg:translate-x-0 data-[open=false]:-translate-x-[110%]" data-open={sidebarOpen}>
@@ -472,18 +511,28 @@ const Index = () => {
   const renderProfile = () => (
     <section>
       <SectionTitle kicker="Profil" title="Foydalanuvchi ma’lumotlari va statistika" text="Profil rasmini tahrirlang, natijalar, coinlar va o‘quv progressini kuzating." />
-      <div className="grid gap-5 lg:grid-cols-[0.75fr_1.25fr]">
-        <GlassCard className="text-center">
-          <img src={avatar || aslonbekImg} alt="Profil rasmi" className="mx-auto h-32 w-32 rounded-full border-4 border-primary/30 object-cover shadow-glow" />
-          <h3 className="mt-4 text-2xl font-black text-foreground">{displayName}</h3>
-          <p className="text-muted-foreground">EduSAT Academy foydalanuvchisi</p>
-          <label className="mt-5 inline-flex cursor-pointer rounded-2xl bg-primary px-5 py-3 text-sm font-black text-primary-foreground">
-            Rasmni tahrirlash
-            <input type="file" accept="image/*" className="hidden" onChange={handleAvatar} />
-          </label>
-          <button className="mt-3 w-full rounded-2xl border border-border px-5 py-3 text-sm font-black text-foreground hover:bg-accent" onClick={() => { setIsAuthenticated(false); setUserName("Mehmon"); setProfileName("Mehmon"); setAuthEmail(""); setAuthPassword(""); setActive("home"); }}>Profildan chiqish</button>
+      <div className="space-y-5">
+        <GlassCard>
+          <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-center gap-4">
+              <img src={avatar || aslonbekImg} alt="Profil rasmi" className="h-28 w-28 rounded-full border-4 border-primary/30 object-cover shadow-glow" />
+              <div>
+                <Pill>1-bosqich • Shaxsiy profil</Pill>
+                <h3 className="mt-3 text-3xl font-black text-foreground">{displayName}</h3>
+                <p className="text-muted-foreground">EduSAT Academy foydalanuvchisi</p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <label className="inline-flex cursor-pointer rounded-2xl bg-primary px-5 py-3 text-sm font-black text-primary-foreground">
+                Rasmni tahrirlash
+                <input type="file" accept="image/*" className="hidden" onChange={handleAvatar} />
+              </label>
+              <button className="rounded-2xl border border-border px-5 py-3 text-sm font-black text-foreground hover:bg-accent" onClick={() => { setIsAuthenticated(false); setUserName("Mehmon"); setProfileName("Mehmon"); setAuthEmail(""); setAuthPassword(""); setActive("home"); }}>Profildan chiqish</button>
+            </div>
+          </div>
         </GlassCard>
         <GlassCard>
+          <Pill>2-bosqich • Ma’lumotlarni tahrirlash</Pill>
           <div className="mb-5 grid gap-3 md:grid-cols-2">
             <label className="space-y-2 text-sm font-black text-foreground">
               Ism familiya
@@ -498,6 +547,9 @@ const Index = () => {
               <input className="h-12 w-full rounded-2xl border border-input bg-card px-4 font-bold text-foreground outline-none focus:ring-2 focus:ring-ring" defaultValue="SAT/OTM imtihonlariga tayyorgarlik" />
             </label>
           </div>
+        </GlassCard>
+        <GlassCard>
+          <Pill>3-bosqich • O‘quv progressi</Pill>
           <div className="grid gap-4 md:grid-cols-2">
             {["SAT/OTM progress", "Free test aniqligi", "Daraja testi", "Kurs ishtiroki"].map((item, index) => (
               <div key={item} className="rounded-2xl border border-border/60 bg-secondary/40 p-4">
@@ -525,7 +577,7 @@ const Index = () => {
           </GlassCard>
         ))}
       </div>
-      <QuestionGrid />
+      <TestRunner testId="sat-otm" questions={satOtmQuestions} />
     </section>
   );
 
@@ -597,16 +649,8 @@ const Index = () => {
           </GlassCard>
         ))}
       </div>
-      <QuestionGrid />
-      <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {satOtmQuestions.map((q) => (
-          <div key={q.subject} className="rounded-3xl border border-border/60 bg-card/70 p-5">
-            <Pill>{q.subject}</Pill>
-            <p className="mt-4 font-black text-foreground">{q.question}</p>
-            <p className="mt-3 text-sm text-muted-foreground">To‘g‘ri javob: {q.answer}</p>
-          </div>
-        ))}
-      </div>
+      <TestRunner testId="free-subjects" questions={sampleQuestions} />
+      <TestRunner testId="free-sat-otm" questions={satOtmQuestions} />
     </section>
   );
 
@@ -761,19 +805,29 @@ const Index = () => {
           <p className="mt-2 text-muted-foreground">Kontentlardagi “Sevimli” tugmasini bosing — ular shu yerda yig‘iladi.</p>
         </GlassCard>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {favorites.map((item) => (
-            <GlassCard key={item.id}>
-              <div className="flex items-start justify-between gap-3">
+        <div className="space-y-5">
+          {groupedFavorites.map((group, groupIndex) => (
+            <GlassCard key={group.category}>
+              <div className="mb-4 flex items-center justify-between gap-3">
                 <div>
-                  <Pill>{item.category}</Pill>
-                  <h3 className="mt-4 text-2xl font-black text-foreground">{item.title}</h3>
+                  <Pill>{groupIndex + 1}-toifa</Pill>
+                  <h3 className="mt-3 text-2xl font-black text-foreground">{group.category}</h3>
                 </div>
-                <Heart className="h-7 w-7 shrink-0 text-primary" />
+                <span className="rounded-2xl bg-primary/15 px-3 py-2 text-sm font-black text-primary">{group.items.length} ta</span>
               </div>
-              <div className="mt-5 flex flex-wrap gap-2">
-                <button className="premium-button rounded-2xl px-4 py-2 text-sm font-black" onClick={() => setActive(item.section)}>Ochish</button>
-                <button className="rounded-2xl border border-border px-4 py-2 text-sm font-black text-foreground hover:bg-accent" onClick={() => toggleFavorite(item)}>Olib tashlash</button>
+              <div className="space-y-3">
+                {group.items.map((item, index) => (
+                  <div key={item.id} className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-border/60 bg-secondary/40 p-4">
+                    <div className="flex items-center gap-3">
+                      <span className="grid h-10 w-10 place-items-center rounded-2xl bg-primary text-primary-foreground font-black">{index + 1}</span>
+                      <div><h4 className="font-black text-foreground">{item.title}</h4><p className="text-sm text-muted-foreground">Saqlangan sevimli</p></div>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <button className="premium-button rounded-2xl px-4 py-2 text-sm font-black" onClick={() => setActive(item.section)}>Ochish</button>
+                      <button className="rounded-2xl border border-border px-4 py-2 text-sm font-black text-foreground hover:bg-accent" onClick={() => toggleFavorite(item)}>Olib tashlash</button>
+                    </div>
+                  </div>
+                ))}
               </div>
             </GlassCard>
           ))}
