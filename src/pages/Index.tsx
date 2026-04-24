@@ -254,6 +254,7 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [langOpen, setLangOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [active3dSubject, setActive3dSubject] = useState("Hammasi");
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);
@@ -281,6 +282,11 @@ const Index = () => {
   const filteredSections = normalizedSearch
     ? sections.filter((section) => section.label.toLowerCase().includes(normalizedSearch))
     : sections;
+  const all3dModels = useMemo(
+    () => science3d.flatMap((subject) => (sketchfab[subject as keyof typeof sketchfab] || []).map((url, index) => ({ subject, url, index }))),
+    []
+  );
+  const visible3dModels = active3dSubject === "Hammasi" ? all3dModels : all3dModels.filter((model) => model.subject === active3dSubject);
 
   const completeActivity = (reward = 25) => setCoins((current) => current + reward);
 
@@ -293,6 +299,15 @@ const Index = () => {
   const handleAuthSubmit = () => {
     const name = authName.trim();
     const email = authEmail.trim();
+    if (authMode === "login" && !email && !authPassword) {
+      setUserName("Foydalanuvchi");
+      setIsAuthenticated(true);
+      setActive("profile");
+      setAuthError("");
+      setAuthOpen(false);
+      completeActivity(50);
+      return;
+    }
     if (authMode === "register" && name.length < 2) {
       setAuthError("Ro‘yxatdan o‘tish uchun ismni kiriting.");
       return;
@@ -566,28 +581,35 @@ const Index = () => {
   const renderModels = () => (
     <section>
       <SectionTitle kicker="3D qo‘llanmalar" title="Biologiya, Kimyo, Fizika, Tarix va Geografiya modellari" text="Fayldagi Sketchfab 3D modellar fanlar bo‘yicha joylashtirildi." />
-      <div className="space-y-5">
-        {science3d.map((subject) => (
-          <GlassCard key={subject}>
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <h3 className="text-2xl font-black text-foreground">{subject}</h3>
-              <Pill>{(sketchfab[subject as keyof typeof sketchfab] || []).length} ta interaktiv model</Pill>
-            </div>
-            <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-              {(sketchfab[subject as keyof typeof sketchfab] || []).map((url, index) => (
-                <div key={url} className="overflow-hidden rounded-3xl border border-border/60 bg-secondary/40">
-                  <iframe src={getSketchfabEmbed(url)} title={`${subject} 3D model ${index + 1}`} className="h-56 w-full" allow="autoplay; fullscreen; xr-spatial-tracking" allowFullScreen />
-                  <div className="p-4">
-                    <Boxes className="mb-3 h-7 w-7 text-primary" />
-                    <p className="font-black text-foreground">{subject} modeli {index + 1}</p>
-                    <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">Bo‘limcha ichida ochiladi <ChevronRight className="h-4 w-4" /></p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </GlassCard>
+      <div className="mb-5 flex flex-wrap gap-2">
+        {["Hammasi", ...science3d].map((subject) => (
+          <button
+            key={subject}
+            className={`rounded-2xl border px-4 py-3 text-sm font-black transition-all ${active3dSubject === subject ? "border-primary bg-primary text-primary-foreground shadow-glow" : "border-border bg-secondary/50 text-foreground hover:bg-accent"}`}
+            onClick={() => setActive3dSubject(subject)}
+          >
+            {subject}
+          </button>
         ))}
       </div>
+      <GlassCard>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <h3 className="text-2xl font-black text-foreground">{active3dSubject === "Hammasi" ? "Barcha 3D qo‘llanmalar" : `${active3dSubject} 3D qo‘llanmalari`}</h3>
+          <Pill>{visible3dModels.length} ta model</Pill>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {visible3dModels.map(({ subject, url, index }) => (
+            <div key={url} className="overflow-hidden rounded-3xl border border-border/60 bg-secondary/40">
+              <iframe src={getSketchfabEmbed(url)} title={`${subject} 3D model ${index + 1}`} className="h-64 w-full" allow="autoplay; fullscreen; xr-spatial-tracking" allowFullScreen />
+              <div className="p-4">
+                <Pill>{subject}</Pill>
+                <p className="mt-3 font-black text-foreground">{subject} modeli {index + 1}</p>
+                <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">Shu oynada ko‘rish <ChevronRight className="h-4 w-4" /></p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </GlassCard>
     </section>
   );
 
@@ -765,21 +787,21 @@ const Index = () => {
   }[active];
 
   const AuthModal = () => authOpen ? (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-background/70 p-4 backdrop-blur-xl">
-      <div className="glass-panel w-full max-w-md rounded-3xl p-6 shadow-premium">
+    <div className="fixed inset-0 z-50 grid place-items-center bg-background/80 p-4 backdrop-blur-xl">
+      <form className="glass-panel w-full max-w-md rounded-3xl p-6 shadow-premium" onSubmit={(event) => { event.preventDefault(); handleAuthSubmit(); }}>
         <div className="flex items-center justify-between">
           <h3 className="text-2xl font-black text-foreground">{authMode === "login" ? t.login : t.register}</h3>
-          <button className="rounded-2xl p-2 hover:bg-accent" onClick={() => setAuthOpen(false)}><X /></button>
+          <button type="button" className="rounded-2xl p-2 hover:bg-accent" onClick={() => setAuthOpen(false)}><X /></button>
         </div>
-        <div className="mt-5 space-y-3">
-          <input className="h-12 w-full rounded-2xl border border-border bg-background/70 px-4 outline-none focus:ring-2 focus:ring-ring" placeholder="Ismingiz" value={authName} onChange={(e) => setAuthName(e.target.value)} />
-          <input className="h-12 w-full rounded-2xl border border-border bg-background/70 px-4 outline-none focus:ring-2 focus:ring-ring" placeholder="Email" type="email" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} />
-          <input className="h-12 w-full rounded-2xl border border-border bg-background/70 px-4 outline-none focus:ring-2 focus:ring-ring" placeholder="Parol" type="password" value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} />
+        <div className="mt-5 space-y-3 text-foreground">
+          {authMode === "register" && <input className="h-12 w-full rounded-2xl border border-input bg-card px-4 text-foreground outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring" placeholder="Ismingiz" value={authName} onChange={(e) => setAuthName(e.target.value)} autoComplete="name" />}
+          <input className="h-12 w-full rounded-2xl border border-input bg-card px-4 text-foreground outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring" placeholder="Email" type="email" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} autoComplete="email" />
+          <input className="h-12 w-full rounded-2xl border border-input bg-card px-4 text-foreground outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring" placeholder="Parol" type="password" value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} autoComplete={authMode === "login" ? "current-password" : "new-password"} />
           {authError && <p className="rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm font-bold text-destructive">{authError}</p>}
-          <button className="premium-button w-full rounded-2xl py-3 font-black" onClick={handleAuthSubmit}>{authMode === "login" ? "Kirish" : "Ro‘yxatdan o‘tish"} +100 coin</button>
+          <button type="submit" className="premium-button w-full rounded-2xl py-3 font-black">{authMode === "login" ? "Kirish" : "Ro‘yxatdan o‘tish"} +100 coin</button>
         </div>
-        <button className="mt-4 text-sm font-bold text-primary" onClick={() => { setAuthError(""); setAuthMode(authMode === "login" ? "register" : "login"); }}>{authMode === "login" ? "Hisob yo‘qmi? Ro‘yxatdan o‘ting" : "Hisobingiz bormi? Kirish"}</button>
-      </div>
+        <button type="button" className="mt-4 text-sm font-bold text-primary" onClick={() => { setAuthError(""); setAuthMode(authMode === "login" ? "register" : "login"); }}>{authMode === "login" ? "Hisob yo‘qmi? Ro‘yxatdan o‘ting" : "Hisobingiz bormi? Kirish"}</button>
+      </form>
     </div>
   ) : null;
 
@@ -805,8 +827,8 @@ const Index = () => {
                 <button className="inline-flex items-center gap-2 rounded-2xl border border-border bg-secondary/50 px-3 py-3 font-black text-foreground hover:bg-accent" onClick={() => setLangOpen(!langOpen)} aria-label="Til tanlash"><Languages className="h-5 w-5" /><span className="text-xs uppercase">{lang}</span></button>
                 {langOpen && <div className="absolute right-0 top-14 z-40 w-40 rounded-3xl border border-border bg-card/95 p-2 shadow-premium backdrop-blur-xl">{languageOptions.map((option) => <button key={option.code} className={`w-full rounded-2xl px-3 py-2 text-left text-sm font-black ${lang === option.code ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-accent"}`} onClick={() => { setLang(option.code); setLangOpen(false); }}>{option.label}</button>)}</div>}
               </div>
-              <button className="hidden rounded-2xl bg-primary px-4 py-3 font-black text-primary-foreground md:inline-flex" onClick={() => { isAuthenticated ? setActive("profile") : setAuthOpen(true); setAuthMode("login"); }}><LogIn className="mr-2 h-4 w-4" />{isAuthenticated ? "Profil" : t.login}</button>
-              <button onClick={() => { isAuthenticated ? setActive("profile") : setAuthOpen(true); }} aria-label="Profilga o‘tish"><img src={avatar || aslonbekImg} alt="Profil" className="h-11 w-11 rounded-full border-2 border-primary/40 object-cover" /></button>
+              <button className="hidden rounded-2xl bg-primary px-4 py-3 font-black text-primary-foreground md:inline-flex" onClick={() => { if (isAuthenticated) { setActive("profile"); } else { setAuthMode("register"); setAuthOpen(true); } }}><LogIn className="mr-2 h-4 w-4" />{isAuthenticated ? "Profil" : t.register}</button>
+              <button onClick={() => { if (isAuthenticated) { setActive("profile"); } else { setAuthMode("register"); setAuthOpen(true); } }} aria-label="Profilga o‘tish"><img src={avatar || aslonbekImg} alt="Profil" className="h-11 w-11 rounded-full border-2 border-primary/40 object-cover" /></button>
             </div>
           </header>
           <div className="pb-8">{content()}</div>
