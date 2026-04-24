@@ -258,6 +258,7 @@ const Index = () => {
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
   const [authError, setAuthError] = useState("");
+  const [registeredUsers, setRegisteredUsers] = useState<Record<string, { name: string; password: string }>>({});
   const [profileName, setProfileName] = useState("Mehmon");
   const [profileEmail, setProfileEmail] = useState("demo@edusat.uz");
   const [avatar, setAvatar] = useState<string | null>(null);
@@ -321,10 +322,20 @@ const Index = () => {
 
   const handleAuthSubmit = () => {
     const name = authName.trim();
-    const email = authEmail.trim();
-    if (authMode === "login" && !email && !authPassword) {
-      setUserName("Foydalanuvchi");
-      setProfileName("Foydalanuvchi");
+    const email = authEmail.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || authPassword.length < 6) {
+      setAuthError("To‘g‘ri email va kamida 6 belgili parol kiriting.");
+      return;
+    }
+    if (authMode === "login") {
+      const user = registeredUsers[email];
+      if (!user || user.password !== authPassword) {
+        setAuthError("Email yoki parol noto‘g‘ri. Avval ro‘yxatdan o‘ting yoki ma’lumotlarni tekshiring.");
+        return;
+      }
+      setUserName(user.name);
+      setProfileName(user.name);
+      setProfileEmail(email);
       setIsAuthenticated(true);
       setActive("profile");
       setAuthError("");
@@ -332,15 +343,12 @@ const Index = () => {
       completeActivity(50);
       return;
     }
-    if (authMode === "register" && name.length < 2) {
+    if (name.length < 2) {
       setAuthError("Ro‘yxatdan o‘tish uchun ismni kiriting.");
       return;
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || authPassword.length < 6) {
-      setAuthError("To‘g‘ri email va kamida 6 belgili parol kiriting.");
-      return;
-    }
     const nextName = name || email.split("@")[0] || "Foydalanuvchi";
+    setRegisteredUsers((current) => ({ ...current, [email]: { name: nextName, password: authPassword } }));
     setUserName(nextName);
     setProfileName(nextName);
     setProfileEmail(email);
