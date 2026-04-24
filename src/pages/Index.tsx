@@ -28,6 +28,7 @@ import {
   User,
   X,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 import hayitovImg from "@/assets/edusat/hayitov.jpg";
 import halimovaImg from "@/assets/edusat/halimova.jpg";
@@ -58,6 +59,13 @@ const sections = [
 const subjects = ["Matematika", "Ingliz tili", "Rus tili", "Biologiya", "Kimyo", "Fizika", "Tarix"];
 const science3d = ["Biologiya", "Kimyo", "Fizika", "Tarix", "Geografiya"];
 const levels = ["C", "C+", "B", "B+", "A", "A+"];
+
+const statCards: Array<{ label: string; value: string | number; icon: LucideIcon }> = [
+  { label: "Coin balans", value: 1280, icon: Coins },
+  { label: "Yechilgan test", value: 42, icon: Brain },
+  { label: "Reyting o‘rni", value: "#12", icon: Trophy },
+  { label: "Sevimlilar", value: 18, icon: Heart },
+];
 
 const quotes = [
   ["Muvaffaqiyat – bu yakun emas, mag‘lubiyat – bu halokat emas. Eng muhimi – davom etish jasoratidir.", "Winston Churchill"],
@@ -278,16 +286,11 @@ const Index = () => {
         </GlassCard>
       </section>
       <section className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {[
-          ["Coin balans", coins, Coins],
-          ["Yechilgan test", 42, Brain],
-          ["Reyting o‘rni", "#12", Trophy],
-          ["Sevimlilar", 18, Heart],
-        ].map(([label, value, Icon]) => (
-          <GlassCard key={label as string}>
+        {statCards.map(({ label, value, icon: Icon }) => (
+          <GlassCard key={label}>
             <Icon className="mb-4 h-7 w-7 text-primary" />
-            <p className="text-sm font-bold text-muted-foreground">{label as string}</p>
-            <p className="mt-1 text-3xl font-black text-foreground">{value as string}</p>
+            <p className="text-sm font-bold text-muted-foreground">{label}</p>
+            <p className="mt-1 text-3xl font-black text-foreground">{label === "Coin balans" ? coins : value}</p>
           </GlassCard>
         ))}
       </section>
