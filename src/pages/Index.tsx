@@ -365,6 +365,37 @@ const Index = () => {
     </button>
   );
 
+  const TestRunner = ({ testId, questions }: { testId: string; questions: typeof sampleQuestions }) => {
+    const submitted = submittedTests[testId];
+    const score = getTestScore(testId, questions);
+
+    return (
+      <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {questions.map((q, index) => {
+          const answerKey = `${testId}-${q.subject}`;
+          const isCorrect = normalizeAnswer(testAnswers[answerKey] || "") === normalizeAnswer(q.answer);
+          return (
+            <div key={`${testId}-${q.subject}-${index}`} className="rounded-3xl border border-border/60 bg-card/70 p-5">
+              <Pill>{q.subject}</Pill>
+              <p className="mt-4 font-black text-foreground">{q.question}</p>
+              <input className="mt-4 h-11 w-full rounded-2xl border border-input bg-background px-4 font-bold text-foreground outline-none focus:ring-2 focus:ring-ring" placeholder="Javob yozing" value={testAnswers[answerKey] || ""} onChange={(event) => setTestAnswers({ ...testAnswers, [answerKey]: event.target.value })} />
+              {submitted && <p className={`mt-3 text-sm font-black ${isCorrect ? "text-primary" : "text-destructive"}`}>{isCorrect ? "To‘g‘ri javob" : `Noto‘g‘ri. To‘g‘ri javob: ${q.answer}`}</p>}
+            </div>
+          );
+        })}
+        <GlassCard className="md:col-span-2 xl:col-span-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h3 className="text-2xl font-black text-foreground">Test natijasi</h3>
+              <p className="mt-1 text-sm text-muted-foreground">{submitted ? `${score}/${questions.length} ta to‘g‘ri javob` : "Javoblarni yozib, tekshirish tugmasini bosing."}</p>
+            </div>
+            <button className="premium-button rounded-2xl px-5 py-3 font-black" onClick={() => { setSubmittedTests({ ...submittedTests, [testId]: true }); completeActivity(30); }}>Tekshirish +30 coin</button>
+          </div>
+        </GlassCard>
+      </div>
+    );
+  };
+
   const nav = (
     <aside className="glass-panel fixed inset-y-3 left-3 z-40 flex w-[min(84vw,320px)] flex-col rounded-3xl p-4 shadow-premium transition-transform duration-300 lg:sticky lg:top-3 lg:h-[calc(100vh-1.5rem)] lg:w-80 lg:translate-x-0 data-[open=false]:-translate-x-[110%]" data-open={sidebarOpen}>
       <div className="mb-5 flex items-center justify-between gap-3">
