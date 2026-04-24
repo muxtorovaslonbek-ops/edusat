@@ -87,6 +87,22 @@ const sampleQuestions = [
   { subject: "Tarix", question: "Amir Temur davlati poytaxti qaysi shahar bo‘lgan?", answer: "Samarqand" },
 ];
 
+const satOtmQuestions = [
+  { subject: "SAT Math", question: "If f(x)=2x²-3x+1, find f(3).", answer: "10" },
+  { subject: "SAT Reading", question: "Main idea savolida avval nimani aniqlash kerak?", answer: "Matnning umumiy g‘oyasi" },
+  { subject: "OTM Matematika", question: "Kvadrat tenglama diskriminanti formulasi qanday?", answer: "D=b²-4ac" },
+  { subject: "OTM Ona tili", question: "Gap bo‘laklari nechta asosiy turga bo‘linadi?", answer: "5 ta" },
+  { subject: "OTM Tarix", question: "Mustaqillik deklaratsiyasi qachon qabul qilingan?", answer: "1990-yil 20-iyun" },
+  { subject: "OTM Ingliz tili", question: "Choose: I have lived here ___ 2020.", answer: "since" },
+];
+
+const freeTestPacks = [
+  { title: "SAT Diagnostic", meta: "35 daqiqa • 25 savol", items: ["Algebra", "Reading", "Writing"] },
+  { title: "OTM Blok testi", meta: "60 daqiqa • 45 savol", items: ["Majburiy fanlar", "Asosiy fan", "Natija"] },
+  { title: "Milliy sertifikat Mini", meta: "25 daqiqa • 20 savol", items: ["C", "B", "A"] },
+  { title: "IELTS Mini Mock", meta: "30 daqiqa • 4 bo‘lim", items: ["Listening", "Reading", "Writing"] },
+];
+
 const levelTests = [
   { title: "IELTS", price: "69 000 so‘m", accent: "Band 4.0 → 8.0", items: ["Listening", "Reading", "Writing", "Speaking"] },
   { title: "Multi-level", price: "69 000 so‘m", accent: "A2 → C1", items: ["Grammar", "Vocabulary", "Reading", "Writing"] },
@@ -154,6 +170,16 @@ const translations = {
 type SectionId = (typeof sections)[number]["id"];
 type Lang = keyof typeof translations;
 
+const getSketchfabEmbed = (url: string) => {
+  const id = url.split("-").pop();
+  return id ? `https://sketchfab.com/models/${id}/embed` : url;
+};
+
+const getYoutubeEmbed = (url: string) => {
+  const id = url.match(/youtu\.be\/([^?]+)/)?.[1] || url.match(/[?&]v=([^&]+)/)?.[1];
+  return id ? `https://www.youtube.com/embed/${id}` : url;
+};
+
 const GlassCard = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (
   <div className={`glass-panel rounded-3xl p-5 shadow-premium animate-fade-in ${className}`}>{children}</div>
 );
@@ -187,6 +213,10 @@ const Index = () => {
   const [userName, setUserName] = useState("Mehmon");
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
+  const [authName, setAuthName] = useState("");
+  const [authEmail, setAuthEmail] = useState("");
+  const [authPassword, setAuthPassword] = useState("");
+  const [authError, setAuthError] = useState("");
   const [avatar, setAvatar] = useState<string | null>(null);
   const [ratings, setRatings] = useState<Record<string, number>>({});
 
@@ -208,6 +238,23 @@ const Index = () => {
     const file = event.target.files?.[0];
     if (!file) return;
     setAvatar(URL.createObjectURL(file));
+  };
+
+  const handleAuthSubmit = () => {
+    const name = authName.trim();
+    const email = authEmail.trim();
+    if (authMode === "register" && name.length < 2) {
+      setAuthError("Ro‘yxatdan o‘tish uchun ismni kiriting.");
+      return;
+    }
+    if (!email.includes("@") || authPassword.length < 6) {
+      setAuthError("Email va kamida 6 belgili parol kiriting.");
+      return;
+    }
+    setUserName(name || email.split("@")[0] || "Foydalanuvchi");
+    setAuthError("");
+    setAuthOpen(false);
+    completeActivity(100);
   };
 
   const nav = (
@@ -375,7 +422,18 @@ const Index = () => {
 
   const renderFreeTests = () => (
     <section>
-      <SectionTitle kicker="Free Testlar" title="Quiz, fan testlari, full exam va random savollar" text="Har bir fan ichida timerli bepul testlar va namunaviy savollar tayyorlandi." />
+      <SectionTitle kicker="Free Testlar" title="SAT, OTM, quiz va fan testlari" text="Bepul sinovlar SAT, OTM, IELTS mini mock va fanlar bo‘yicha namunaviy savollar bilan to‘ldirildi." />
+      <div className="mb-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {freeTestPacks.map((pack) => (
+          <GlassCard key={pack.title}>
+            <Timer className="mb-4 h-8 w-8 text-primary" />
+            <h3 className="text-xl font-black text-foreground">{pack.title}</h3>
+            <p className="mt-2 text-sm font-bold text-muted-foreground">{pack.meta}</p>
+            <div className="mt-4 flex flex-wrap gap-2">{pack.items.map((item) => <Pill key={item}>{item}</Pill>)}</div>
+            <button className="mt-5 premium-button w-full rounded-2xl px-4 py-3 text-sm font-black" onClick={() => completeActivity(30)}>Bepul boshlash +30 coin</button>
+          </GlassCard>
+        ))}
+      </div>
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {subjects.map((subject) => (
           <GlassCard key={subject}>
@@ -393,6 +451,15 @@ const Index = () => {
         ))}
       </div>
       <QuestionGrid />
+      <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {satOtmQuestions.map((q) => (
+          <div key={q.subject} className="rounded-3xl border border-border/60 bg-card/70 p-5">
+            <Pill>{q.subject}</Pill>
+            <p className="mt-4 font-black text-foreground">{q.question}</p>
+            <p className="mt-3 text-sm text-muted-foreground">To‘g‘ri javob: {q.answer}</p>
+          </div>
+        ))}
+      </div>
     </section>
   );
 
@@ -428,11 +495,14 @@ const Index = () => {
             <h3 className="text-2xl font-black text-foreground">{subject}</h3>
             <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
               {(sketchfab[subject as keyof typeof sketchfab] || []).map((url, index) => (
-                <a key={url} href={url} target="_blank" rel="noreferrer" className="group rounded-3xl border border-border/60 bg-secondary/40 p-4 transition hover:bg-accent">
-                  <Boxes className="mb-8 h-8 w-8 text-primary transition group-hover:scale-110" />
-                  <p className="font-black text-foreground">3D model {index + 1}</p>
-                  <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">Modelni ochish <ChevronRight className="h-4 w-4" /></p>
-                </a>
+                <div key={url} className="overflow-hidden rounded-3xl border border-border/60 bg-secondary/40">
+                  <iframe src={getSketchfabEmbed(url)} title={`${subject} 3D model ${index + 1}`} className="h-56 w-full" allow="autoplay; fullscreen; xr-spatial-tracking" allowFullScreen />
+                  <div className="p-4">
+                    <Boxes className="mb-3 h-7 w-7 text-primary" />
+                    <p className="font-black text-foreground">3D model {index + 1}</p>
+                    <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">Shu oynada ko‘rish <ChevronRight className="h-4 w-4" /></p>
+                  </div>
+                </div>
               ))}
             </div>
           </GlassCard>
@@ -516,9 +586,12 @@ const Index = () => {
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {videos.map(([subject, url]) => (
           <GlassCard key={subject}>
-            <PlayCircle className="mb-5 h-10 w-10 text-primary" />
+            <div className="mb-4 overflow-hidden rounded-3xl border border-border/60 bg-secondary/40">
+              <iframe src={getYoutubeEmbed(url)} title={`${subject} bepul dars`} className="aspect-video w-full" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
+            </div>
+            <PlayCircle className="mb-3 h-8 w-8 text-primary" />
             <h3 className="text-2xl font-black text-foreground">{subject}</h3>
-            <a href={url} target="_blank" rel="noreferrer" className="mt-5 inline-flex rounded-2xl bg-primary px-5 py-3 font-black text-primary-foreground">Darsni ochish</a>
+            <p className="mt-2 text-sm text-muted-foreground">Video dars shu oynaning ichida ochiladi.</p>
           </GlassCard>
         ))}
       </div>
@@ -573,8 +646,8 @@ const Index = () => {
   );
 
   const PersonCard = ({ name, role, image, link }: { name: string; role: string; image: string; link?: string }) => (
-    <div className="rounded-3xl border border-border/60 bg-secondary/40 p-4">
-      <img src={image} alt={`${name} rasmi`} className="h-56 w-full rounded-2xl object-cover" />
+    <div className="rounded-3xl border border-border/60 bg-secondary/40 p-5 text-center">
+      <img src={image} alt={`${name} rasmi`} className="mx-auto h-32 w-32 rounded-full border-4 border-primary/30 object-cover shadow-glow" />
       <p className="mt-4 text-sm font-bold text-primary">{role}</p>
       <h4 className="mt-1 text-lg font-black text-foreground">{name}</h4>
       {link && <a href={link} target="_blank" rel="noreferrer" className="mt-3 inline-flex text-sm font-black text-primary">Telegram orqali bog‘lanish</a>}
@@ -608,12 +681,13 @@ const Index = () => {
           <button className="rounded-2xl p-2 hover:bg-accent" onClick={() => setAuthOpen(false)}><X /></button>
         </div>
         <div className="mt-5 space-y-3">
-          <input className="h-12 w-full rounded-2xl border border-border bg-background/70 px-4 outline-none focus:ring-2 focus:ring-ring" placeholder="Ismingiz" onChange={(e) => setUserName(e.target.value)} />
-          <input className="h-12 w-full rounded-2xl border border-border bg-background/70 px-4 outline-none focus:ring-2 focus:ring-ring" placeholder="Email" type="email" />
-          <input className="h-12 w-full rounded-2xl border border-border bg-background/70 px-4 outline-none focus:ring-2 focus:ring-ring" placeholder="Parol" type="password" />
-          <button className="premium-button w-full rounded-2xl py-3 font-black" onClick={() => { setAuthOpen(false); completeActivity(100); }}>{authMode === "login" ? "Kirish" : "Ro‘yxatdan o‘tish"} +100 coin</button>
+          <input className="h-12 w-full rounded-2xl border border-border bg-background/70 px-4 outline-none focus:ring-2 focus:ring-ring" placeholder="Ismingiz" value={authName} onChange={(e) => setAuthName(e.target.value)} />
+          <input className="h-12 w-full rounded-2xl border border-border bg-background/70 px-4 outline-none focus:ring-2 focus:ring-ring" placeholder="Email" type="email" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} />
+          <input className="h-12 w-full rounded-2xl border border-border bg-background/70 px-4 outline-none focus:ring-2 focus:ring-ring" placeholder="Parol" type="password" value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} />
+          {authError && <p className="rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm font-bold text-destructive">{authError}</p>}
+          <button className="premium-button w-full rounded-2xl py-3 font-black" onClick={handleAuthSubmit}>{authMode === "login" ? "Kirish" : "Ro‘yxatdan o‘tish"} +100 coin</button>
         </div>
-        <button className="mt-4 text-sm font-bold text-primary" onClick={() => setAuthMode(authMode === "login" ? "register" : "login")}>{authMode === "login" ? "Hisob yo‘qmi? Ro‘yxatdan o‘ting" : "Hisobingiz bormi? Kirish"}</button>
+        <button className="mt-4 text-sm font-bold text-primary" onClick={() => { setAuthError(""); setAuthMode(authMode === "login" ? "register" : "login"); }}>{authMode === "login" ? "Hisob yo‘qmi? Ro‘yxatdan o‘ting" : "Hisobingiz bormi? Kirish"}</button>
       </div>
     </div>
   ) : null;
@@ -636,7 +710,7 @@ const Index = () => {
             <div className="flex items-center gap-2">
               <div className="hidden items-center gap-2 rounded-2xl border border-border bg-secondary/50 px-3 py-2 font-black text-foreground sm:flex"><Coins className="h-4 w-4 text-primary" />{coins}</div>
               <button className="rounded-2xl p-3 hover:bg-accent" onClick={() => setDark(!dark)} aria-label="Theme almashtirish">{dark ? <Sun /> : <Moon />}</button>
-              <button className="rounded-2xl p-3 hover:bg-accent" onClick={() => setLang(lang === "uz" ? "en" : lang === "en" ? "ru" : "uz")} aria-label="Til almashtirish"><Languages /><span className="sr-only">{lang}</span></button>
+          <button className="inline-flex items-center gap-2 rounded-2xl border border-border bg-secondary/50 px-3 py-3 font-black text-foreground hover:bg-accent" onClick={() => setLang(lang === "uz" ? "en" : lang === "en" ? "ru" : "uz")} aria-label="Til almashtirish"><Languages className="h-5 w-5" /><span className="text-xs uppercase">{lang}</span></button>
               <button className="hidden rounded-2xl bg-primary px-4 py-3 font-black text-primary-foreground md:inline-flex" onClick={() => { setAuthMode("login"); setAuthOpen(true); }}><LogIn className="mr-2 h-4 w-4" />{t.login}</button>
               <img src={avatar || aslonbekImg} alt="Profil" className="h-11 w-11 rounded-full border-2 border-primary/40 object-cover" />
             </div>
