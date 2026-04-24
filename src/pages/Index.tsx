@@ -1,16 +1,650 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { ChangeEvent, useEffect, useMemo, useState } from "react";
+import {
+  Award,
+  BookOpen,
+  Boxes,
+  Brain,
+  ChevronRight,
+  Coins,
+  Crown,
+  GraduationCap,
+  Heart,
+  Home,
+  Languages,
+  Library,
+  Lock,
+  LogIn,
+  Menu,
+  Moon,
+  PlayCircle,
+  Rocket,
+  Search,
+  ShieldCheck,
+  ShoppingBag,
+  Star,
+  Sun,
+  Timer,
+  Trophy,
+  User,
+  X,
+} from "lucide-react";
 
-// IMPORTANT: Fully REPLACE this with your own code
-const PlaceholderIndex = () => {
-  // PLACEHOLDER: Replace this entire return statement with the user's app.
-  // The inline background color is intentionally not part of the design system.
-  return (
-    <div className="flex min-h-screen items-center justify-center" style={{ backgroundColor: '#fcfbf8' }}>
-      <img data-lovable-blank-page-placeholder="REMOVE_THIS" src="/placeholder.svg" alt="Your app will live here!" />
-    </div>
-  );
+import hayitovImg from "@/assets/edusat/hayitov.jpg";
+import halimovaImg from "@/assets/edusat/halimova.jpg";
+import jorayevaImg from "@/assets/edusat/jorayeva.jpg";
+import oybekImg from "@/assets/edusat/oybek.jpg";
+import aslonbekImg from "@/assets/edusat/aslonbek.jpg";
+import azizaImg from "@/assets/edusat/aziza.jpg";
+
+const sections = [
+  { id: "home", label: "Bosh sahifa", icon: Home },
+  { id: "profile", label: "Profil", icon: User },
+  { id: "sat", label: "SAT/OTM tayyorgarlik", icon: GraduationCap },
+  { id: "courses", label: "Kurslar", icon: BookOpen },
+  { id: "free-tests", label: "Free Testlar", icon: Brain },
+  { id: "level", label: "Daraja aniqlash", icon: ShieldCheck },
+  { id: "models", label: "3D qo‘llanmalar", icon: Boxes },
+  { id: "library", label: "Kutubxona", icon: Library },
+  { id: "coin-shop", label: "Coin do‘koni", icon: Coins },
+  { id: "market", label: "Edu market", icon: ShoppingBag },
+  { id: "rating", label: "Reyting", icon: Trophy },
+  { id: "favorites", label: "Sevimli", icon: Heart },
+  { id: "lessons", label: "Bepul darslar", icon: PlayCircle },
+  { id: "premium", label: "Premium xizmatlar", icon: Crown },
+  { id: "reviews", label: "Xizmatlarni baholash", icon: Star },
+  { id: "about", label: "Ilova haqida", icon: Award },
+] as const;
+
+const subjects = ["Matematika", "Ingliz tili", "Rus tili", "Biologiya", "Kimyo", "Fizika", "Tarix"];
+const science3d = ["Biologiya", "Kimyo", "Fizika", "Tarix", "Geografiya"];
+const levels = ["C", "C+", "B", "B+", "A", "A+"];
+
+const quotes = [
+  ["Muvaffaqiyat – bu yakun emas, mag‘lubiyat – bu halokat emas. Eng muhimi – davom etish jasoratidir.", "Winston Churchill"],
+  ["Kelajak bugun nima qilayotganingizga bog‘liq.", "Mahatma Gandhi"],
+  ["Orzularingizni amalga oshirish uchun eng yaxshi vaqt — hozir.", "Napoleon Hill"],
+  ["Men yutqazmadim. Men ishlamaydigan 10 000 usulni topdim.", "Thomas Edison"],
+  ["Agar siz tez borishni xohlasangiz — yolg‘iz boring. Agar uzoqqa borishni xohlasangiz — birga boring.", "Afrika maqoli"],
+  ["Qiyinchiliklar ichida imkoniyat yashirinadi.", "Albert Einstein"],
+  ["Katta ishlarni qilish uchun nafaqat harakat, balki orzu ham kerak.", "Anatole France"],
+];
+
+const sampleQuestions = [
+  { subject: "Matematika", question: "Agar 3x + 7 = 22 bo‘lsa, x nechaga teng?", answer: "5" },
+  { subject: "Ingliz tili", question: "Choose the correct form: She ___ to school every day.", answer: "goes" },
+  { subject: "Rus tili", question: "Сколько падежей в русском языке?", answer: "6" },
+  { subject: "Biologiya", question: "Fotosintez jarayonida qaysi gaz ajraladi?", answer: "Kislorod" },
+  { subject: "Kimyo", question: "Suvning kimyoviy formulasi qanday?", answer: "H₂O" },
+  { subject: "Fizika", question: "Tok kuchi qaysi birlikda o‘lchanadi?", answer: "Amper" },
+  { subject: "Tarix", question: "Amir Temur davlati poytaxti qaysi shahar bo‘lgan?", answer: "Samarqand" },
+];
+
+const levelTests = [
+  { title: "IELTS", price: "69 000 so‘m", accent: "Band 4.0 → 8.0", items: ["Listening", "Reading", "Writing", "Speaking"] },
+  { title: "Multi-level", price: "69 000 so‘m", accent: "A2 → C1", items: ["Grammar", "Vocabulary", "Reading", "Writing"] },
+  { title: "Milliy sertifikat", price: "59 000 so‘m", accent: "C → A+", items: subjects },
+];
+
+const sketchfab = {
+  Biologiya: [
+    "https://sketchfab.com/3d-models/modern-human-skeletal-organs-c06468c7f4444e08a397e90bc84381d3",
+    "https://sketchfab.com/3d-models/human-internal-organs-fe69d7b1ed6f46a3bd0b6933b796092e",
+    "https://sketchfab.com/3d-models/human-internal-organs-anatomy-8a43f3a308994699a4000b17004d5220",
+    "https://sketchfab.com/3d-models/muscle-system-in-human-body-muscular-system-7ea21567ff9942bf9511e2d99efe85d9",
+  ],
+  Kimyo: [
+    "https://sketchfab.com/3d-models/sulfamic-acid-2302bbd9779f497db80948ab45cac0b8",
+    "https://sketchfab.com/3d-models/flavin-adenine-dinucleotide-fad-b3328386cff14905a60ea1a44db17d65",
+    "https://sketchfab.com/3d-models/chemical-reaction-aca0bf7c2d0440ae81a26ab4a0a399d2",
+  ],
+  Fizika: [
+    "https://sketchfab.com/3d-models/rube-goldberg-machine-for-7c-labs-fd05465ccafd4896b36df06b11683c8e",
+    "https://sketchfab.com/3d-models/iron-stand-with-base-and-clamp-arrangement-3dc06bae602a479c9c8d3c2456699f2c",
+    "https://sketchfab.com/3d-models/atom-31a8f6ac569449f7a22b8fdd9b81dafc",
+  ],
+  Tarix: [
+    "https://sketchfab.com/3d-models/the-great-pyramid-of-giza-4a251113722f4d969b6cf2ca5f35c502",
+    "https://sketchfab.com/3d-models/pula-roman-amphitheater-vektra-doo-4d9a5b0eb5534ba3b88342e79b50cccd",
+    "https://sketchfab.com/3d-models/inner-hall-mastaba-of-ti-saqqara-c8dcba37917a4dcf823cb5a8d60b5149",
+  ],
+  Geografiya: [
+    "https://sketchfab.com/3d-models/planets-47364f26b7de41c7ab3b020c7b794ee1",
+    "https://sketchfab.com/3d-models/need-some-space-d6521362b37b48e3a82bce4911409303",
+    "https://sketchfab.com/3d-models/star-cluster-15k-stars-model-51148b78a37a4a72b22d8e06f4293e07",
+    "https://sketchfab.com/3d-models/celestial-sphere-2020-update-6a9fbfbac60f437fa1ce9aea2a38c692",
+  ],
 };
 
-const Index = PlaceholderIndex;
+const videos = [
+  ["Matematika", "https://youtu.be/s321MsIH5y4?si=ssBsJVc_lkGXv3PL"],
+  ["Ingliz tili", "https://youtu.be/d-fvgkbTED0?si=y55kgLwxGrZp9f5c"],
+  ["Rus tili", "https://youtu.be/NubrWHBh4O0?si=fSe4yet99kWWhDHI"],
+  ["Biologiya", "https://youtu.be/1iCuo4tlHnE?si=VTgRRcSMTXF3BGLS"],
+  ["Kimyo", "https://youtu.be/2KWEi3fL77c?si=hBhsQBOkMvgF4jaD"],
+  ["Fizika", "https://youtu.be/oxoBvF7j8JA?si=ZEc8UJdPg56QQhZ6"],
+  ["Tarix", "https://youtu.be/4jh5iWJ7Cds?si=TC3joati70JWcAh-"],
+];
+
+const mentors = [
+  { name: "Hayitov Rizamat Shonazarovich", role: "Qo‘llab-quvvatlovchi ustoz", image: hayitovImg },
+  { name: "Halimova Nazokat To’xtasinovna", role: "Qo‘llab-quvvatlovchi ustoz", image: halimovaImg },
+  { name: "Jo’rayeva Dildora Yunusovna", role: "Qo‘llab-quvvatlovchi ustoz", image: jorayevaImg },
+  { name: "Oybek Abduraimov", role: "Yordam beruvchi ustoz", image: oybekImg },
+];
+
+const team = [
+  { name: "Muxtorov Aslonbek Maksudovich", role: "Loyixa egasi va dasturchi", image: aslonbekImg, link: "https://t.me/ASLONBEK_MUXTOROV" },
+  { name: "BOTIROVA AZIZA NURALIYEVNA", role: "Yetakchi jamoa a’zosi", image: azizaImg },
+];
+
+const translations = {
+  uz: { greeting: "Xush kelibsiz", guest: "Mehmon", login: "Kirish", register: "Ro‘yxatdan o‘tish", search: "Qidirish" },
+  en: { greeting: "Welcome", guest: "Guest", login: "Login", register: "Sign up", search: "Search" },
+  ru: { greeting: "Добро пожаловать", guest: "Гость", login: "Войти", register: "Регистрация", search: "Поиск" },
+};
+
+type SectionId = (typeof sections)[number]["id"];
+type Lang = keyof typeof translations;
+
+const GlassCard = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (
+  <div className={`glass-panel rounded-3xl p-5 shadow-premium animate-fade-in ${className}`}>{children}</div>
+);
+
+const Pill = ({ children }: { children: React.ReactNode }) => (
+  <span className="rounded-full border border-border/60 bg-secondary/60 px-3 py-1 text-xs font-bold text-secondary-foreground">
+    {children}
+  </span>
+);
+
+const SectionTitle = ({ kicker, title, text }: { kicker: string; title: string; text: string }) => (
+  <div className="mb-6 max-w-3xl">
+    <p className="mb-2 text-sm font-black uppercase tracking-normal text-primary">{kicker}</p>
+    <h2 className="text-3xl font-black leading-tight text-foreground md:text-5xl">{title}</h2>
+    <p className="mt-3 text-base leading-7 text-muted-foreground">{text}</p>
+  </div>
+);
+
+const ProgressBar = ({ value }: { value: number }) => (
+  <div className="h-2 overflow-hidden rounded-full bg-secondary">
+    <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${value}%` }} />
+  </div>
+);
+
+const Index = () => {
+  const [active, setActive] = useState<SectionId>("home");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [dark, setDark] = useState(true);
+  const [lang, setLang] = useState<Lang>("uz");
+  const [coins, setCoins] = useState(1280);
+  const [userName, setUserName] = useState("Mehmon");
+  const [authOpen, setAuthOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<"login" | "register">("login");
+  const [avatar, setAvatar] = useState<string | null>(null);
+  const [ratings, setRatings] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", dark);
+  }, [dark]);
+
+  const todayQuote = useMemo(() => {
+    const day = Math.floor(Date.now() / 86400000);
+    return quotes[day % quotes.length];
+  }, []);
+
+  const t = translations[lang];
+  const displayName = userName.trim() || t.guest;
+
+  const completeActivity = (reward = 25) => setCoins((current) => current + reward);
+
+  const handleAvatar = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setAvatar(URL.createObjectURL(file));
+  };
+
+  const nav = (
+    <aside className="glass-panel fixed inset-y-3 left-3 z-40 flex w-[min(84vw,320px)] flex-col rounded-3xl p-4 shadow-premium transition-transform duration-300 lg:sticky lg:top-3 lg:h-[calc(100vh-1.5rem)] lg:w-80 lg:translate-x-0 data-[open=false]:-translate-x-[110%]" data-open={sidebarOpen}>
+      <div className="mb-5 flex items-center justify-between gap-3">
+        <button className="flex items-center gap-3 text-left" onClick={() => setActive("home")}>
+          <span className="grid h-12 w-12 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-glow">
+            <Rocket className="h-6 w-6" />
+          </span>
+          <span>
+            <span className="block text-xl font-black text-foreground">EduSAT</span>
+            <span className="text-xs font-bold text-muted-foreground">Academy Premium</span>
+          </span>
+        </button>
+        <button className="rounded-2xl p-2 text-muted-foreground hover:bg-accent lg:hidden" onClick={() => setSidebarOpen(false)} aria-label="Menyuni yopish">
+          <X />
+        </button>
+      </div>
+      <div className="mb-4 flex items-center gap-2 rounded-2xl border border-border/60 bg-secondary/50 p-2">
+        <Search className="h-4 w-4 text-muted-foreground" />
+        <input className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground" placeholder={t.search} />
+      </div>
+      <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto pr-1">
+        {sections.map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            onClick={() => {
+              setActive(id);
+              setSidebarOpen(false);
+            }}
+            className={`flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left text-sm font-bold transition-all ${
+              active === id ? "bg-primary text-primary-foreground shadow-glow" : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+            }`}
+          >
+            <Icon className="h-4 w-4 shrink-0" />
+            <span>{label}</span>
+          </button>
+        ))}
+      </nav>
+    </aside>
+  );
+
+  const renderHome = () => (
+    <>
+      <section className="grid gap-5 xl:grid-cols-[1.35fr_0.65fr]">
+        <GlassCard className="overflow-hidden p-7 md:p-9">
+          <div className="relative z-10">
+            <Pill>Modern Glassmorphism • Premium Tech</Pill>
+            <h1 className="mt-5 max-w-4xl text-4xl font-black leading-tight text-foreground md:text-6xl">
+              {t.greeting}, {displayName === "Mehmon" ? t.guest : displayName}
+            </h1>
+            <p className="mt-4 max-w-2xl text-lg leading-8 text-muted-foreground">
+              SAT, OTM, IELTS, Multi-level va Milliy sertifikat tayyorgarligi uchun testlar, 3D qo‘llanmalar, kurslar va coin rag‘bat tizimi.
+            </p>
+            <div className="mt-7 flex flex-wrap gap-3">
+              {["Daraja aniqlash", "Free Testlar", "3D qo‘llanmalar", "Bepul darslar"].map((item) => (
+                <button key={item} className="premium-button rounded-2xl px-5 py-3 text-sm font-black" onClick={() => setActive(sections.find((s) => s.label === item)?.id ?? "level")}>
+                  {item}
+                </button>
+              ))}
+            </div>
+          </div>
+        </GlassCard>
+        <GlassCard>
+          <div className="flex items-center gap-3">
+            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-primary/15 text-primary">
+              <Star />
+            </div>
+            <div>
+              <p className="text-sm font-black text-primary">Bugungi shior</p>
+              <p className="text-xs text-muted-foreground">Har kuni avtomatik almashadi</p>
+            </div>
+          </div>
+          <blockquote className="mt-5 text-xl font-black leading-8 text-foreground">“{todayQuote[0]}”</blockquote>
+          <p className="mt-4 font-bold text-muted-foreground">— {todayQuote[1]}</p>
+        </GlassCard>
+      </section>
+      <section className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {[
+          ["Coin balans", coins, Coins],
+          ["Yechilgan test", 42, Brain],
+          ["Reyting o‘rni", "#12", Trophy],
+          ["Sevimlilar", 18, Heart],
+        ].map(([label, value, Icon]) => (
+          <GlassCard key={label as string}>
+            <Icon className="mb-4 h-7 w-7 text-primary" />
+            <p className="text-sm font-bold text-muted-foreground">{label as string}</p>
+            <p className="mt-1 text-3xl font-black text-foreground">{value as string}</p>
+          </GlassCard>
+        ))}
+      </section>
+    </>
+  );
+
+  const renderProfile = () => (
+    <section>
+      <SectionTitle kicker="Profil" title="Foydalanuvchi ma’lumotlari va statistika" text="Profil rasmini tahrirlang, natijalar, coinlar va o‘quv progressini kuzating." />
+      <div className="grid gap-5 lg:grid-cols-[0.75fr_1.25fr]">
+        <GlassCard className="text-center">
+          <img src={avatar || aslonbekImg} alt="Profil rasmi" className="mx-auto h-32 w-32 rounded-full border-4 border-primary/30 object-cover shadow-glow" />
+          <h3 className="mt-4 text-2xl font-black text-foreground">{displayName}</h3>
+          <p className="text-muted-foreground">EduSAT Academy foydalanuvchisi</p>
+          <label className="mt-5 inline-flex cursor-pointer rounded-2xl bg-primary px-5 py-3 text-sm font-black text-primary-foreground">
+            Rasmni tahrirlash
+            <input type="file" accept="image/*" className="hidden" onChange={handleAvatar} />
+          </label>
+        </GlassCard>
+        <GlassCard>
+          <div className="grid gap-4 md:grid-cols-2">
+            {["SAT/OTM progress", "Free test aniqligi", "Daraja testi", "Kurs ishtiroki"].map((item, index) => (
+              <div key={item} className="rounded-2xl border border-border/60 bg-secondary/40 p-4">
+                <p className="mb-3 font-black text-foreground">{item}</p>
+                <ProgressBar value={[78, 64, 82, 56][index]} />
+                <p className="mt-2 text-sm text-muted-foreground">{[78, 64, 82, 56][index]}% yakunlangan</p>
+              </div>
+            ))}
+          </div>
+        </GlassCard>
+      </div>
+    </section>
+  );
+
+  const renderSat = () => (
+    <section>
+      <SectionTitle kicker="SAT/OTM" title="Real exam simulyatsiya va natija analizi" text="Timer, namunaviy savollar, javoblar va tezkor tahlil bilan imtihon muhitini sinab ko‘ring." />
+      <div className="grid gap-5 lg:grid-cols-3">
+        {["Namunaviy testlar", "Real exam simulyatsiya", "Natija analizi"].map((title, index) => (
+          <GlassCard key={title}>
+            <Timer className="mb-4 h-8 w-8 text-primary" />
+            <h3 className="text-2xl font-black text-foreground">{title}</h3>
+            <p className="mt-3 text-muted-foreground">{index === 1 ? "90 daqiqalik timer va bloklar bo‘yicha test muhiti." : "Savollar, javoblar va kuchli/kuchsiz tomonlar tahlili."}</p>
+            <button className="mt-5 rounded-2xl border border-border px-4 py-2 font-black text-foreground hover:bg-accent" onClick={() => completeActivity(35)}>Boshlash +35 coin</button>
+          </GlassCard>
+        ))}
+      </div>
+      <QuestionGrid />
+    </section>
+  );
+
+  const QuestionGrid = () => (
+    <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      {sampleQuestions.map((q) => (
+        <div key={q.subject} className="rounded-3xl border border-border/60 bg-card/70 p-5">
+          <Pill>{q.subject}</Pill>
+          <p className="mt-4 font-black text-foreground">{q.question}</p>
+          <p className="mt-3 text-sm text-muted-foreground">To‘g‘ri javob: {q.answer}</p>
+        </div>
+      ))}
+    </div>
+  );
+
+  const renderCourses = () => (
+    <section>
+      <SectionTitle kicker="Kurslar" title="Fanlar bo‘yicha video, PDF va sinov testlari" text="Kurslarda qatnashing, progressni oshiring va coinlar bilan rag‘bat oling." />
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {subjects.map((subject, index) => (
+          <GlassCard key={subject}>
+            <BookOpen className="mb-4 h-7 w-7 text-primary" />
+            <h3 className="text-2xl font-black text-foreground">{subject}</h3>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {['Video darslik', 'PDF darslik', 'Qo‘llanma', 'Sinov testlari'].map((tag) => <Pill key={tag}>{tag}</Pill>)}
+            </div>
+            <ProgressBar value={35 + index * 7} />
+            <button className="mt-5 premium-button rounded-2xl px-4 py-2 text-sm font-black" onClick={() => completeActivity(20)}>Kursga kirish +20 coin</button>
+          </GlassCard>
+        ))}
+      </div>
+    </section>
+  );
+
+  const renderFreeTests = () => (
+    <section>
+      <SectionTitle kicker="Free Testlar" title="Quiz, fan testlari, full exam va random savollar" text="Har bir fan ichida timerli bepul testlar va namunaviy savollar tayyorlandi." />
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {subjects.map((subject) => (
+          <GlassCard key={subject}>
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h3 className="text-2xl font-black text-foreground">{subject}</h3>
+                <p className="mt-2 text-sm text-muted-foreground">15:00 timer • 20 savol • tezkor natija</p>
+              </div>
+              <Timer className="text-primary" />
+            </div>
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              {['Quiz', 'Fan testlari', 'Full exam', 'Random'].map((item) => <button key={item} className="rounded-2xl bg-secondary/70 px-3 py-3 text-sm font-black text-secondary-foreground hover:bg-accent">{item}</button>)}
+            </div>
+          </GlassCard>
+        ))}
+      </div>
+      <QuestionGrid />
+    </section>
+  );
+
+  const renderLevel = () => (
+    <section>
+      <SectionTitle kicker="Daraja aniqlash" title="IELTS, Multi-level va Milliy sertifikat testlari" text="Birinchi sinab ko‘rish bepul. Keyingi foydalanish uchun premium xarid talab qilinadi." />
+      <div className="grid gap-5 lg:grid-cols-3">
+        {levelTests.map((test) => (
+          <GlassCard key={test.title}>
+            <div className="flex items-center justify-between gap-3">
+              <h3 className="text-3xl font-black text-foreground">{test.title}</h3>
+              <Pill>1 marta bepul</Pill>
+            </div>
+            <p className="mt-2 text-2xl font-black text-primary">{test.price}</p>
+            <p className="mt-1 text-sm font-bold text-muted-foreground">{test.accent}</p>
+            <div className="my-5 flex flex-wrap gap-2">{test.items.map((item) => <Pill key={item}>{item}</Pill>)}</div>
+            <div className="grid grid-cols-6 gap-1">
+              {levels.map((level) => <span key={level} className="rounded-xl bg-secondary/70 py-2 text-center text-xs font-black text-secondary-foreground">{level}</span>)}
+            </div>
+            <button className="mt-5 premium-button w-full rounded-2xl px-4 py-3 font-black" onClick={() => completeActivity(50)}>Testni boshlash +50 coin</button>
+          </GlassCard>
+        ))}
+      </div>
+    </section>
+  );
+
+  const renderModels = () => (
+    <section>
+      <SectionTitle kicker="3D qo‘llanmalar" title="Biologiya, Kimyo, Fizika, Tarix va Geografiya modellari" text="Fayldagi Sketchfab 3D modellar fanlar bo‘yicha joylashtirildi." />
+      <div className="space-y-5">
+        {science3d.map((subject) => (
+          <GlassCard key={subject}>
+            <h3 className="text-2xl font-black text-foreground">{subject}</h3>
+            <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+              {(sketchfab[subject as keyof typeof sketchfab] || []).map((url, index) => (
+                <a key={url} href={url} target="_blank" rel="noreferrer" className="group rounded-3xl border border-border/60 bg-secondary/40 p-4 transition hover:bg-accent">
+                  <Boxes className="mb-8 h-8 w-8 text-primary transition group-hover:scale-110" />
+                  <p className="font-black text-foreground">3D model {index + 1}</p>
+                  <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">Modelni ochish <ChevronRight className="h-4 w-4" /></p>
+                </a>
+              ))}
+            </div>
+          </GlassCard>
+        ))}
+      </div>
+    </section>
+  );
+
+  const renderLibrary = () => (
+    <section>
+      <SectionTitle kicker="Kutubxona" title="Badiiy asarlar va jahon adabiyoti" text="Har bir kitob uchun PDF, audio va film formatlari namuna sifatida joylashtirildi." />
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {["Alpomish", "O‘tkan kunlar", "The Old Man and the Sea", "War and Peace", "Hamlet", "Boburnoma", "1984", "Pride and Prejudice"].map((book) => (
+          <GlassCard key={book}>
+            <Library className="mb-5 h-8 w-8 text-primary" />
+            <h3 className="text-xl font-black text-foreground">{book}</h3>
+            <div className="mt-4 flex flex-wrap gap-2"><Pill>PDF</Pill><Pill>Audio</Pill><Pill>Film</Pill></div>
+          </GlassCard>
+        ))}
+      </div>
+    </section>
+  );
+
+  const renderCoinShop = () => (
+    <section>
+      <SectionTitle kicker="Coin do‘koni" title="Coin evaziga kontent va chegirmalar" text="Darslar, mock testlar va kitoblarga coin orqali chegirma oling." />
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {["Premium test ochish", "Darslarga 30% chegirma", "Mock test 50% chegirma", "Kitoblar 70% chegirma"].map((item, index) => (
+          <GlassCard key={item}>
+            <Coins className="mb-4 h-8 w-8 text-primary" />
+            <h3 className="text-xl font-black text-foreground">{item}</h3>
+            <p className="mt-3 text-2xl font-black text-primary">{[300, 500, 700, 900][index]} coin</p>
+          </GlassCard>
+        ))}
+      </div>
+    </section>
+  );
+
+  const renderMarket = () => (
+    <section>
+      <SectionTitle kicker="Edu market" title="Qo‘llanmalar, test kitoblari va adabiyotlar" text="Fanlar bo‘yicha mavzulashtirilgan kitoblar va badiiy adabiyotlarni xarid qiling." />
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {subjects.map((subject, index) => (
+          <GlassCard key={subject}>
+            <ShoppingBag className="mb-4 h-8 w-8 text-primary" />
+            <h3 className="text-2xl font-black text-foreground">{subject} to‘plami</h3>
+            <p className="mt-2 text-muted-foreground">Qo‘llanma + mavzulashtirilgan test kitobi</p>
+            <p className="mt-4 text-2xl font-black text-primary">{(39 + index * 5).toLocaleString()} 000 so‘m</p>
+          </GlassCard>
+        ))}
+      </div>
+    </section>
+  );
+
+  const renderRating = () => (
+    <section>
+      <SectionTitle kicker="Reyting" title="Top foydalanuvchilar" text="Natija, coin va test faolligi bo‘yicha demo reyting jadvali." />
+      <GlassCard>
+        {["Aslonbek", "Aziza", "Dildora", "Oybek", "Nazokat", "Rizamat"].map((name, index) => (
+          <div key={name} className="flex items-center justify-between border-b border-border/50 py-4 last:border-b-0">
+            <div className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-2xl bg-primary text-primary-foreground font-black">{index + 1}</span><span className="font-black text-foreground">{name}</span></div>
+            <span className="font-black text-primary">{980 - index * 73} ball</span>
+          </div>
+        ))}
+      </GlassCard>
+    </section>
+  );
+
+  const renderFavorites = () => (
+    <section>
+      <SectionTitle kicker="Sevimli" title="Saqlangan kontentlar" text="Bepul darslar, kutubxona, 3D qo‘llanmalar, market tovarlari va free testlar shu yerda saqlanadi." />
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+        {["Bepul darslar", "Kutubxona", "3D qo‘llanmalar", "Edu market", "Free testlar"].map((item) => <GlassCard key={item}><Heart className="mb-4 h-7 w-7 text-primary" /><h3 className="font-black text-foreground">{item}</h3><p className="mt-2 text-sm text-muted-foreground">Sevimlilarga qo‘shilgan</p></GlassCard>)}
+      </div>
+    </section>
+  );
+
+  const renderLessons = () => (
+    <section>
+      <SectionTitle kicker="Bepul darslar" title="Fanlar bo‘yicha YouTube video darslar" text="Fayldagi barcha video dars havolalari fanlar kesimida joylashtirildi." />
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {videos.map(([subject, url]) => (
+          <GlassCard key={subject}>
+            <PlayCircle className="mb-5 h-10 w-10 text-primary" />
+            <h3 className="text-2xl font-black text-foreground">{subject}</h3>
+            <a href={url} target="_blank" rel="noreferrer" className="mt-5 inline-flex rounded-2xl bg-primary px-5 py-3 font-black text-primary-foreground">Darsni ochish</a>
+          </GlassCard>
+        ))}
+      </div>
+    </section>
+  );
+
+  const renderPremium = () => (
+    <section>
+      <SectionTitle kicker="Premium" title="1, 3 va 12 oylik xizmat turlari" text="Kengaytirilgan testlar, 3D qo‘llanmalar, kutubxona va chuqur natija tahlilidan foydalaning." />
+      <div className="grid gap-5 lg:grid-cols-3">
+        {[["1 oylik", "49 000 so‘m"], ["3 oylik", "129 000 so‘m"], ["12 oylik", "399 000 so‘m"]].map(([plan, price]) => (
+          <GlassCard key={plan} className={plan === "3 oylik" ? "ring-2 ring-primary" : ""}>
+            <Crown className="mb-4 h-9 w-9 text-primary" />
+            <h3 className="text-3xl font-black text-foreground">{plan}</h3>
+            <p className="mt-2 text-2xl font-black text-primary">{price}</p>
+            <ul className="mt-5 space-y-3 text-muted-foreground">
+              {['Premium testlar', '3D qo‘llanmalar', 'Natija analizi', 'Market chegirmalari'].map((item) => <li key={item} className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-primary" />{item}</li>)}
+            </ul>
+          </GlassCard>
+        ))}
+      </div>
+    </section>
+  );
+
+  const renderReviews = () => (
+    <section>
+      <SectionTitle kicker="Baholash" title="Xizmatlarni 1 dan 5 gacha baholang" text="Baholashlar ilovani yaxshilash uchun demo ko‘rinishda saqlanadi." />
+      <GlassCard>
+        {["Bepul darslar", "Kutubxona", "3D qo‘llanmalar", "Edu market", "Free testlar"].map((item) => (
+          <div key={item} className="flex flex-wrap items-center justify-between gap-3 border-b border-border/50 py-4 last:border-b-0">
+            <p className="font-black text-foreground">{item}</p>
+            <div className="flex gap-1">
+              {[1, 2, 3, 4, 5].map((score) => <button key={score} onClick={() => setRatings({ ...ratings, [item]: score })} className={`rounded-xl p-2 ${score <= (ratings[item] || 0) ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"}`}><Star className="h-4 w-4" /></button>)}
+            </div>
+          </div>
+        ))}
+      </GlassCard>
+    </section>
+  );
+
+  const renderAbout = () => (
+    <section>
+      <SectionTitle kicker="Ilova haqida" title="EduSAT Academy — ishonchli ta’lim hamrohingiz" text="SAT, OTM va xalqaro imtihonlarga tayyorgarlik uchun yaratilgan zamonaviy ta’lim ilovasi." />
+      <div className="space-y-5">
+        <GlassCard><h3 className="text-2xl font-black text-foreground">BIZ HAQIMIZDA</h3><p className="mt-3 leading-7 text-muted-foreground">EduSAT Academy — bu SAT, OTM va xalqaro imtihonlarga tayyorgarlik uchun yaratilgan zamonaviy ta’lim ilovasi. Ilova orqali foydalanuvchilar video darslar, testlar, 3D qo‘llanmalar va real imtihon simulyatsiyalari yordamida bilimlarini mustahkamlashlari mumkin.</p></GlassCard>
+        <GlassCard><h3 className="text-2xl font-black text-foreground">BIZNING MAQSADIMIZ</h3><p className="mt-3 leading-7 text-muted-foreground">Har bir foydalanuvchining ichki salohiyatini ochish, zamonaviy bilim va ko‘nikmalar bilan qurollantirish hamda global raqobatga tayyor kuchli avlodni shakllantirish.</p></GlassCard>
+        <GlassCard><h3 className="mb-5 text-2xl font-black text-foreground">Minnatdorchilik</h3><div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">{mentors.map((person) => <PersonCard key={person.name} {...person} />)}</div></GlassCard>
+        <GlassCard><h3 className="mb-5 text-2xl font-black text-foreground">Jamoa A’zolari</h3><div className="grid gap-4 md:grid-cols-2">{team.map((person) => <PersonCard key={person.name} {...person} />)}</div></GlassCard>
+        <GlassCard><h3 className="text-2xl font-black text-foreground">FIKR VA TAKLIFLAR UCHUN</h3><p className="mt-3 leading-7 text-muted-foreground">Sizning fikr va takliflaringiz biz uchun juda muhim. Aloqa: Navoiy, O‘zbekiston • Telegram: @ASLONBEK_MUXTOROV • BIOSTEP_EDUCATION_bot</p></GlassCard>
+      </div>
+    </section>
+  );
+
+  const PersonCard = ({ name, role, image, link }: { name: string; role: string; image: string; link?: string }) => (
+    <div className="rounded-3xl border border-border/60 bg-secondary/40 p-4">
+      <img src={image} alt={`${name} rasmi`} className="h-56 w-full rounded-2xl object-cover" />
+      <p className="mt-4 text-sm font-bold text-primary">{role}</p>
+      <h4 className="mt-1 text-lg font-black text-foreground">{name}</h4>
+      {link && <a href={link} target="_blank" rel="noreferrer" className="mt-3 inline-flex text-sm font-black text-primary">Telegram orqali bog‘lanish</a>}
+    </div>
+  );
+
+  const content = {
+    home: renderHome,
+    profile: renderProfile,
+    sat: renderSat,
+    courses: renderCourses,
+    "free-tests": renderFreeTests,
+    level: renderLevel,
+    models: renderModels,
+    library: renderLibrary,
+    "coin-shop": renderCoinShop,
+    market: renderMarket,
+    rating: renderRating,
+    favorites: renderFavorites,
+    lessons: renderLessons,
+    premium: renderPremium,
+    reviews: renderReviews,
+    about: renderAbout,
+  }[active];
+
+  const AuthModal = () => authOpen ? (
+    <div className="fixed inset-0 z-50 grid place-items-center bg-background/70 p-4 backdrop-blur-xl">
+      <div className="glass-panel w-full max-w-md rounded-3xl p-6 shadow-premium">
+        <div className="flex items-center justify-between">
+          <h3 className="text-2xl font-black text-foreground">{authMode === "login" ? t.login : t.register}</h3>
+          <button className="rounded-2xl p-2 hover:bg-accent" onClick={() => setAuthOpen(false)}><X /></button>
+        </div>
+        <div className="mt-5 space-y-3">
+          <input className="h-12 w-full rounded-2xl border border-border bg-background/70 px-4 outline-none focus:ring-2 focus:ring-ring" placeholder="Ismingiz" onChange={(e) => setUserName(e.target.value)} />
+          <input className="h-12 w-full rounded-2xl border border-border bg-background/70 px-4 outline-none focus:ring-2 focus:ring-ring" placeholder="Email" type="email" />
+          <input className="h-12 w-full rounded-2xl border border-border bg-background/70 px-4 outline-none focus:ring-2 focus:ring-ring" placeholder="Parol" type="password" />
+          <button className="premium-button w-full rounded-2xl py-3 font-black" onClick={() => { setAuthOpen(false); completeActivity(100); }}>{authMode === "login" ? "Kirish" : "Ro‘yxatdan o‘tish"} +100 coin</button>
+        </div>
+        <button className="mt-4 text-sm font-bold text-primary" onClick={() => setAuthMode(authMode === "login" ? "register" : "login")}>{authMode === "login" ? "Hisob yo‘qmi? Ro‘yxatdan o‘ting" : "Hisobingiz bormi? Kirish"}</button>
+      </div>
+    </div>
+  ) : null;
+
+  return (
+    <main className="min-h-screen bg-background text-foreground">
+      <div className="fixed inset-0 -z-10 bg-premium-radial" />
+      <div className="flex min-h-screen gap-4 p-3">
+        {nav}
+        {sidebarOpen && <button className="fixed inset-0 z-30 bg-background/60 backdrop-blur-sm lg:hidden" onClick={() => setSidebarOpen(false)} aria-label="Menyuni yopish" />}
+        <div className="min-w-0 flex-1">
+          <header className="glass-panel sticky top-3 z-20 mb-5 flex items-center justify-between gap-3 rounded-3xl px-4 py-3 shadow-premium">
+            <div className="flex items-center gap-3">
+              <button className="rounded-2xl p-3 hover:bg-accent lg:hidden" onClick={() => setSidebarOpen(true)} aria-label="Menyuni ochish"><Menu /></button>
+              <div>
+                <p className="text-xs font-black uppercase text-primary">{sections.find((s) => s.id === active)?.label}</p>
+                <p className="hidden text-sm text-muted-foreground sm:block">3 til • light/dark • responsive premium platforma</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="hidden items-center gap-2 rounded-2xl border border-border bg-secondary/50 px-3 py-2 font-black text-foreground sm:flex"><Coins className="h-4 w-4 text-primary" />{coins}</div>
+              <button className="rounded-2xl p-3 hover:bg-accent" onClick={() => setDark(!dark)} aria-label="Theme almashtirish">{dark ? <Sun /> : <Moon />}</button>
+              <button className="rounded-2xl p-3 hover:bg-accent" onClick={() => setLang(lang === "uz" ? "en" : lang === "en" ? "ru" : "uz")} aria-label="Til almashtirish"><Languages /><span className="sr-only">{lang}</span></button>
+              <button className="hidden rounded-2xl bg-primary px-4 py-3 font-black text-primary-foreground md:inline-flex" onClick={() => { setAuthMode("login"); setAuthOpen(true); }}><LogIn className="mr-2 h-4 w-4" />{t.login}</button>
+              <img src={avatar || aslonbekImg} alt="Profil" className="h-11 w-11 rounded-full border-2 border-primary/40 object-cover" />
+            </div>
+          </header>
+          <div className="pb-8">{content()}</div>
+        </div>
+      </div>
+      <AuthModal />
+      <button className="fixed bottom-4 right-4 z-30 rounded-3xl bg-primary px-5 py-4 font-black text-primary-foreground shadow-glow md:hidden" onClick={() => { setAuthMode("login"); setAuthOpen(true); }}><Lock className="h-5 w-5" /></button>
+    </main>
+  );
+};
 
 export default Index;
