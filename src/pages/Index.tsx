@@ -564,15 +564,18 @@ const Index = () => {
       <div className="space-y-5">
         {science3d.map((subject) => (
           <GlassCard key={subject}>
-            <h3 className="text-2xl font-black text-foreground">{subject}</h3>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h3 className="text-2xl font-black text-foreground">{subject}</h3>
+              <Pill>{(sketchfab[subject as keyof typeof sketchfab] || []).length} ta interaktiv model</Pill>
+            </div>
             <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
               {(sketchfab[subject as keyof typeof sketchfab] || []).map((url, index) => (
                 <div key={url} className="overflow-hidden rounded-3xl border border-border/60 bg-secondary/40">
                   <iframe src={getSketchfabEmbed(url)} title={`${subject} 3D model ${index + 1}`} className="h-56 w-full" allow="autoplay; fullscreen; xr-spatial-tracking" allowFullScreen />
                   <div className="p-4">
                     <Boxes className="mb-3 h-7 w-7 text-primary" />
-                    <p className="font-black text-foreground">3D model {index + 1}</p>
-                    <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">Shu oynada ko‘rish <ChevronRight className="h-4 w-4" /></p>
+                    <p className="font-black text-foreground">{subject} modeli {index + 1}</p>
+                    <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">Bo‘limcha ichida ochiladi <ChevronRight className="h-4 w-4" /></p>
                   </div>
                 </div>
               ))}
@@ -587,11 +590,13 @@ const Index = () => {
     <section>
       <SectionTitle kicker="Kutubxona" title="Badiiy asarlar va jahon adabiyoti" text="Har bir kitob uchun PDF, audio va film formatlari namuna sifatida joylashtirildi." />
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {["Alpomish", "O‘tkan kunlar", "The Old Man and the Sea", "War and Peace", "Hamlet", "Boburnoma", "1984", "Pride and Prejudice"].map((book) => (
-          <GlassCard key={book}>
-            <Library className="mb-5 h-8 w-8 text-primary" />
-            <h3 className="text-xl font-black text-foreground">{book}</h3>
-            <div className="mt-4 flex flex-wrap gap-2"><Pill>PDF</Pill><Pill>Audio</Pill><Pill>Film</Pill></div>
+        {libraryBooks.map((book) => (
+          <GlassCard key={book.title}>
+            <div className="mb-5 grid h-28 place-items-center rounded-3xl border border-border/60 bg-primary/15 text-4xl font-black text-primary shadow-glow">{book.cover}</div>
+            <Pill>{book.level}</Pill>
+            <h3 className="mt-4 text-xl font-black text-foreground">{book.title}</h3>
+            <p className="mt-1 text-sm font-bold text-muted-foreground">{book.author}</p>
+            <div className="mt-4 flex flex-wrap gap-2">{book.formats.map((format) => <Pill key={format}>{format}</Pill>)}</div>
           </GlassCard>
         ))}
       </div>
