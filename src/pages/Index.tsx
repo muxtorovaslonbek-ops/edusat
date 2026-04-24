@@ -733,22 +733,48 @@ const Index = () => {
     </section>
   );
 
-  const renderSat = () => (
-    <section>
-      <SectionTitle kicker="SAT/OTM" title="Real exam simulyatsiya va natija analizi" text="Timer, namunaviy savollar, javoblar va tezkor tahlil bilan imtihon muhitini sinab ko‘ring." />
-      <div className="grid gap-5 lg:grid-cols-3">
-        {["Namunaviy testlar", "Real exam simulyatsiya", "Natija analizi"].map((title, index) => (
-          <GlassCard key={title}>
-            <Timer className="mb-4 h-8 w-8 text-primary" />
-            <h3 className="text-2xl font-black text-foreground">{title}</h3>
-            <p className="mt-3 text-muted-foreground">{index === 1 ? "90 daqiqalik timer va bloklar bo‘yicha test muhiti." : "Savollar, javoblar va kuchli/kuchsiz tomonlar tahlili."}</p>
-            <button className="mt-5 rounded-2xl border border-border px-4 py-2 font-black text-foreground hover:bg-accent" onClick={() => completeActivity(35)}>Boshlash +35 coin</button>
-          </GlassCard>
-        ))}
-      </div>
-      <TestRunner testId="sat-otm" questions={satOtmQuestions} />
-    </section>
-  );
+  const renderSat = () => {
+    const startExam = (minutes: number) => { setExamTimer(minutes * 60); setExamRunning(true); completeActivity(35); };
+    return (
+      <section>
+        <SectionTitle kicker="SAT/OTM" title="Real exam simulyatsiya va natija analizi" text="Timer, namunaviy savollar, javoblar va tezkor tahlil bilan imtihon muhitini sinab ko‘ring." />
+        <GlassCard className="mb-5">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="grid h-16 w-16 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-glow"><Timer className="h-8 w-8" /></div>
+              <div>
+                <Pill>Imtihon timeri</Pill>
+                <p className="mt-2 font-mono text-4xl font-black text-foreground">{formatTimer(examTimer)}</p>
+                <p className="text-sm font-bold text-muted-foreground">{examRunning ? "Imtihon davom etmoqda — savollarni quyida yeching." : examTimer > 0 ? "Pauza qilingan" : "Boshlash uchun davomiylikni tanlang"}</p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button className="premium-button rounded-2xl px-4 py-3 text-sm font-black" onClick={() => startExam(15)}>15 daqiqa</button>
+              <button className="premium-button rounded-2xl px-4 py-3 text-sm font-black" onClick={() => startExam(45)}>45 daqiqa</button>
+              <button className="premium-button rounded-2xl px-4 py-3 text-sm font-black" onClick={() => startExam(90)}>90 daqiqa</button>
+              {examRunning ? (
+                <button className="rounded-2xl border border-border px-4 py-3 text-sm font-black text-foreground hover:bg-accent" onClick={() => setExamRunning(false)}>Pauza</button>
+              ) : examTimer > 0 ? (
+                <button className="rounded-2xl border border-border px-4 py-3 text-sm font-black text-foreground hover:bg-accent" onClick={() => setExamRunning(true)}>Davom etish</button>
+              ) : null}
+              <button className="rounded-2xl border border-border px-4 py-3 text-sm font-black text-foreground hover:bg-accent" onClick={() => { setExamRunning(false); setExamTimer(0); }}>Reset</button>
+            </div>
+          </div>
+        </GlassCard>
+        <div className="grid gap-5 lg:grid-cols-3">
+          {["Namunaviy testlar", "Real exam simulyatsiya", "Natija analizi"].map((title, index) => (
+            <GlassCard key={title}>
+              <Timer className="mb-4 h-8 w-8 text-primary" />
+              <h3 className="text-2xl font-black text-foreground">{title}</h3>
+              <p className="mt-3 text-muted-foreground">{index === 1 ? "90 daqiqalik timer va bloklar bo‘yicha test muhiti." : "Savollar, javoblar va kuchli/kuchsiz tomonlar tahlili."}</p>
+              <button className="mt-5 rounded-2xl border border-border px-4 py-2 font-black text-foreground hover:bg-accent" onClick={() => index === 1 ? startExam(90) : completeActivity(35)}>{index === 1 ? "Real exam boshlash" : "Boshlash +35 coin"}</button>
+            </GlassCard>
+          ))}
+        </div>
+        <TestRunner testId="sat-otm" questions={satOtmQuestions} />
+      </section>
+    );
+  };
 
   const QuestionGrid = () => (
     <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
