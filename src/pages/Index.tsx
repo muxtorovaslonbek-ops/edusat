@@ -1366,8 +1366,13 @@ const Index = () => {
             <div className="flex items-center gap-3">
               <button
                 className="rounded-2xl p-3 hover:bg-accent"
-                onClick={() => { setSidebarOpen(true); setSidebarHidden(false); }}
-                aria-label="Menyuni ochish"
+                onClick={() => {
+                  // Toggle: hide if currently visible, otherwise show.
+                  const visible = sidebarOpen || !sidebarHidden;
+                  if (visible) { setSidebarOpen(false); setSidebarHidden(true); }
+                  else { setSidebarOpen(true); setSidebarHidden(false); }
+                }}
+                aria-label="Menyuni ochish/yopish"
               >
                 <Menu />
               </button>
