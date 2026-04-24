@@ -581,28 +581,35 @@ const Index = () => {
   const renderModels = () => (
     <section>
       <SectionTitle kicker="3D qo‘llanmalar" title="Biologiya, Kimyo, Fizika, Tarix va Geografiya modellari" text="Fayldagi Sketchfab 3D modellar fanlar bo‘yicha joylashtirildi." />
-      <div className="space-y-5">
-        {science3d.map((subject) => (
-          <GlassCard key={subject}>
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <h3 className="text-2xl font-black text-foreground">{subject}</h3>
-              <Pill>{(sketchfab[subject as keyof typeof sketchfab] || []).length} ta interaktiv model</Pill>
-            </div>
-            <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-              {(sketchfab[subject as keyof typeof sketchfab] || []).map((url, index) => (
-                <div key={url} className="overflow-hidden rounded-3xl border border-border/60 bg-secondary/40">
-                  <iframe src={getSketchfabEmbed(url)} title={`${subject} 3D model ${index + 1}`} className="h-56 w-full" allow="autoplay; fullscreen; xr-spatial-tracking" allowFullScreen />
-                  <div className="p-4">
-                    <Boxes className="mb-3 h-7 w-7 text-primary" />
-                    <p className="font-black text-foreground">{subject} modeli {index + 1}</p>
-                    <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">Bo‘limcha ichida ochiladi <ChevronRight className="h-4 w-4" /></p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </GlassCard>
+      <div className="mb-5 flex flex-wrap gap-2">
+        {["Hammasi", ...science3d].map((subject) => (
+          <button
+            key={subject}
+            className={`rounded-2xl border px-4 py-3 text-sm font-black transition-all ${active3dSubject === subject ? "border-primary bg-primary text-primary-foreground shadow-glow" : "border-border bg-secondary/50 text-foreground hover:bg-accent"}`}
+            onClick={() => setActive3dSubject(subject)}
+          >
+            {subject}
+          </button>
         ))}
       </div>
+      <GlassCard>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <h3 className="text-2xl font-black text-foreground">{active3dSubject === "Hammasi" ? "Barcha 3D qo‘llanmalar" : `${active3dSubject} 3D qo‘llanmalari`}</h3>
+          <Pill>{visible3dModels.length} ta model</Pill>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {visible3dModels.map(({ subject, url, index }) => (
+            <div key={url} className="overflow-hidden rounded-3xl border border-border/60 bg-secondary/40">
+              <iframe src={getSketchfabEmbed(url)} title={`${subject} 3D model ${index + 1}`} className="h-64 w-full" allow="autoplay; fullscreen; xr-spatial-tracking" allowFullScreen />
+              <div className="p-4">
+                <Pill>{subject}</Pill>
+                <p className="mt-3 font-black text-foreground">{subject} modeli {index + 1}</p>
+                <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">Shu oynada ko‘rish <ChevronRight className="h-4 w-4" /></p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </GlassCard>
     </section>
   );
 
