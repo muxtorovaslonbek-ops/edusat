@@ -150,6 +150,30 @@ const levelTests = [
   { title: "Milliy sertifikat", price: "59 000 so‘m", accent: "C → A+", items: subjects },
 ];
 
+const levelTestQuestions: Record<string, Array<{ subject: string; question: string; answer: string }>> = {
+  IELTS: [
+    { subject: "Vocabulary", question: "Synonym of 'significant'?", answer: "important" },
+    { subject: "Grammar", question: "Fill: If I ___ rich, I would travel.", answer: "were" },
+    { subject: "Reading", question: "Antonym of 'ancient'?", answer: "modern" },
+    { subject: "Writing", question: "Plural of 'analysis'?", answer: "analyses" },
+    { subject: "Listening", question: "How many minutes in 1.5 hours?", answer: "90" },
+  ],
+  "Multi-level": [
+    { subject: "Grammar", question: "Choose: She ___ to school every day.", answer: "goes" },
+    { subject: "Vocabulary", question: "Past tense of 'go'?", answer: "went" },
+    { subject: "Reading", question: "Antonym of 'happy'?", answer: "sad" },
+    { subject: "Writing", question: "Article: ___ apple a day.", answer: "an" },
+    { subject: "Listening", question: "Capital of the UK?", answer: "London" },
+  ],
+  "Milliy sertifikat": [
+    { subject: "Matematika", question: "5! (faktorial) nechaga teng?", answer: "120" },
+    { subject: "Ona tili", question: "Gapning bosh bo‘laklari nechta?", answer: "2" },
+    { subject: "Tarix", question: "Mustaqillik yili?", answer: "1991" },
+    { subject: "Biologiya", question: "Inson tanasida nechta xromosoma bor?", answer: "46" },
+    { subject: "Kimyo", question: "Oltinning kimyoviy belgisi?", answer: "Au" },
+  ],
+};
+
 const sketchfab = {
   Biologiya: [
     "https://sketchfab.com/3d-models/modern-human-skeletal-organs-c06468c7f4444e08a397e90bc84381d3",
