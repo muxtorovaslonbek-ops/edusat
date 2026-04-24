@@ -366,6 +366,7 @@ const ProgressBar = ({ value }: { value: number }) => (
 const Index = () => {
   const [active, setActive] = useState<SectionId>("home");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarHidden, setSidebarHidden] = useState(false);
   const [dark, setDark] = useState(true);
   const [lang, setLang] = useState<Lang>("uz");
   const [coins, setCoins] = useState(1280);
@@ -524,8 +525,12 @@ const Index = () => {
     );
   };
 
+  const navVisible = sidebarOpen || !sidebarHidden;
   const nav = (
-    <aside className="glass-panel fixed inset-y-3 left-3 z-40 flex w-[min(84vw,320px)] flex-col rounded-3xl p-4 shadow-premium transition-transform duration-300 lg:sticky lg:top-3 lg:h-[calc(100vh-1.5rem)] lg:w-80 lg:translate-x-0 data-[open=false]:-translate-x-[110%]" data-open={sidebarOpen}>
+    <aside
+      className="glass-panel fixed inset-y-3 left-3 z-40 flex w-[min(84vw,320px)] flex-col rounded-3xl p-4 shadow-premium transition-transform duration-300 lg:sticky lg:top-3 lg:h-[calc(100vh-1.5rem)] lg:w-80 data-[open=false]:-translate-x-[110%]"
+      data-open={navVisible}
+    >
       <div className="mb-5 flex items-center justify-between gap-3">
         <button className="flex items-center gap-3 text-left" onClick={() => setActive("home")}>
           <span className="grid h-12 w-12 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-glow">
@@ -537,6 +542,9 @@ const Index = () => {
           </span>
         </button>
         <button className="rounded-2xl p-2 text-muted-foreground hover:bg-accent lg:hidden" onClick={() => setSidebarOpen(false)} aria-label="Menyuni yopish">
+          <X />
+        </button>
+        <button className="hidden rounded-2xl p-2 text-muted-foreground hover:bg-accent lg:inline-flex" onClick={() => setSidebarHidden(true)} aria-label="Yon panelni yashirish">
           <X />
         </button>
       </div>
@@ -1255,7 +1263,13 @@ const Index = () => {
         <div className="min-w-0 flex-1">
           <header className="glass-panel sticky top-3 z-20 mb-5 flex items-center justify-between gap-3 rounded-3xl px-4 py-3 shadow-premium">
             <div className="flex items-center gap-3">
-              <button className="rounded-2xl p-3 hover:bg-accent lg:hidden" onClick={() => setSidebarOpen(true)} aria-label="Menyuni ochish"><Menu /></button>
+              <button
+                className="rounded-2xl p-3 hover:bg-accent"
+                onClick={() => { setSidebarOpen(true); setSidebarHidden(false); }}
+                aria-label="Menyuni ochish"
+              >
+                <Menu />
+              </button>
               <div>
                 <p className="text-xs font-black uppercase text-primary">{sections.find((s) => s.id === active)?.label}</p>
                 <p className="hidden text-sm text-muted-foreground sm:block">Bilim, test, 3D qo‘llanma va premium tayyorgarlik markazi</p>
