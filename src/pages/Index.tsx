@@ -625,8 +625,8 @@ const Index = () => {
   );
 
   const PersonCard = ({ name, role, image, link }: { name: string; role: string; image: string; link?: string }) => (
-    <div className="rounded-3xl border border-border/60 bg-secondary/40 p-4">
-      <img src={image} alt={`${name} rasmi`} className="h-56 w-full rounded-2xl object-cover" />
+    <div className="rounded-3xl border border-border/60 bg-secondary/40 p-5 text-center">
+      <img src={image} alt={`${name} rasmi`} className="mx-auto h-32 w-32 rounded-full border-4 border-primary/30 object-cover shadow-glow" />
       <p className="mt-4 text-sm font-bold text-primary">{role}</p>
       <h4 className="mt-1 text-lg font-black text-foreground">{name}</h4>
       {link && <a href={link} target="_blank" rel="noreferrer" className="mt-3 inline-flex text-sm font-black text-primary">Telegram orqali bog‘lanish</a>}
@@ -688,7 +688,7 @@ const Index = () => {
             <div className="flex items-center gap-2">
               <div className="hidden items-center gap-2 rounded-2xl border border-border bg-secondary/50 px-3 py-2 font-black text-foreground sm:flex"><Coins className="h-4 w-4 text-primary" />{coins}</div>
               <button className="rounded-2xl p-3 hover:bg-accent" onClick={() => setDark(!dark)} aria-label="Theme almashtirish">{dark ? <Sun /> : <Moon />}</button>
-              <button className="rounded-2xl p-3 hover:bg-accent" onClick={() => setLang(lang === "uz" ? "en" : lang === "en" ? "ru" : "uz")} aria-label="Til almashtirish"><Languages /><span className="sr-only">{lang}</span></button>
+          <button className="inline-flex items-center gap-2 rounded-2xl border border-border bg-secondary/50 px-3 py-3 font-black text-foreground hover:bg-accent" onClick={() => setLang(lang === "uz" ? "en" : lang === "en" ? "ru" : "uz")} aria-label="Til almashtirish"><Languages className="h-5 w-5" /><span className="text-xs uppercase">{lang}</span></button>
               <button className="hidden rounded-2xl bg-primary px-4 py-3 font-black text-primary-foreground md:inline-flex" onClick={() => { setAuthMode("login"); setAuthOpen(true); }}><LogIn className="mr-2 h-4 w-4" />{t.login}</button>
               <img src={avatar || aslonbekImg} alt="Profil" className="h-11 w-11 rounded-full border-2 border-primary/40 object-cover" />
             </div>
