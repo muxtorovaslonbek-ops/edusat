@@ -66,14 +66,14 @@ const languageOptions: Array<{ code: Lang; label: string }> = [
 ];
 
 const libraryBooks = [
-  { title: "O‘tkan kunlar", author: "Abdulla Qodiriy", level: "Adabiyot", formats: ["PDF", "Audio", "Tahlil"], cover: "OQ" },
-  { title: "Mehrobdan chayon", author: "Abdulla Qodiriy", level: "Roman", formats: ["PDF", "Audio"], cover: "MC" },
-  { title: "Boburnoma", author: "Zahiriddin Bobur", level: "Tarix", formats: ["PDF", "Xarita", "Izoh"], cover: "BN" },
-  { title: "Alpomish", author: "Xalq dostoni", level: "Doston", formats: ["PDF", "Audio", "Film"], cover: "AL" },
-  { title: "1984", author: "George Orwell", level: "English B2", formats: ["PDF", "Audio", "Vocab"], cover: "84" },
-  { title: "Hamlet", author: "William Shakespeare", level: "English C1", formats: ["PDF", "Audio", "Scene"], cover: "HL" },
-  { title: "The Old Man and the Sea", author: "Ernest Hemingway", level: "English B1", formats: ["PDF", "Audio"], cover: "OS" },
-  { title: "War and Peace", author: "Leo Tolstoy", level: "Russian C1", formats: ["PDF", "Audio", "Film"], cover: "WP" },
+  { title: "O‘tkan kunlar", author: "Abdulla Qodiriy", level: "Adabiyot", formats: ["PDF", "Audio", "Tahlil"], cover: "OQ", scene: "Tarixiy roman" },
+  { title: "Mehrobdan chayon", author: "Abdulla Qodiriy", level: "Roman", formats: ["PDF", "Audio"], cover: "MC", scene: "Klassik asar" },
+  { title: "Boburnoma", author: "Zahiriddin Bobur", level: "Tarix", formats: ["PDF", "Xarita", "Izoh"], cover: "BN", scene: "Xotira va tarix" },
+  { title: "Alpomish", author: "Xalq dostoni", level: "Doston", formats: ["PDF", "Audio", "Film"], cover: "AL", scene: "Qahramonlik" },
+  { title: "1984", author: "George Orwell", level: "English B2", formats: ["PDF", "Audio", "Vocab"], cover: "84", scene: "Dystopia" },
+  { title: "Hamlet", author: "William Shakespeare", level: "English C1", formats: ["PDF", "Audio", "Scene"], cover: "HL", scene: "Drama" },
+  { title: "The Old Man and the Sea", author: "Ernest Hemingway", level: "English B1", formats: ["PDF", "Audio"], cover: "OS", scene: "Sea story" },
+  { title: "War and Peace", author: "Leo Tolstoy", level: "Russian C1", formats: ["PDF", "Audio", "Film"], cover: "WP", scene: "Epic novel" },
 ];
 
 const coinShopItems = [
@@ -122,10 +122,17 @@ const sampleQuestions = [
 const satOtmQuestions = [
   { subject: "SAT Math", question: "If f(x)=2x²-3x+1, find f(3).", answer: "10" },
   { subject: "SAT Reading", question: "Main idea savolida avval nimani aniqlash kerak?", answer: "Matnning umumiy g‘oyasi" },
+  { subject: "SAT Writing", question: "Choose the concise version: Due to the fact that it rained, the match was delayed.", answer: "Because it rained, the match was delayed." },
+  { subject: "SAT Algebra", question: "2x - 5 = 13 bo‘lsa, x nechaga teng?", answer: "9" },
+  { subject: "SAT Data", question: "Agar 40 ning 25% i so‘ralsa, javob nechchi?", answer: "10" },
   { subject: "OTM Matematika", question: "Kvadrat tenglama diskriminanti formulasi qanday?", answer: "D=b²-4ac" },
   { subject: "OTM Ona tili", question: "Gap bo‘laklari nechta asosiy turga bo‘linadi?", answer: "5 ta" },
   { subject: "OTM Tarix", question: "Mustaqillik deklaratsiyasi qachon qabul qilingan?", answer: "1990-yil 20-iyun" },
   { subject: "OTM Ingliz tili", question: "Choose: I have lived here ___ 2020.", answer: "since" },
+  { subject: "OTM Biologiya", question: "DNK tarkibidagi azotli asoslardan biri qaysi?", answer: "Adenin" },
+  { subject: "OTM Kimyo", question: "NaCl moddasining nomi nima?", answer: "Natriy xlorid" },
+  { subject: "OTM Fizika", question: "Tezlik formulasi qanday?", answer: "v=s/t" },
+  { subject: "OTM Geografiya", question: "Yerning eng katta okeani qaysi?", answer: "Tinch okeani" },
 ];
 
 const freeTestPacks = [
@@ -249,6 +256,8 @@ const Index = () => {
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
   const [authError, setAuthError] = useState("");
+  const [profileName, setProfileName] = useState("Mehmon");
+  const [profileEmail, setProfileEmail] = useState("demo@edusat.uz");
   const [avatar, setAvatar] = useState<string | null>(null);
   const [ratings, setRatings] = useState<Record<string, number>>({});
   const [searchQuery, setSearchQuery] = useState("");
@@ -301,6 +310,7 @@ const Index = () => {
     const email = authEmail.trim();
     if (authMode === "login" && !email && !authPassword) {
       setUserName("Foydalanuvchi");
+      setProfileName("Foydalanuvchi");
       setIsAuthenticated(true);
       setActive("profile");
       setAuthError("");
@@ -316,7 +326,10 @@ const Index = () => {
       setAuthError("To‘g‘ri email va kamida 6 belgili parol kiriting.");
       return;
     }
-    setUserName(name || email.split("@")[0] || "Foydalanuvchi");
+    const nextName = name || email.split("@")[0] || "Foydalanuvchi";
+    setUserName(nextName);
+    setProfileName(nextName);
+    setProfileEmail(email);
     setIsAuthenticated(true);
     setActive("profile");
     setAuthError("");
@@ -448,8 +461,23 @@ const Index = () => {
             Rasmni tahrirlash
             <input type="file" accept="image/*" className="hidden" onChange={handleAvatar} />
           </label>
+          <button className="mt-3 w-full rounded-2xl border border-border px-5 py-3 text-sm font-black text-foreground hover:bg-accent" onClick={() => { setIsAuthenticated(false); setUserName("Mehmon"); setProfileName("Mehmon"); setAuthEmail(""); setAuthPassword(""); setActive("home"); }}>Profildan chiqish</button>
         </GlassCard>
         <GlassCard>
+          <div className="mb-5 grid gap-3 md:grid-cols-2">
+            <label className="space-y-2 text-sm font-black text-foreground">
+              Ism familiya
+              <input className="h-12 w-full rounded-2xl border border-input bg-card px-4 font-bold text-foreground outline-none focus:ring-2 focus:ring-ring" value={profileName} onChange={(event) => { setProfileName(event.target.value); setUserName(event.target.value || "Mehmon"); }} />
+            </label>
+            <label className="space-y-2 text-sm font-black text-foreground">
+              Email
+              <input className="h-12 w-full rounded-2xl border border-input bg-card px-4 font-bold text-foreground outline-none focus:ring-2 focus:ring-ring" type="email" value={profileEmail} onChange={(event) => setProfileEmail(event.target.value)} />
+            </label>
+            <label className="space-y-2 text-sm font-black text-foreground md:col-span-2">
+              Maqsad
+              <input className="h-12 w-full rounded-2xl border border-input bg-card px-4 font-bold text-foreground outline-none focus:ring-2 focus:ring-ring" defaultValue="SAT/OTM imtihonlariga tayyorgarlik" />
+            </label>
+          </div>
           <div className="grid gap-4 md:grid-cols-2">
             {["SAT/OTM progress", "Free test aniqligi", "Daraja testi", "Kurs ishtiroki"].map((item, index) => (
               <div key={item} className="rounded-2xl border border-border/60 bg-secondary/40 p-4">
@@ -619,7 +647,16 @@ const Index = () => {
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {libraryBooks.map((book) => (
           <GlassCard key={book.title}>
-            <div className="mb-5 grid h-28 place-items-center rounded-3xl border border-border/60 bg-primary/15 text-4xl font-black text-primary shadow-glow">{book.cover}</div>
+            <div className="mb-5 overflow-hidden rounded-3xl border border-border/60 bg-primary/15 shadow-glow">
+              <div className="grid aspect-[3/4] place-items-center bg-[radial-gradient(circle_at_30%_20%,hsl(var(--primary)/0.34),transparent_34%),linear-gradient(145deg,hsl(var(--card)),hsl(var(--secondary)))] p-5 text-center">
+                <div>
+                  <div className="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-2xl bg-primary text-3xl font-black text-primary-foreground">{book.cover}</div>
+                  <p className="text-xs font-black uppercase text-primary">{book.scene}</p>
+                  <h3 className="mt-3 text-2xl font-black leading-tight text-foreground">{book.title}</h3>
+                  <p className="mt-2 text-sm font-bold text-muted-foreground">{book.author}</p>
+                </div>
+              </div>
+            </div>
             <Pill>{book.level}</Pill>
             <h3 className="mt-4 text-xl font-black text-foreground">{book.title}</h3>
             <p className="mt-1 text-sm font-bold text-muted-foreground">{book.author}</p>
