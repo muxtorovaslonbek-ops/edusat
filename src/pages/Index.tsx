@@ -1215,21 +1215,35 @@ const Index = () => {
     );
   };
 
-  const renderReviews = () => (
-    <section>
-      <SectionTitle kicker="Baholash" title="Xizmatlarni 1 dan 5 gacha baholang" text="Baholashlar ilovani yaxshilash uchun demo ko‘rinishda saqlanadi." />
-      <GlassCard>
-        {["Bepul darslar", "Kutubxona", "3D qo‘llanmalar", "Edu market", "Free testlar"].map((item) => (
-          <div key={item} className="flex flex-wrap items-center justify-between gap-3 border-b border-border/50 py-4 last:border-b-0">
-            <p className="font-black text-foreground">{item}</p>
-            <div className="flex gap-1">
-              {[1, 2, 3, 4, 5].map((score) => <button key={score} onClick={() => setRatings({ ...ratings, [item]: score })} className={`rounded-xl p-2 ${score <= (ratings[item] || 0) ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"}`}><Star className="h-4 w-4" /></button>)}
-            </div>
+  const renderReviews = () => {
+    const reviewItems = ["Bepul darslar", "Kutubxona", "3D qo‘llanmalar", "Edu market", "Free testlar"];
+    const totalRated = reviewItems.filter((item) => ratings[item]).length;
+    const avgRating = totalRated > 0 ? (reviewItems.reduce((sum, item) => sum + (ratings[item] || 0), 0) / totalRated).toFixed(1) : "—";
+    return (
+      <section>
+        <SectionTitle kicker="Baholash" title="Xizmatlarni 1 dan 5 gacha baholang" text="Baholashlar ilovani yaxshilash uchun demo ko‘rinishda saqlanadi." />
+        <GlassCard className="mb-5 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <Pill>Sizning baholashlaringiz</Pill>
+            <p className="mt-2 text-3xl font-black text-foreground">O‘rtacha: <span className="text-primary">{avgRating}</span> / 5</p>
+            <p className="text-sm font-bold text-muted-foreground">{totalRated}/{reviewItems.length} ta xizmat baholandi</p>
           </div>
-        ))}
-      </GlassCard>
-    </section>
-  );
+          <button className="premium-button rounded-2xl px-5 py-3 font-black" onClick={() => { if (totalRated === 0) return; setReviewSaved(true); completeActivity(20); setTimeout(() => setReviewSaved(false), 3000); }}>Baholashni saqlash +20 coin</button>
+        </GlassCard>
+        {reviewSaved && <div className="mb-5 rounded-2xl border border-primary/30 bg-primary/10 px-4 py-3 text-sm font-black text-primary">✓ Baholashlaringiz qabul qilindi. Rahmat!</div>}
+        <GlassCard>
+          {reviewItems.map((item) => (
+            <div key={item} className="flex flex-wrap items-center justify-between gap-3 border-b border-border/50 py-4 last:border-b-0">
+              <p className="font-black text-foreground">{item}</p>
+              <div className="flex gap-1">
+                {[1, 2, 3, 4, 5].map((score) => <button key={score} onClick={() => setRatings({ ...ratings, [item]: score })} className={`rounded-xl p-2 ${score <= (ratings[item] || 0) ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"}`}><Star className="h-4 w-4" /></button>)}
+              </div>
+            </div>
+          ))}
+        </GlassCard>
+      </section>
+    );
+  };
 
   const renderAbout = () => (
     <section>
