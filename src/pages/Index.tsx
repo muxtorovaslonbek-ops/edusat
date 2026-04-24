@@ -1263,7 +1263,13 @@ const Index = () => {
         <div className="min-w-0 flex-1">
           <header className="glass-panel sticky top-3 z-20 mb-5 flex items-center justify-between gap-3 rounded-3xl px-4 py-3 shadow-premium">
             <div className="flex items-center gap-3">
-              <button className="rounded-2xl p-3 hover:bg-accent lg:hidden" onClick={() => setSidebarOpen(true)} aria-label="Menyuni ochish"><Menu /></button>
+              <button
+                className="rounded-2xl p-3 hover:bg-accent"
+                onClick={() => { setSidebarOpen(true); setSidebarHidden(false); }}
+                aria-label="Menyuni ochish"
+              >
+                <Menu />
+              </button>
               <div>
                 <p className="text-xs font-black uppercase text-primary">{sections.find((s) => s.id === active)?.label}</p>
                 <p className="hidden text-sm text-muted-foreground sm:block">Bilim, test, 3D qo‘llanma va premium tayyorgarlik markazi</p>
