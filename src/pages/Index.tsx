@@ -329,6 +329,24 @@ const Index = () => {
         <Search className="h-4 w-4 text-muted-foreground" />
         <input className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground" placeholder={t.search} value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} />
       </div>
+      {searchResults.length > 0 && (
+        <div className="mb-4 space-y-1 rounded-3xl border border-border/60 bg-card/70 p-2">
+          {searchResults.map((item) => (
+            <button
+              key={`${item.section}-${item.title}`}
+              className="w-full rounded-2xl px-3 py-2 text-left hover:bg-accent"
+              onClick={() => {
+                setActive(item.section);
+                setSearchQuery("");
+                setSidebarOpen(false);
+              }}
+            >
+              <span className="block text-sm font-black text-foreground">{item.title}</span>
+              <span className="text-xs font-bold text-muted-foreground">{item.category}</span>
+            </button>
+          ))}
+        </div>
+      )}
       <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto pr-1">
         {filteredSections.map(({ id, label, icon: Icon }) => (
           <button
