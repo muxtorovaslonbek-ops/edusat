@@ -371,22 +371,23 @@ const Index = () => {
   const renderHome = () => (
     <>
       <section className="grid gap-5 xl:grid-cols-[1.35fr_0.65fr]">
-        <GlassCard className="overflow-hidden p-7 md:p-9">
-          <div className="relative z-10">
-            <Pill>Modern Glassmorphism • Premium Tech</Pill>
-            <h1 className="mt-5 max-w-4xl text-4xl font-black leading-tight text-foreground md:text-6xl">
-              {t.greeting}, {displayName === "Mehmon" ? t.guest : displayName}
+        <GlassCard className="relative min-h-[360px] overflow-hidden p-7 md:p-10">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_78%_30%,hsl(var(--primary)/0.2),transparent_34%)]" />
+          <div className="relative z-10 flex h-full flex-col justify-center">
+            <h1 className="max-w-4xl text-4xl font-black leading-tight text-foreground md:text-6xl">
+              EduSAT <span className="text-primary">Academy</span><br />Sizning <span className="text-primary">Muvaffaqiyat</span> Yo‘lingiz
             </h1>
-            <p className="mt-4 max-w-2xl text-lg leading-8 text-muted-foreground">
-              SAT, OTM, IELTS, Multi-level va Milliy sertifikat tayyorgarligi uchun testlar, 3D qo‘llanmalar, kurslar va coin rag‘bat tizimi.
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-muted-foreground">
+              {t.greeting}, <b className="text-foreground">{displayName === "Mehmon" ? t.guest : displayName}</b>! SAT, OTM va xalqaro imtihonlarga premium tayyorlaning.
             </p>
-            <div className="mt-7 flex flex-wrap gap-3">
+            <div className="mt-8 flex flex-wrap gap-3">
               {["Daraja aniqlash", "Free Testlar", "3D qo‘llanmalar", "Bepul darslar"].map((item) => (
                 <button key={item} className="premium-button rounded-2xl px-5 py-3 text-sm font-black" onClick={() => setActive(sections.find((s) => s.label === item)?.id ?? "level")}>
                   {item}
                 </button>
               ))}
             </div>
+            <div className="pointer-events-none absolute bottom-4 right-6 text-[180px] font-black leading-none text-primary/10">”</div>
           </div>
         </GlassCard>
         <GlassCard>
