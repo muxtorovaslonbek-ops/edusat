@@ -1041,23 +1041,84 @@ const Index = () => {
     </section>
   );
 
-  const renderPremium = () => (
-    <section>
-      <SectionTitle kicker="Premium" title="1, 3 va 12 oylik xizmat turlari" text="Kengaytirilgan testlar, 3D qo‘llanmalar, kutubxona va chuqur natija tahlilidan foydalaning." />
-      <div className="grid gap-5 lg:grid-cols-3">
-        {[["1 oylik", "49 000 so‘m"], ["3 oylik", "129 000 so‘m"], ["12 oylik", "399 000 so‘m"]].map(([plan, price]) => (
-          <GlassCard key={plan} className={plan === "3 oylik" ? "ring-2 ring-primary" : ""}>
-            <Crown className="mb-4 h-9 w-9 text-primary" />
-            <h3 className="text-3xl font-black text-foreground">{plan}</h3>
-            <p className="mt-2 text-2xl font-black text-primary">{price}</p>
-            <ul className="mt-5 space-y-3 text-muted-foreground">
-              {['Premium testlar', '3D qo‘llanmalar', 'Natija analizi', 'Market chegirmalari'].map((item) => <li key={item} className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-primary" />{item}</li>)}
-            </ul>
-          </GlassCard>
-        ))}
-      </div>
-    </section>
-  );
+  const renderPremium = () => {
+    const plans = [
+      { name: "Boshlang‘ich", duration: "1 oylik", price: "49 000", monthly: "49 000", badge: "Sinab ko‘rish", features: ["Premium testlar", "3D qo‘llanmalar", "Bepul darslar", "Kutubxona kirishi"] },
+      { name: "Tavsiya etiladi", duration: "3 oylik", price: "129 000", monthly: "43 000", badge: "Eng mashhur • -12%", features: ["Barcha 1 oylik imkoniyatlar", "Mock testlar va tahlil", "Edu market chegirmalari", "Shaxsiy o‘qish rejasi"] },
+      { name: "Maksimal", duration: "12 oylik", price: "399 000", monthly: "33 250", badge: "Eng tejamli • -32%", features: ["Barcha 3 oylik imkoniyatlar", "Premium 3D atlas", "Mentor maslahatlari", "Sertifikat va analitika"] },
+    ];
+    const benefits = [
+      { icon: ShieldCheck, title: "Cheksiz testlar", text: "SAT, OTM, IELTS va daraja testlariga to‘liq kirish." },
+      { icon: Boxes, title: "3D qo‘llanmalar", text: "Biologiya, kimyo, fizika va tarix bo‘yicha premium modellar." },
+      { icon: Brain, title: "Natija tahlili", text: "Kuchli/kuchsiz tomonlarni avtomatik aniqlash." },
+      { icon: Crown, title: "Premium qo‘llab-quvvatlash", text: "Mentor va ustozlardan tezkor javob." },
+    ];
+
+    return (
+      <section>
+        <SectionTitle kicker="Premium xizmatlar" title="Bilimingizni keyingi bosqichga olib chiqing" text="3 ta tarif: 1 oylik, 3 oylik va 12 oylik. Har biri kengaytirilgan testlar, 3D qo‘llanmalar va shaxsiy tahlil bilan keladi." />
+
+        <div className="grid gap-5 lg:grid-cols-3">
+          {plans.map((plan, index) => {
+            const isPopular = index === 1;
+            return (
+              <GlassCard
+                key={plan.duration}
+                className={`relative overflow-hidden ${isPopular ? "ring-2 ring-primary shadow-glow lg:-translate-y-2" : ""}`}
+              >
+                {isPopular && <div className="absolute inset-x-0 top-0 bg-primary py-2 text-center text-xs font-black uppercase tracking-wider text-primary-foreground">⭐ Eng mashhur tanlov</div>}
+                <div className={isPopular ? "pt-8" : ""}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="grid h-14 w-14 place-items-center rounded-2xl bg-primary/15 text-primary"><Crown className="h-7 w-7" /></div>
+                    <span className="rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-black text-primary">{plan.badge}</span>
+                  </div>
+                  <p className="mt-5 text-sm font-black uppercase tracking-wide text-primary">{plan.name}</p>
+                  <h3 className="mt-1 text-3xl font-black text-foreground">{plan.duration}</h3>
+                  <div className="mt-4 flex items-baseline gap-2">
+                    <p className="text-4xl font-black text-foreground">{plan.price}</p>
+                    <p className="text-sm font-bold text-muted-foreground">so‘m</p>
+                  </div>
+                  <p className="mt-1 text-sm font-bold text-muted-foreground">≈ {plan.monthly} so‘m / oy</p>
+
+                  <ul className="mt-6 space-y-3">
+                    {plan.features.map((feature) => (
+                      <li key={feature} className="flex items-start gap-3 text-sm font-bold text-foreground">
+                        <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground"><ShieldCheck className="h-3 w-3" /></span>
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+
+                  <button className={`mt-7 w-full rounded-2xl px-4 py-3 text-sm font-black ${isPopular ? "premium-button" : "border border-border bg-secondary/60 text-foreground hover:bg-accent"}`} onClick={() => completeActivity(75)}>Tarifni tanlash +75 coin</button>
+                </div>
+              </GlassCard>
+            );
+          })}
+        </div>
+
+        <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {benefits.map(({ icon: Icon, title, text }) => (
+            <GlassCard key={title}>
+              <div className="grid h-12 w-12 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-glow"><Icon className="h-6 w-6" /></div>
+              <h3 className="mt-4 text-lg font-black text-foreground">{title}</h3>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">{text}</p>
+            </GlassCard>
+          ))}
+        </div>
+
+        <GlassCard className="mt-6">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <Pill>Kafolat</Pill>
+              <h3 className="mt-3 text-2xl font-black text-foreground">7 kun ichida pulni qaytarish kafolati</h3>
+              <p className="mt-2 text-sm text-muted-foreground">Premium tarifdan foydalanib ko‘ring — yoqmasa, pulingiz to‘liq qaytariladi.</p>
+            </div>
+            <button className="premium-button rounded-2xl px-6 py-3 text-sm font-black" onClick={() => setActive("reviews")}>Foydalanuvchilar fikri</button>
+          </div>
+        </GlassCard>
+      </section>
+    );
+  };
 
   const renderReviews = () => (
     <section>
