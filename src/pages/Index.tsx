@@ -366,6 +366,7 @@ const ProgressBar = ({ value }: { value: number }) => (
 const Index = () => {
   const [active, setActive] = useState<SectionId>("home");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarHidden, setSidebarHidden] = useState(false);
   const [dark, setDark] = useState(true);
   const [lang, setLang] = useState<Lang>("uz");
   const [coins, setCoins] = useState(1280);
