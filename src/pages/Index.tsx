@@ -394,6 +394,36 @@ const Index = () => {
   const [feedbackName, setFeedbackName] = useState("");
   const [feedbackText, setFeedbackText] = useState("");
   const [feedbackSent, setFeedbackSent] = useState(false);
+  const [examTimer, setExamTimer] = useState(0);
+  const [examRunning, setExamRunning] = useState(false);
+  const [purchasedItems, setPurchasedItems] = useState<Record<string, boolean>>({});
+  const [shopMessage, setShopMessage] = useState("");
+  const [reviewSaved, setReviewSaved] = useState(false);
+
+  useEffect(() => {
+    if (!examRunning) return;
+    const interval = setInterval(() => setExamTimer((current) => (current > 0 ? current - 1 : 0)), 1000);
+    return () => clearInterval(interval);
+  }, [examRunning]);
+
+  useEffect(() => {
+    if (examRunning && examTimer === 0) setExamRunning(false);
+  }, [examRunning, examTimer]);
+
+  useEffect(() => {
+    if (!shopMessage) return;
+    const t = setTimeout(() => setShopMessage(""), 2500);
+    return () => clearTimeout(t);
+  }, [shopMessage]);
+
+  const initials = (displayName === "Mehmon" ? "M" : displayName.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join("")) || "M";
+  const formatTimer = (seconds: number) => `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
+
+  const AvatarBlock = ({ size = "md" }: { size?: "sm" | "md" | "lg" }) => {
+    const dim = size === "lg" ? "h-28 w-28 text-4xl" : size === "sm" ? "h-11 w-11 text-base" : "h-14 w-14 text-xl";
+    if (avatar) return <img src={avatar} alt="Profil rasmi" className={`${dim} rounded-full border-2 border-primary/40 object-cover shadow-glow`} />;
+    return <span className={`${dim} grid place-items-center rounded-full border-2 border-primary/40 bg-primary/15 font-black text-primary shadow-glow`}>{initials}</span>;
+  };
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);
