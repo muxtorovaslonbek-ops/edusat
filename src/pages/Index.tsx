@@ -647,7 +647,16 @@ const Index = () => {
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {libraryBooks.map((book) => (
           <GlassCard key={book.title}>
-            <div className="mb-5 grid h-28 place-items-center rounded-3xl border border-border/60 bg-primary/15 text-4xl font-black text-primary shadow-glow">{book.cover}</div>
+            <div className="mb-5 overflow-hidden rounded-3xl border border-border/60 bg-primary/15 shadow-glow">
+              <div className="grid aspect-[3/4] place-items-center bg-[radial-gradient(circle_at_30%_20%,hsl(var(--primary)/0.34),transparent_34%),linear-gradient(145deg,hsl(var(--card)),hsl(var(--secondary)))] p-5 text-center">
+                <div>
+                  <div className="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-2xl bg-primary text-3xl font-black text-primary-foreground">{book.cover}</div>
+                  <p className="text-xs font-black uppercase text-primary">{book.scene}</p>
+                  <h3 className="mt-3 text-2xl font-black leading-tight text-foreground">{book.title}</h3>
+                  <p className="mt-2 text-sm font-bold text-muted-foreground">{book.author}</p>
+                </div>
+              </div>
+            </div>
             <Pill>{book.level}</Pill>
             <h3 className="mt-4 text-xl font-black text-foreground">{book.title}</h3>
             <p className="mt-1 text-sm font-bold text-muted-foreground">{book.author}</p>
