@@ -660,6 +660,7 @@ const Index = () => {
                 <Pill>{subject}</Pill>
                 <p className="mt-3 font-black text-foreground">{subject} modeli {index + 1}</p>
                 <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">Shu oynada ko‘rish <ChevronRight className="h-4 w-4" /></p>
+                <div className="mt-4"><FavoriteButton item={{ id: `model-${subject}-${index}`, title: `${subject} modeli ${index + 1}`, category: "3D qo‘llanma", section: "models" }} /></div>
               </div>
             </div>
           ))}
@@ -688,6 +689,7 @@ const Index = () => {
             <h3 className="mt-4 text-xl font-black text-foreground">{book.title}</h3>
             <p className="mt-1 text-sm font-bold text-muted-foreground">{book.author}</p>
             <div className="mt-4 flex flex-wrap gap-2">{book.formats.map((format) => <Pill key={format}>{format}</Pill>)}</div>
+            <div className="mt-4"><FavoriteButton item={{ id: `book-${book.title}`, title: book.title, category: "Kitob", section: "library" }} /></div>
           </GlassCard>
         ))}
       </div>
@@ -728,6 +730,7 @@ const Index = () => {
             </div>
             <p className="text-muted-foreground">{item.description}</p>
             <p className="mt-4 text-2xl font-black text-primary">{item.price}</p>
+            <div className="mt-4"><FavoriteButton item={{ id: `market-${item.title}`, title: item.title, category: "Edu market", section: "market" }} /></div>
           </GlassCard>
         ))}
       </div>
@@ -791,6 +794,7 @@ const Index = () => {
             <PlayCircle className="mb-3 h-8 w-8 text-primary" />
             <h3 className="text-2xl font-black text-foreground">{subject}</h3>
             <p className="mt-2 text-sm text-muted-foreground">Video dars shu oynaning ichida ochiladi.</p>
+            <div className="mt-4"><FavoriteButton item={{ id: `lesson-${subject}`, title: `${subject} bepul darsi`, category: "Bepul dars", section: "lessons" }} /></div>
           </GlassCard>
         ))}
       </div>
