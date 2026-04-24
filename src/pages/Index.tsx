@@ -401,7 +401,18 @@ const Index = () => {
 
   const renderFreeTests = () => (
     <section>
-      <SectionTitle kicker="Free Testlar" title="Quiz, fan testlari, full exam va random savollar" text="Har bir fan ichida timerli bepul testlar va namunaviy savollar tayyorlandi." />
+      <SectionTitle kicker="Free Testlar" title="SAT, OTM, quiz va fan testlari" text="Bepul sinovlar SAT, OTM, IELTS mini mock va fanlar bo‘yicha namunaviy savollar bilan to‘ldirildi." />
+      <div className="mb-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {freeTestPacks.map((pack) => (
+          <GlassCard key={pack.title}>
+            <Timer className="mb-4 h-8 w-8 text-primary" />
+            <h3 className="text-xl font-black text-foreground">{pack.title}</h3>
+            <p className="mt-2 text-sm font-bold text-muted-foreground">{pack.meta}</p>
+            <div className="mt-4 flex flex-wrap gap-2">{pack.items.map((item) => <Pill key={item}>{item}</Pill>)}</div>
+            <button className="mt-5 premium-button w-full rounded-2xl px-4 py-3 text-sm font-black" onClick={() => completeActivity(30)}>Bepul boshlash +30 coin</button>
+          </GlassCard>
+        ))}
+      </div>
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {subjects.map((subject) => (
           <GlassCard key={subject}>
@@ -419,6 +430,15 @@ const Index = () => {
         ))}
       </div>
       <QuestionGrid />
+      <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {satOtmQuestions.map((q) => (
+          <div key={q.subject} className="rounded-3xl border border-border/60 bg-card/70 p-5">
+            <Pill>{q.subject}</Pill>
+            <p className="mt-4 font-black text-foreground">{q.question}</p>
+            <p className="mt-3 text-sm text-muted-foreground">To‘g‘ri javob: {q.answer}</p>
+          </div>
+        ))}
+      </div>
     </section>
   );
 
