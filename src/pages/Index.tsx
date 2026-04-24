@@ -299,6 +299,15 @@ const Index = () => {
   const handleAuthSubmit = () => {
     const name = authName.trim();
     const email = authEmail.trim();
+    if (authMode === "login" && !email && !authPassword) {
+      setUserName("Foydalanuvchi");
+      setIsAuthenticated(true);
+      setActive("profile");
+      setAuthError("");
+      setAuthOpen(false);
+      completeActivity(50);
+      return;
+    }
     if (authMode === "register" && name.length < 2) {
       setAuthError("Ro‘yxatdan o‘tish uchun ismni kiriting.");
       return;
