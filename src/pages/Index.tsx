@@ -263,6 +263,8 @@ const Index = () => {
   const [avatar, setAvatar] = useState<string | null>(null);
   const [ratings, setRatings] = useState<Record<string, number>>({});
   const [favorites, setFavorites] = useState<Array<{ id: string; title: string; category: string; section: SectionId }>>([]);
+  const [testAnswers, setTestAnswers] = useState<Record<string, string>>({});
+  const [submittedTests, setSubmittedTests] = useState<Record<string, boolean>>({});
   const [searchQuery, setSearchQuery] = useState("");
   const [langOpen, setLangOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -302,6 +304,12 @@ const Index = () => {
     []
   );
   const visible3dModels = active3dSubject === "Hammasi" ? all3dModels : all3dModels.filter((model) => model.subject === active3dSubject);
+  const favoriteCategoryOrder = ["Kurs", "Free test", "Fan testi", "Kitob", "3D qo‘llanma", "Bepul dars", "Edu market"];
+  const groupedFavorites = favoriteCategoryOrder
+    .map((category) => ({ category, items: favorites.filter((item) => item.category === category) }))
+    .filter((group) => group.items.length > 0);
+  const normalizeAnswer = (value: string) => value.trim().toLowerCase().replace(/[’']/g, "'").replace(/\s+/g, " ");
+  const getTestScore = (testId: string, questions: typeof sampleQuestions) => questions.filter((q) => normalizeAnswer(testAnswers[`${testId}-${q.subject}`] || "") === normalizeAnswer(q.answer)).length;
 
   const completeActivity = (reward = 25) => setCoins((current) => current + reward);
 
