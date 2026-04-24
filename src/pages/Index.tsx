@@ -256,6 +256,8 @@ const Index = () => {
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
   const [authError, setAuthError] = useState("");
+  const [profileName, setProfileName] = useState("Mehmon");
+  const [profileEmail, setProfileEmail] = useState("demo@edusat.uz");
   const [avatar, setAvatar] = useState<string | null>(null);
   const [ratings, setRatings] = useState<Record<string, number>>({});
   const [searchQuery, setSearchQuery] = useState("");
@@ -323,7 +325,10 @@ const Index = () => {
       setAuthError("To‘g‘ri email va kamida 6 belgili parol kiriting.");
       return;
     }
-    setUserName(name || email.split("@")[0] || "Foydalanuvchi");
+    const nextName = name || email.split("@")[0] || "Foydalanuvchi";
+    setUserName(nextName);
+    setProfileName(nextName);
+    setProfileEmail(email);
     setIsAuthenticated(true);
     setActive("profile");
     setAuthError("");
