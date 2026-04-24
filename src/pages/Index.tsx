@@ -577,7 +577,7 @@ const Index = () => {
           </GlassCard>
         ))}
       </div>
-      <QuestionGrid />
+      <TestRunner testId="sat-otm" questions={satOtmQuestions} />
     </section>
   );
 
@@ -649,16 +649,8 @@ const Index = () => {
           </GlassCard>
         ))}
       </div>
-      <QuestionGrid />
-      <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {satOtmQuestions.map((q) => (
-          <div key={q.subject} className="rounded-3xl border border-border/60 bg-card/70 p-5">
-            <Pill>{q.subject}</Pill>
-            <p className="mt-4 font-black text-foreground">{q.question}</p>
-            <p className="mt-3 text-sm text-muted-foreground">To‘g‘ri javob: {q.answer}</p>
-          </div>
-        ))}
-      </div>
+      <TestRunner testId="free-subjects" questions={sampleQuestions} />
+      <TestRunner testId="free-sat-otm" questions={satOtmQuestions} />
     </section>
   );
 
