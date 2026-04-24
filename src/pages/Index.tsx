@@ -607,11 +607,15 @@ const Index = () => {
     <section>
       <SectionTitle kicker="Coin do‘koni" title="Coin evaziga kontent va chegirmalar" text="Darslar, mock testlar va kitoblarga coin orqali chegirma oling." />
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {["Premium test ochish", "Darslarga 30% chegirma", "Mock test 50% chegirma", "Kitoblar 70% chegirma"].map((item, index) => (
-          <GlassCard key={item}>
-            <Coins className="mb-4 h-8 w-8 text-primary" />
-            <h3 className="text-xl font-black text-foreground">{item}</h3>
-            <p className="mt-3 text-2xl font-black text-primary">{[300, 500, 700, 900][index]} coin</p>
+        {coinShopItems.map((item) => (
+          <GlassCard key={item.title}>
+            <div className="mb-4 grid h-24 place-items-center rounded-3xl bg-primary/15 text-3xl font-black text-primary shadow-glow">{item.image}</div>
+            <h3 className="text-xl font-black text-foreground">{item.title}</h3>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">{item.description}</p>
+            <div className="mt-4 flex items-center justify-between gap-3">
+              <p className="text-2xl font-black text-primary">{item.price} coin</p>
+              <button className="rounded-2xl border border-border px-3 py-2 text-sm font-black text-foreground hover:bg-accent" onClick={() => setCoins((current) => Math.max(0, current - item.price))}>Olish</button>
+            </div>
           </GlassCard>
         ))}
       </div>
@@ -622,12 +626,17 @@ const Index = () => {
     <section>
       <SectionTitle kicker="Edu market" title="Qo‘llanmalar, test kitoblari va adabiyotlar" text="Fanlar bo‘yicha mavzulashtirilgan kitoblar va badiiy adabiyotlarni xarid qiling." />
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {subjects.map((subject, index) => (
-          <GlassCard key={subject}>
-            <ShoppingBag className="mb-4 h-8 w-8 text-primary" />
-            <h3 className="text-2xl font-black text-foreground">{subject} to‘plami</h3>
-            <p className="mt-2 text-muted-foreground">Qo‘llanma + mavzulashtirilgan test kitobi</p>
-            <p className="mt-4 text-2xl font-black text-primary">{(39 + index * 5).toLocaleString()} 000 so‘m</p>
+        {marketItems.map((item) => (
+          <GlassCard key={item.title}>
+            <div className="mb-4 flex items-center gap-4">
+              <div className="grid h-20 w-20 shrink-0 place-items-center rounded-3xl bg-primary/15 text-2xl font-black text-primary shadow-glow">{item.image}</div>
+              <div>
+                <Pill>{item.category}</Pill>
+                <h3 className="mt-3 text-2xl font-black text-foreground">{item.title}</h3>
+              </div>
+            </div>
+            <p className="text-muted-foreground">{item.description}</p>
+            <p className="mt-4 text-2xl font-black text-primary">{item.price}</p>
           </GlassCard>
         ))}
       </div>
