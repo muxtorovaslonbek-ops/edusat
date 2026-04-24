@@ -786,7 +786,7 @@ const Index = () => {
     about: renderAbout,
   }[active];
 
-  const AuthModal = () => authOpen ? (
+  const authModal = authOpen ? (
     <div className="fixed inset-0 z-50 grid place-items-center bg-background/80 p-4 backdrop-blur-xl">
       <form className="glass-panel w-full max-w-md rounded-3xl p-6 shadow-premium" onSubmit={(event) => { event.preventDefault(); handleAuthSubmit(); }}>
         <div className="flex items-center justify-between">
@@ -834,7 +834,7 @@ const Index = () => {
           <div className="pb-8">{content()}</div>
         </div>
       </div>
-      <AuthModal />
+      {authModal}
       <button className="fixed bottom-4 right-4 z-30 rounded-3xl bg-primary px-5 py-4 font-black text-primary-foreground shadow-glow md:hidden" onClick={() => { setAuthMode("login"); setAuthOpen(true); }}><Lock className="h-5 w-5" /></button>
     </main>
   );
