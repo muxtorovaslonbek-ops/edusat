@@ -294,6 +294,7 @@ const Index = () => {
   const [langOpen, setLangOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [active3dSubject, setActive3dSubject] = useState("Hammasi");
+  const [activeLevelTest, setActiveLevelTest] = useState<string | null>(null);
   const [feedbackName, setFeedbackName] = useState("");
   const [feedbackText, setFeedbackText] = useState("");
   const [feedbackSent, setFeedbackSent] = useState(false);
@@ -691,7 +692,7 @@ const Index = () => {
       <SectionTitle kicker="Daraja aniqlash" title="IELTS, Multi-level va Milliy sertifikat testlari" text="Birinchi sinab ko‘rish bepul. Keyingi foydalanish uchun premium xarid talab qilinadi." />
       <div className="grid gap-5 lg:grid-cols-3">
         {levelTests.map((test) => (
-          <GlassCard key={test.title}>
+          <GlassCard key={test.title} className={activeLevelTest === test.title ? "ring-2 ring-primary" : ""}>
             <div className="flex items-center justify-between gap-3">
               <h3 className="text-3xl font-black text-foreground">{test.title}</h3>
               <Pill>1 marta bepul</Pill>
@@ -702,10 +703,38 @@ const Index = () => {
             <div className="grid grid-cols-6 gap-1">
               {levels.map((level) => <span key={level} className="rounded-xl bg-secondary/70 py-2 text-center text-xs font-black text-secondary-foreground">{level}</span>)}
             </div>
-            <button className="mt-5 premium-button w-full rounded-2xl px-4 py-3 font-black" onClick={() => completeActivity(50)}>Testni boshlash +50 coin</button>
+            <button className="mt-5 premium-button w-full rounded-2xl px-4 py-3 font-black" onClick={() => { setActiveLevelTest(test.title); completeActivity(50); }}>{activeLevelTest === test.title ? "Test ochilgan" : "Testni boshlash +50 coin"}</button>
           </GlassCard>
         ))}
       </div>
+      {activeLevelTest && levelTestQuestions[activeLevelTest] && (
+        <div className="mt-6">
+          <GlassCard>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <Pill>Daraja testi</Pill>
+                <h3 className="mt-3 text-2xl font-black text-foreground">{activeLevelTest} — bepul sinov</h3>
+                <p className="mt-1 text-sm text-muted-foreground">Javoblarni yozing va tekshirish tugmasini bosing. Natijaga qarab darajangiz aniqlanadi.</p>
+              </div>
+              <button className="rounded-2xl border border-border px-4 py-2 text-sm font-black text-foreground hover:bg-accent" onClick={() => setActiveLevelTest(null)}>Yopish</button>
+            </div>
+            {(() => {
+              const questions = levelTestQuestions[activeLevelTest];
+              const testId = `level-${activeLevelTest}`;
+              const submitted = submittedTests[testId];
+              const score = getTestScore(testId, questions);
+              const ratio = score / questions.length;
+              const levelLabel = !submitted ? "" : ratio >= 0.9 ? "A+ • Mukammal" : ratio >= 0.7 ? "A • Yuqori" : ratio >= 0.5 ? "B • O‘rta" : ratio >= 0.3 ? "C • Boshlang‘ich" : "Boshlang‘ich darajadan past";
+              return (
+                <>
+                  <TestRunner testId={testId} questions={questions} />
+                  {submitted && <p className="mt-4 rounded-2xl border border-primary/30 bg-primary/10 px-4 py-3 text-center text-base font-black text-primary">Sizning darajangiz: {levelLabel} ({score}/{questions.length})</p>}
+                </>
+              );
+            })()}
+          </GlassCard>
+        </div>
+      )}
     </section>
   );
 
