@@ -593,12 +593,12 @@ const Index = () => {
   const navVisible = sidebarOpen || !sidebarHidden;
   const nav = (
     <aside
-      className="glass-panel fixed inset-y-3 left-3 z-40 flex w-[min(84vw,320px)] flex-col rounded-3xl p-4 shadow-premium transition-all duration-300 lg:sticky lg:top-3 lg:h-[calc(100vh-1.5rem)] lg:w-80 data-[open=false]:-translate-x-[110%] data-[open=false]:lg:pointer-events-none data-[open=false]:lg:w-0 data-[open=false]:lg:p-0 data-[open=false]:lg:opacity-0"
+      className="fixed inset-y-3 left-3 z-40 flex w-[min(84vw,320px)] flex-col rounded-3xl border border-sidebar-border bg-sidebar p-4 shadow-premium backdrop-blur-xl transition-all duration-300 lg:sticky lg:top-3 lg:h-[calc(100vh-1.5rem)] lg:w-80 data-[open=true]:animate-slide-in-left data-[open=false]:-translate-x-[110%] data-[open=false]:opacity-0 data-[open=false]:lg:pointer-events-none data-[open=false]:lg:w-0 data-[open=false]:lg:p-0 data-[open=false]:lg:opacity-0"
       data-open={navVisible}
     >
       <div className="mb-5 flex items-center justify-between gap-3">
         <button className="flex items-center gap-3 text-left" onClick={() => setActive("home")}>
-          <span className="grid h-12 w-12 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-glow">
+          <span className="grid h-12 w-12 place-items-center rounded-2xl icon-bubble shadow-glow">
             <Rocket className="h-6 w-6" />
           </span>
           <span>
@@ -606,23 +606,24 @@ const Index = () => {
             <span className="text-xs font-bold text-muted-foreground">Academy Premium</span>
           </span>
         </button>
-        <button className="rounded-2xl p-2 text-muted-foreground hover:bg-accent lg:hidden" onClick={() => setSidebarOpen(false)} aria-label="Menyuni yopish">
-          <X />
-        </button>
-        <button className="hidden rounded-2xl p-2 text-muted-foreground hover:bg-accent lg:inline-flex" onClick={() => setSidebarHidden(true)} aria-label="Yon panelni yashirish">
+        <button
+          className="rounded-2xl p-2 text-muted-foreground transition-all hover:bg-primary/10 hover:text-primary"
+          onClick={() => { setSidebarOpen(false); setSidebarHidden(true); }}
+          aria-label="Yon panelni yopish"
+        >
           <X />
         </button>
       </div>
-      <div className="mb-4 flex items-center gap-2 rounded-2xl border border-border/60 bg-secondary/50 p-2">
+      <div className="mb-4 flex items-center gap-2 rounded-2xl border border-white/5 bg-background/60 p-2 transition-all focus-within:border-[hsl(var(--premium-blue,var(--premium-violet)))] focus-within:shadow-[0_0_0_3px_hsl(var(--premium-blue,var(--premium-violet))/0.2)]">
         <Search className="h-4 w-4 text-muted-foreground" />
-        <input className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground" placeholder={t.search} value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} />
+        <input className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground" placeholder={t.search} value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} />
       </div>
       {searchResults.length > 0 && (
-        <div className="mb-4 space-y-1 rounded-3xl border border-border/60 bg-card/70 p-2">
+        <div className="mb-4 space-y-1 rounded-3xl border border-white/5 bg-card/80 p-2 animate-fade-in-up">
           {searchResults.map((item) => (
             <button
               key={`${item.section}-${item.title}`}
-              className="w-full rounded-2xl px-3 py-2 text-left hover:bg-accent"
+              className="w-full rounded-2xl px-3 py-2 text-left transition-all hover:bg-primary/10 hover:text-primary"
               onClick={() => {
                 setActive(item.section);
                 setSearchQuery("");
@@ -636,26 +637,27 @@ const Index = () => {
         </div>
       )}
       <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto pr-1">
-        {filteredSections.map(({ id, label, icon: Icon }) => (
-          <button
-            key={id}
-            onClick={() => {
-              if (id === "profile" && !isAuthenticated) {
-                setAuthMode("register");
-                setAuthOpen(true);
-                return;
-              }
-              setActive(id);
-              setSidebarOpen(false);
-            }}
-            className={`flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left text-sm font-bold transition-all ${
-              active === id ? "bg-primary text-primary-foreground shadow-glow" : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-            }`}
-          >
-            <Icon className="h-4 w-4 shrink-0" />
-            <span>{label}</span>
-          </button>
-        ))}
+        {filteredSections.map(({ id, label, icon: Icon }) => {
+          const isActive = active === id;
+          return (
+            <button
+              key={id}
+              onClick={() => {
+                if (id === "profile" && !isAuthenticated) {
+                  setAuthMode("register");
+                  setAuthOpen(true);
+                  return;
+                }
+                setActive(id);
+                setSidebarOpen(false);
+              }}
+              className={`flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left text-sm font-bold ${isActive ? "nav-item-active" : "nav-item"}`}
+            >
+              <Icon className={`h-4 w-4 shrink-0 ${isActive ? "text-white" : ""}`} />
+              <span>{label}</span>
+            </button>
+          );
+        })}
         {filteredSections.length === 0 && <p className="px-3 py-4 text-sm font-bold text-muted-foreground">Natija topilmadi</p>}
       </nav>
     </aside>
@@ -729,7 +731,7 @@ const Index = () => {
                 <input type="file" accept="image/*" className="hidden" onChange={handleAvatar} />
               </label>
               {avatar && <button className="rounded-2xl border border-border px-5 py-3 text-sm font-black text-foreground hover:bg-accent" onClick={() => setAvatar(null)}>Rasmni olib tashlash</button>}
-              <button className="rounded-2xl border border-border px-5 py-3 text-sm font-black text-foreground hover:bg-accent" onClick={() => { setIsAuthenticated(false); setUserName("Mehmon"); setProfileName("Mehmon"); setAvatar(null); setAuthEmail(""); setAuthPassword(""); setActive("home"); }}>Profildan chiqish</button>
+              <button className="rounded-2xl border border-border px-5 py-3 text-sm font-black text-foreground transition-all hover:bg-accent hover:text-accent-foreground" onClick={() => { setIsAuthenticated(false); setUserName("Mehmon"); setProfileName("Mehmon"); setAvatar(null); setAuthEmail(""); setAuthPassword(""); setActive("home"); try { localStorage.removeItem("edusat:session"); } catch { /* ignore */ } }}>Profildan chiqish</button>
             </div>
           </div>
         </GlassCard>
@@ -1473,20 +1475,20 @@ const Index = () => {
   }[active];
 
   const authModal = authOpen ? (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-background/80 p-4 backdrop-blur-xl">
-      <form className="glass-panel w-full max-w-md rounded-3xl p-6 shadow-premium" onSubmit={(event) => { event.preventDefault(); handleAuthSubmit(); }}>
+    <div className="fixed inset-0 z-50 grid place-items-center bg-background/80 p-4 backdrop-blur-xl animate-fade-in-up">
+      <form className="w-full max-w-md rounded-3xl border border-white/10 bg-card p-6 shadow-premium animate-scale-in" onSubmit={(event) => { event.preventDefault(); handleAuthSubmit(); }}>
         <div className="flex items-center justify-between">
           <h3 className="text-2xl font-black text-foreground">{authMode === "login" ? t.login : t.register}</h3>
-          <button type="button" className="rounded-2xl p-2 hover:bg-accent" onClick={() => setAuthOpen(false)}><X /></button>
+          <button type="button" className="rounded-2xl p-2 text-muted-foreground transition-all hover:bg-primary/10 hover:text-primary" onClick={() => setAuthOpen(false)}><X /></button>
         </div>
         <div className="mt-5 space-y-3 text-foreground">
-          {authMode === "register" && <input className="h-12 w-full rounded-2xl border border-input bg-card px-4 text-foreground outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring" placeholder="Ismingiz" value={authName} onChange={(e) => setAuthName(e.target.value)} autoComplete="name" />}
-          <input className="h-12 w-full rounded-2xl border border-input bg-card px-4 text-foreground outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring" placeholder="Email" type="email" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} autoComplete="email" />
-          <input className="h-12 w-full rounded-2xl border border-input bg-card px-4 text-foreground outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring" placeholder="Parol" type="password" value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} autoComplete={authMode === "login" ? "current-password" : "new-password"} />
-          {authError && <p className="rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm font-bold text-destructive">{authError}</p>}
+          {authMode === "register" && <input className="input-premium h-12 w-full rounded-2xl px-4 text-foreground placeholder:text-muted-foreground" placeholder="Ismingiz" value={authName} onChange={(e) => setAuthName(e.target.value)} autoComplete="name" />}
+          <input className="input-premium h-12 w-full rounded-2xl px-4 text-foreground placeholder:text-muted-foreground" placeholder="Email" type="email" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} autoComplete="email" />
+          <input className="input-premium h-12 w-full rounded-2xl px-4 text-foreground placeholder:text-muted-foreground" placeholder="Parol" type="password" value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} autoComplete={authMode === "login" ? "current-password" : "new-password"} />
+          {authError && <p className="rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm font-bold text-destructive animate-fade-in-up">{authError}</p>}
           <button type="submit" className="premium-button w-full rounded-2xl py-3 font-black">{authMode === "login" ? "Kirish" : "Ro‘yxatdan o‘tish"} +100 coin</button>
         </div>
-        <button type="button" className="mt-4 text-sm font-bold text-primary" onClick={() => { setAuthError(""); setAuthMode(authMode === "login" ? "register" : "login"); }}>{authMode === "login" ? "Hisob yo‘qmi? Ro‘yxatdan o‘ting" : "Hisobingiz bormi? Kirish"}</button>
+        <button type="button" className="mt-4 text-sm font-bold text-primary transition-all hover:opacity-80" onClick={() => { setAuthError(""); setAuthMode(authMode === "login" ? "register" : "login"); }}>{authMode === "login" ? "Hisob yo‘qmi? Ro‘yxatdan o‘ting" : "Hisobingiz bormi? Kirish"}</button>
       </form>
     </div>
   ) : null;
@@ -1496,12 +1498,12 @@ const Index = () => {
       <div className="fixed inset-0 -z-10 bg-premium-radial" />
       <div className="flex min-h-screen gap-4 p-3">
         {nav}
-        {sidebarOpen && <button className="fixed inset-0 z-30 bg-background/60 backdrop-blur-sm lg:hidden" onClick={() => setSidebarOpen(false)} aria-label="Menyuni yopish" />}
+        {sidebarOpen && <button className="fixed inset-0 z-30 bg-background/60 backdrop-blur-sm lg:hidden animate-fade-in-up" onClick={() => setSidebarOpen(false)} aria-label="Menyuni yopish" />}
         <div className="min-w-0 flex-1">
-          <header className="glass-panel sticky top-3 z-20 mb-5 flex items-center justify-between gap-3 rounded-3xl px-4 py-3 shadow-premium">
+          <header className="sticky top-3 z-20 mb-5 flex items-center justify-between gap-3 rounded-3xl border-b border-white/5 bg-card/90 px-4 py-3 shadow-premium backdrop-blur-xl">
             <div className="flex items-center gap-3">
               <button
-                className="rounded-2xl p-3 hover:bg-accent"
+                className="rounded-2xl p-3 text-muted-foreground transition-all hover:bg-primary/10 hover:text-primary"
                 onClick={() => {
                   // Toggle: hide if currently visible, otherwise show.
                   const visible = sidebarOpen || !sidebarHidden;
@@ -1513,22 +1515,22 @@ const Index = () => {
                 <Menu />
               </button>
               <div>
-                <p className="text-xs font-black uppercase text-primary">{sections.find((s) => s.id === active)?.label}</p>
+                <p className="text-xs font-black uppercase tracking-wider text-primary">{sections.find((s) => s.id === active)?.label}</p>
                 <p className="hidden text-sm text-muted-foreground sm:block">Bilim, test, 3D qo‘llanma va premium tayyorgarlik markazi</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <div className="hidden items-center gap-2 rounded-2xl border border-border bg-secondary/50 px-3 py-2 font-black text-foreground sm:flex"><Coins className="h-4 w-4 text-primary" />{coins}</div>
-              <button className="rounded-2xl p-3 hover:bg-accent" onClick={() => setDark(!dark)} aria-label="Theme almashtirish">{dark ? <Sun /> : <Moon />}</button>
+              <div className="hidden items-center gap-2 rounded-2xl border border-white/5 bg-background/60 px-3 py-2 font-black text-foreground sm:flex"><Coins className="h-4 w-4 text-primary" />{coins}</div>
+              <button className="rounded-2xl p-3 text-muted-foreground transition-all hover:bg-primary/10 hover:text-primary" onClick={() => setDark(!dark)} aria-label="Theme almashtirish">{dark ? <Sun /> : <Moon />}</button>
               <div className="relative">
-                <button className="inline-flex items-center gap-2 rounded-2xl border border-border bg-secondary/50 px-3 py-3 font-black text-foreground hover:bg-accent" onClick={() => setLangOpen(!langOpen)} aria-label="Til tanlash"><Languages className="h-5 w-5" /><span className="text-xs uppercase">{lang}</span></button>
-                {langOpen && <div className="absolute right-0 top-14 z-40 w-40 rounded-3xl border border-border bg-card/95 p-2 shadow-premium backdrop-blur-xl">{languageOptions.map((option) => <button key={option.code} className={`w-full rounded-2xl px-3 py-2 text-left text-sm font-black ${lang === option.code ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-accent"}`} onClick={() => { setLang(option.code); setLangOpen(false); }}>{option.label}</button>)}</div>}
+                <button className="inline-flex items-center gap-2 rounded-2xl border border-white/5 bg-background/60 px-3 py-3 font-black text-foreground transition-all hover:bg-primary/10 hover:text-primary" onClick={() => setLangOpen(!langOpen)} aria-label="Til tanlash"><Languages className="h-5 w-5" /><span className="text-xs uppercase">{lang}</span></button>
+                {langOpen && <div className="absolute right-0 top-14 z-40 w-40 rounded-3xl border border-white/10 bg-card/95 p-2 shadow-premium backdrop-blur-xl animate-fade-in-up">{languageOptions.map((option) => <button key={option.code} className={`w-full rounded-2xl px-3 py-2 text-left text-sm font-black transition-all ${lang === option.code ? "nav-item-active" : "text-foreground hover:bg-primary/10 hover:text-primary"}`} onClick={() => { setLang(option.code); setLangOpen(false); }}>{option.label}</button>)}</div>}
               </div>
-              <button className="hidden rounded-2xl bg-primary px-4 py-3 font-black text-primary-foreground md:inline-flex" onClick={() => { if (isAuthenticated) { setActive("profile"); } else { setAuthMode("register"); setAuthOpen(true); } }}><LogIn className="mr-2 h-4 w-4" />{isAuthenticated ? "Profil" : t.register}</button>
+              <button className="hidden rounded-2xl premium-button px-4 py-3 font-black md:inline-flex" onClick={() => { if (isAuthenticated) { setActive("profile"); } else { setAuthMode("register"); setAuthOpen(true); } }}><LogIn className="mr-2 h-4 w-4" />{isAuthenticated ? "Profil" : t.register}</button>
               <button onClick={() => { if (isAuthenticated) { setActive("profile"); } else { setAuthMode("register"); setAuthOpen(true); } }} aria-label="Profilga o‘tish"><AvatarBlock size="sm" /></button>
             </div>
           </header>
-          <div className="pb-8">{content()}</div>
+          <div key={active} className="pb-8 animate-fade-in-up">{content()}</div>
         </div>
       </div>
       {authModal}
