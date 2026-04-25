@@ -379,7 +379,10 @@ const Index = () => {
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
   const [authError, setAuthError] = useState("");
-  const [registeredUsers, setRegisteredUsers] = useState<Record<string, { name: string; password: string }>>({});
+  const [registeredUsers, setRegisteredUsers] = useState<Record<string, { name: string; password: string }>>(() => {
+    if (typeof window === "undefined") return {};
+    try { return JSON.parse(localStorage.getItem("edusat:users") || "{}"); } catch { return {}; }
+  });
   const [profileName, setProfileName] = useState("Mehmon");
   const [profileEmail, setProfileEmail] = useState("demo@edusat.uz");
   const [avatar, setAvatar] = useState<string | null>(null);
