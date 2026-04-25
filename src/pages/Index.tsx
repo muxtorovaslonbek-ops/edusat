@@ -593,12 +593,12 @@ const Index = () => {
   const navVisible = sidebarOpen || !sidebarHidden;
   const nav = (
     <aside
-      className="glass-panel fixed inset-y-3 left-3 z-40 flex w-[min(84vw,320px)] flex-col rounded-3xl p-4 shadow-premium transition-all duration-300 lg:sticky lg:top-3 lg:h-[calc(100vh-1.5rem)] lg:w-80 data-[open=false]:-translate-x-[110%] data-[open=false]:lg:pointer-events-none data-[open=false]:lg:w-0 data-[open=false]:lg:p-0 data-[open=false]:lg:opacity-0"
+      className="fixed inset-y-3 left-3 z-40 flex w-[min(84vw,320px)] flex-col rounded-3xl border border-sidebar-border bg-sidebar p-4 shadow-premium backdrop-blur-xl transition-all duration-300 lg:sticky lg:top-3 lg:h-[calc(100vh-1.5rem)] lg:w-80 data-[open=true]:animate-slide-in-left data-[open=false]:-translate-x-[110%] data-[open=false]:opacity-0 data-[open=false]:lg:pointer-events-none data-[open=false]:lg:w-0 data-[open=false]:lg:p-0 data-[open=false]:lg:opacity-0"
       data-open={navVisible}
     >
       <div className="mb-5 flex items-center justify-between gap-3">
         <button className="flex items-center gap-3 text-left" onClick={() => setActive("home")}>
-          <span className="grid h-12 w-12 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-glow">
+          <span className="grid h-12 w-12 place-items-center rounded-2xl icon-bubble shadow-glow">
             <Rocket className="h-6 w-6" />
           </span>
           <span>
@@ -614,16 +614,16 @@ const Index = () => {
           <X />
         </button>
       </div>
-      <div className="mb-4 flex items-center gap-2 rounded-2xl border border-border/60 bg-secondary/50 p-2">
+      <div className="mb-4 flex items-center gap-2 rounded-2xl border border-white/5 bg-background/60 p-2 transition-all focus-within:border-[hsl(var(--premium-blue,var(--premium-violet)))] focus-within:shadow-[0_0_0_3px_hsl(var(--premium-blue,var(--premium-violet))/0.2)]">
         <Search className="h-4 w-4 text-muted-foreground" />
-        <input className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground" placeholder={t.search} value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} />
+        <input className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground" placeholder={t.search} value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} />
       </div>
       {searchResults.length > 0 && (
-        <div className="mb-4 space-y-1 rounded-3xl border border-border/60 bg-card/70 p-2">
+        <div className="mb-4 space-y-1 rounded-3xl border border-white/5 bg-card/80 p-2 animate-fade-in-up">
           {searchResults.map((item) => (
             <button
               key={`${item.section}-${item.title}`}
-              className="w-full rounded-2xl px-3 py-2 text-left hover:bg-accent"
+              className="w-full rounded-2xl px-3 py-2 text-left transition-all hover:bg-primary/10 hover:text-primary"
               onClick={() => {
                 setActive(item.section);
                 setSearchQuery("");
@@ -637,26 +637,27 @@ const Index = () => {
         </div>
       )}
       <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto pr-1">
-        {filteredSections.map(({ id, label, icon: Icon }) => (
-          <button
-            key={id}
-            onClick={() => {
-              if (id === "profile" && !isAuthenticated) {
-                setAuthMode("register");
-                setAuthOpen(true);
-                return;
-              }
-              setActive(id);
-              setSidebarOpen(false);
-            }}
-            className={`flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left text-sm font-bold transition-all ${
-              active === id ? "bg-primary text-primary-foreground shadow-glow" : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-            }`}
-          >
-            <Icon className="h-4 w-4 shrink-0" />
-            <span>{label}</span>
-          </button>
-        ))}
+        {filteredSections.map(({ id, label, icon: Icon }) => {
+          const isActive = active === id;
+          return (
+            <button
+              key={id}
+              onClick={() => {
+                if (id === "profile" && !isAuthenticated) {
+                  setAuthMode("register");
+                  setAuthOpen(true);
+                  return;
+                }
+                setActive(id);
+                setSidebarOpen(false);
+              }}
+              className={`flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left text-sm font-bold ${isActive ? "nav-item-active" : "nav-item"}`}
+            >
+              <Icon className={`h-4 w-4 shrink-0 ${isActive ? "text-white" : ""}`} />
+              <span>{label}</span>
+            </button>
+          );
+        })}
         {filteredSections.length === 0 && <p className="px-3 py-4 text-sm font-bold text-muted-foreground">Natija topilmadi</p>}
       </nav>
     </aside>
