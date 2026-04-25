@@ -4,6 +4,7 @@ import {
   BookOpen,
   Boxes,
   Brain,
+  Briefcase,
   ChevronRight,
   Coins,
   Crown,
