@@ -593,7 +593,7 @@ const Index = () => {
   const navVisible = sidebarOpen || !sidebarHidden;
   const nav = (
     <aside
-      className="glass-panel fixed inset-y-3 left-3 z-40 flex w-[min(84vw,320px)] flex-col rounded-3xl p-4 shadow-premium transition-transform duration-300 lg:sticky lg:top-3 lg:h-[calc(100vh-1.5rem)] lg:w-80 data-[open=false]:-translate-x-[110%]"
+      className="glass-panel fixed inset-y-3 left-3 z-40 flex w-[min(84vw,320px)] flex-col rounded-3xl p-4 shadow-premium transition-all duration-300 lg:sticky lg:top-3 lg:h-[calc(100vh-1.5rem)] lg:w-80 data-[open=false]:-translate-x-[110%] data-[open=false]:lg:pointer-events-none data-[open=false]:lg:w-0 data-[open=false]:lg:p-0 data-[open=false]:lg:opacity-0"
       data-open={navVisible}
     >
       <div className="mb-5 flex items-center justify-between gap-3">
