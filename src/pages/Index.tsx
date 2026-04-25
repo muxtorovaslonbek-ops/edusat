@@ -55,6 +55,7 @@ const sections = [
   { id: "lessons", label: "Bepul darslar", icon: PlayCircle },
   { id: "premium", label: "Premium xizmatlar", icon: Crown },
   { id: "reviews", label: "Xizmatlarni baholash", icon: Star },
+  { id: "jobs", label: "Ish o‘rinlari", icon: Briefcase },
   { id: "about", label: "Ilova haqida", icon: Award },
 ] as const;
 
