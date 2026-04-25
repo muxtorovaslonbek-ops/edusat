@@ -4,6 +4,7 @@ import {
   BookOpen,
   Boxes,
   Brain,
+  Briefcase,
   ChevronRight,
   Coins,
   Crown,
@@ -55,6 +56,7 @@ const sections = [
   { id: "lessons", label: "Bepul darslar", icon: PlayCircle },
   { id: "premium", label: "Premium xizmatlar", icon: Crown },
   { id: "reviews", label: "Xizmatlarni baholash", icon: Star },
+  { id: "jobs", label: "Ish o‘rinlari", icon: Briefcase },
   { id: "about", label: "Ilova haqida", icon: Award },
 ] as const;
 
@@ -377,7 +379,10 @@ const Index = () => {
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
   const [authError, setAuthError] = useState("");
-  const [registeredUsers, setRegisteredUsers] = useState<Record<string, { name: string; password: string }>>({});
+  const [registeredUsers, setRegisteredUsers] = useState<Record<string, { name: string; password: string }>>(() => {
+    if (typeof window === "undefined") return {};
+    try { return JSON.parse(localStorage.getItem("edusat:users") || "{}"); } catch { return {}; }
+  });
   const [profileName, setProfileName] = useState("Mehmon");
   const [profileEmail, setProfileEmail] = useState("demo@edusat.uz");
   const [avatar, setAvatar] = useState<string | null>(null);
@@ -399,6 +404,13 @@ const Index = () => {
   const [purchasedItems, setPurchasedItems] = useState<Record<string, boolean>>({});
   const [shopMessage, setShopMessage] = useState("");
   const [reviewSaved, setReviewSaved] = useState(false);
+  const [jobName, setJobName] = useState("");
+  const [jobSubject, setJobSubject] = useState(subjects[0]);
+  const [jobPhone, setJobPhone] = useState("");
+  const [jobExperience, setJobExperience] = useState("");
+  const [jobCertificate, setJobCertificate] = useState<string | null>(null);
+  const [jobSent, setJobSent] = useState(false);
+  const [jobError, setJobError] = useState("");
 
   useEffect(() => {
     if (!examRunning) return;
@@ -421,6 +433,25 @@ const Index = () => {
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);
   }, [dark]);
+
+  // Persist registered users
+  useEffect(() => {
+    try { localStorage.setItem("edusat:users", JSON.stringify(registeredUsers)); } catch { /* ignore */ }
+  }, [registeredUsers]);
+
+  // Restore session on first mount
+  useEffect(() => {
+    try {
+      const session = JSON.parse(localStorage.getItem("edusat:session") || "null");
+      if (session?.email && session?.name) {
+        setUserName(session.name);
+        setProfileName(session.name);
+        setProfileEmail(session.email);
+        setIsAuthenticated(true);
+      }
+    } catch { /* ignore */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const todayQuote = useMemo(() => {
     const day = Math.floor(Date.now() / 86400000);
@@ -490,6 +521,7 @@ const Index = () => {
       setProfileName(user.name);
       setProfileEmail(email);
       setIsAuthenticated(true);
+      try { localStorage.setItem("edusat:session", JSON.stringify({ email, name: user.name })); } catch { /* ignore */ }
       setActive("profile");
       setAuthError("");
       setAuthOpen(false);
@@ -506,6 +538,7 @@ const Index = () => {
     setProfileName(nextName);
     setProfileEmail(email);
     setIsAuthenticated(true);
+    try { localStorage.setItem("edusat:session", JSON.stringify({ email, name: nextName })); } catch { /* ignore */ }
     setActive("profile");
     setAuthError("");
     setAuthOpen(false);
@@ -560,7 +593,7 @@ const Index = () => {
   const navVisible = sidebarOpen || !sidebarHidden;
   const nav = (
     <aside
-      className="glass-panel fixed inset-y-3 left-3 z-40 flex w-[min(84vw,320px)] flex-col rounded-3xl p-4 shadow-premium transition-transform duration-300 lg:sticky lg:top-3 lg:h-[calc(100vh-1.5rem)] lg:w-80 data-[open=false]:-translate-x-[110%]"
+      className="glass-panel fixed inset-y-3 left-3 z-40 flex w-[min(84vw,320px)] flex-col rounded-3xl p-4 shadow-premium transition-all duration-300 lg:sticky lg:top-3 lg:h-[calc(100vh-1.5rem)] lg:w-80 data-[open=false]:-translate-x-[110%] data-[open=false]:lg:pointer-events-none data-[open=false]:lg:w-0 data-[open=false]:lg:p-0 data-[open=false]:lg:opacity-0"
       data-open={navVisible}
     >
       <div className="mb-5 flex items-center justify-between gap-3">
@@ -1245,6 +1278,108 @@ const Index = () => {
     );
   };
 
+  const handleJobCertificate = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setJobCertificate(URL.createObjectURL(file));
+  };
+
+  const submitJobApplication = (event: React.FormEvent) => {
+    event.preventDefault();
+    setJobError("");
+    if (jobName.trim().length < 2) { setJobError("Ism-familiyangizni to‘liq kiriting."); return; }
+    if (!/^[+\d\s\-()]{7,}$/.test(jobPhone.trim())) { setJobError("To‘g‘ri telefon raqam kiriting."); return; }
+    if (jobExperience.trim().length < 10) { setJobError("Tajribangiz haqida qisqacha yozing (kamida 10 belgi)."); return; }
+    if (!jobCertificate) { setJobError("Sertifikat rasmini yuklash majburiy."); return; }
+    setJobSent(true);
+    completeActivity(40);
+    setTimeout(() => {
+      setJobSent(false);
+      setJobName(""); setJobPhone(""); setJobExperience(""); setJobCertificate(null);
+    }, 4000);
+  };
+
+  const renderJobs = () => (
+    <section>
+      <SectionTitle
+        kicker="Ish o‘rinlari"
+        title="EduSAT Academy jamoasiga qo‘shiling"
+        text="Tajribali o‘qituvchilarni mentor sifatida ishga taklif qilamiz. Ariza qoldirish uchun maxsus sertifikatingiz rasmini biriktiring."
+      />
+      <div className="grid gap-5 xl:grid-cols-[1fr_1.1fr]">
+        <div className="space-y-5">
+          <GlassCard>
+            <div className="flex items-center gap-4">
+              <div className="grid h-14 w-14 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-glow"><Briefcase className="h-7 w-7" /></div>
+              <div>
+                <Pill>Bo‘sh ish o‘rni</Pill>
+                <h3 className="mt-2 text-2xl font-black text-foreground">O‘qituvchi / Mentor</h3>
+              </div>
+            </div>
+            <p className="mt-4 text-sm leading-7 text-muted-foreground">
+              Fan o‘qituvchilari, IELTS/SAT mentorlar va Multi-level tayyorlovchi mutaxassislarni jamoamizga qo‘shilishga taklif qilamiz. Onlayn va aralash ish formati mavjud.
+            </p>
+            <div className="mt-5 grid gap-2 text-sm font-bold text-foreground">
+              <p className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-primary" /> Maxsus sertifikat / diplom talab qilinadi</p>
+              <p className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-primary" /> Pedagogik tajriba — kamida 1 yil</p>
+              <p className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-primary" /> Onlayn dars o‘tish ko‘nikmasi</p>
+              <p className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-primary" /> Jamoa bilan ishlay olish</p>
+            </div>
+          </GlassCard>
+          <GlassCard>
+            <h3 className="text-xl font-black text-foreground">Imtiyozlar</h3>
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              {[
+                { t: "Raqobatbardosh maosh", d: "Tajribaga mos to‘lov tizimi" },
+                { t: "Moslashuvchan jadval", d: "O‘zingizga qulay vaqtda dars" },
+                { t: "Premium platforma", d: "Barcha materiallarga kirish" },
+                { t: "Jamoa va o‘sish", d: "Treninglar va sertifikatlar" },
+              ].map((b) => (
+                <div key={b.t} className="rounded-2xl border border-border/60 bg-secondary/40 p-4">
+                  <p className="font-black text-foreground">{b.t}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">{b.d}</p>
+                </div>
+              ))}
+            </div>
+          </GlassCard>
+        </div>
+
+        <GlassCard>
+          <h3 className="text-2xl font-black text-foreground">Ariza qoldirish</h3>
+          <p className="mt-2 text-sm text-muted-foreground">Quyidagi maydonlarni to‘ldiring va sertifikatingiz rasmini yuklang.</p>
+          <form className="mt-5 space-y-3" onSubmit={submitJobApplication}>
+            <input className="h-12 w-full rounded-2xl border border-input bg-card px-4 text-foreground outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring" placeholder="Ism Familiya" value={jobName} onChange={(e) => setJobName(e.target.value)} />
+            <input className="h-12 w-full rounded-2xl border border-input bg-card px-4 text-foreground outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring" placeholder="Telefon raqam (+998...)" value={jobPhone} onChange={(e) => setJobPhone(e.target.value)} />
+            <select className="h-12 w-full rounded-2xl border border-input bg-card px-4 font-bold text-foreground outline-none focus:ring-2 focus:ring-ring" value={jobSubject} onChange={(e) => setJobSubject(e.target.value)}>
+              {subjects.map((s) => <option key={s} value={s}>{s}</option>)}
+              <option value="IELTS">IELTS</option>
+              <option value="SAT">SAT</option>
+              <option value="Multi-level">Multi-level</option>
+            </select>
+            <textarea className="min-h-28 w-full resize-none rounded-2xl border border-input bg-card px-4 py-3 text-foreground outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring" placeholder="Pedagogik tajribangiz haqida qisqacha yozing" value={jobExperience} onChange={(e) => setJobExperience(e.target.value)} />
+
+            <div className="rounded-2xl border-2 border-dashed border-primary/40 bg-primary/5 p-4">
+              <p className="text-sm font-black text-foreground">Sertifikat rasmi (majburiy)</p>
+              <p className="mt-1 text-xs text-muted-foreground">Diplom yoki maxsus sertifikatingiz rasmini yuklang (JPG/PNG).</p>
+              <input type="file" accept="image/*" className="mt-3 block w-full text-sm text-muted-foreground file:mr-4 file:rounded-2xl file:border-0 file:bg-primary file:px-4 file:py-2 file:text-sm file:font-black file:text-primary-foreground hover:file:bg-primary/90" onChange={handleJobCertificate} />
+              {jobCertificate && (
+                <div className="mt-4">
+                  <img src={jobCertificate} alt="Sertifikat" className="max-h-56 w-full rounded-2xl border border-border/60 object-contain" />
+                  <button type="button" className="mt-3 rounded-2xl border border-border px-3 py-2 text-xs font-black text-foreground hover:bg-accent" onClick={() => setJobCertificate(null)}>Rasmni o‘chirish</button>
+                </div>
+              )}
+            </div>
+
+            {jobError && <p className="rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm font-bold text-destructive">{jobError}</p>}
+            {jobSent && <p className="rounded-2xl border border-primary/30 bg-primary/10 px-4 py-3 text-sm font-black text-primary">✓ Arizangiz qabul qilindi! Tez orada siz bilan bog‘lanamiz. +40 coin</p>}
+
+            <button type="submit" className="premium-button inline-flex w-full items-center justify-center gap-2 rounded-2xl py-3 font-black"><Send className="h-4 w-4" /> Arizani yuborish</button>
+          </form>
+        </GlassCard>
+      </div>
+    </section>
+  );
+
   const renderAbout = () => (
     <section>
       <SectionTitle kicker="Ilova haqida" title="EduSAT Academy — ishonchli ta’lim hamrohingiz" text="SAT, OTM va xalqaro imtihonlarga tayyorgarlik uchun yaratilgan zamonaviy ta’lim ilovasi." />
@@ -1333,6 +1468,7 @@ const Index = () => {
     lessons: renderLessons,
     premium: renderPremium,
     reviews: renderReviews,
+    jobs: renderJobs,
     about: renderAbout,
   }[active];
 
