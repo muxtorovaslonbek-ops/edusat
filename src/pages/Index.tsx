@@ -394,7 +394,14 @@ const Index = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarHidden, setSidebarHidden] = useState(false);
   const [dark, setDark] = useState(true);
-  const [lang, setLang] = useState<Lang>("uz");
+  const [lang, setLang] = useState<Lang>(() => {
+    if (typeof window === "undefined") return "uz";
+    return (localStorage.getItem("edusat:lang") as Lang) || "uz";
+  });
+  const [theme, setTheme] = useState<ThemeId>(() => {
+    if (typeof window === "undefined") return "violet";
+    return (localStorage.getItem("edusat:theme") as ThemeId) || "violet";
+  });
   const [coins, setCoins] = useState(1280);
   const [userName, setUserName] = useState("Mehmon");
   const [authOpen, setAuthOpen] = useState(false);
