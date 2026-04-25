@@ -465,6 +465,19 @@ const Index = () => {
     document.documentElement.classList.toggle("dark", dark);
   }, [dark]);
 
+  // Apply + persist theme
+  useEffect(() => {
+    const root = document.documentElement;
+    ["theme-violet", "theme-ocean", "theme-sunset", "theme-forest", "theme-rose"].forEach((c) => root.classList.remove(c));
+    root.classList.add(`theme-${theme}`);
+    try { localStorage.setItem("edusat:theme", theme); } catch { /* ignore */ }
+  }, [theme]);
+
+  // Persist language
+  useEffect(() => {
+    try { localStorage.setItem("edusat:lang", lang); } catch { /* ignore */ }
+  }, [lang]);
+
   // Persist registered users
   useEffect(() => {
     try { localStorage.setItem("edusat:users", JSON.stringify(registeredUsers)); } catch { /* ignore */ }
