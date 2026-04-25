@@ -883,6 +883,8 @@ const Index = () => {
       </div>
     </section>
   );
+
+  const renderSat = () => {
     const startExam = (minutes: number) => { setExamTimer(minutes * 60); setExamRunning(true); completeActivity(35); };
     return (
       <section>
