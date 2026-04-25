@@ -830,11 +830,59 @@ const Index = () => {
             ))}
           </div>
         </GlassCard>
+        <GlassCard className="relative overflow-hidden">
+          <div className="pointer-events-none absolute -right-12 -top-12 h-44 w-44 rounded-full bg-[hsl(var(--premium-violet)/0.2)] blur-3xl animate-orb" />
+          <Pill>4-bosqich • {t.settings}</Pill>
+          <h3 className="mt-3 text-2xl font-black text-foreground">{t.settings}</h3>
+          <p className="mt-1 text-sm text-muted-foreground">Sayt mavzusini va tilini o‘zingizga moslang. Tanlovingiz avtomatik saqlanadi.</p>
+
+          <div className="mt-6">
+            <p className="mb-3 text-sm font-black text-foreground">{t.theme}</p>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+              {themeOptions.map((opt) => {
+                const selected = theme === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    onClick={() => setTheme(opt.id)}
+                    className={`group relative overflow-hidden rounded-2xl border p-3 text-left transition-all hover:-translate-y-0.5 ${selected ? "border-primary shadow-glow" : "border-border/60 hover:border-primary/40"}`}
+                  >
+                    <div className="h-16 w-full rounded-xl shadow-inner transition-transform group-hover:scale-105" style={{ background: opt.swatch }} />
+                    <p className="mt-3 text-sm font-black text-foreground">{opt.label}</p>
+                    {selected && <span className="absolute right-2 top-2 rounded-full bg-primary px-2 py-0.5 text-[10px] font-black text-primary-foreground">✓</span>}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="mt-6">
+            <p className="mb-3 text-sm font-black text-foreground">{t.language}</p>
+            <div className="flex flex-wrap gap-2">
+              {languageOptions.map((opt) => {
+                const selected = lang === opt.code;
+                return (
+                  <button
+                    key={opt.code}
+                    onClick={() => setLang(opt.code)}
+                    className={`inline-flex items-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-black transition-all hover:-translate-y-0.5 ${selected ? "nav-item-active border-transparent" : "border-border/60 text-foreground hover:border-primary/40 hover:bg-primary/10"}`}
+                  >
+                    <Languages className="h-4 w-4" /> {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="mt-6 flex flex-wrap items-center gap-3">
+            <button onClick={() => setDark(!dark)} className="inline-flex items-center gap-2 rounded-2xl border border-border/60 px-4 py-2.5 text-sm font-black text-foreground transition-all hover:bg-primary/10 hover:text-primary">
+              {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />} {dark ? "Yorug‘ rejim" : "Tungi rejim"}
+            </button>
+          </div>
+        </GlassCard>
       </div>
     </section>
   );
-
-  const renderSat = () => {
     const startExam = (minutes: number) => { setExamTimer(minutes * 60); setExamRunning(true); completeActivity(35); };
     return (
       <section>
