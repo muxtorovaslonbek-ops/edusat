@@ -323,10 +323,34 @@ const team = [
 ];
 
 const translations = {
-  uz: { greeting: "Xush kelibsiz", guest: "Mehmon", login: "Kirish", register: "Ro‘yxatdan o‘tish", search: "Qidirish" },
-  en: { greeting: "Welcome", guest: "Guest", login: "Login", register: "Sign up", search: "Search" },
-  ru: { greeting: "Добро пожаловать", guest: "Гость", login: "Войти", register: "Регистрация", search: "Поиск" },
+  uz: {
+    greeting: "Xush kelibsiz", guest: "Mehmon", login: "Kirish", register: "Ro‘yxatdan o‘tish", search: "Qidirish",
+    settings: "Sozlamalar", theme: "Mavzu", language: "Til",
+    heroTitle: "Sizning", heroBrand: "Muvaffaqiyat", heroTail: "Yo‘lingiz",
+    heroSub: "SAT, OTM va xalqaro imtihonlarga premium tayyorlaning.",
+  },
+  en: {
+    greeting: "Welcome", guest: "Guest", login: "Login", register: "Sign up", search: "Search",
+    settings: "Settings", theme: "Theme", language: "Language",
+    heroTitle: "Your", heroBrand: "Success", heroTail: "Path",
+    heroSub: "Premium prep for SAT, university and international exams.",
+  },
+  ru: {
+    greeting: "Добро пожаловать", guest: "Гость", login: "Войти", register: "Регистрация", search: "Поиск",
+    settings: "Настройки", theme: "Тема", language: "Язык",
+    heroTitle: "Ваш", heroBrand: "Успех", heroTail: "Путь",
+    heroSub: "Премиум подготовка к SAT, ВУЗам и международным экзаменам.",
+  },
 };
+
+type ThemeId = "violet" | "ocean" | "sunset" | "forest" | "rose";
+const themeOptions: Array<{ id: ThemeId; label: string; swatch: string }> = [
+  { id: "violet", label: "Violet Dream", swatch: "linear-gradient(135deg,#7C5CFF,#3BA3FF)" },
+  { id: "ocean", label: "Deep Ocean", swatch: "linear-gradient(135deg,#22D3EE,#0EA5E9)" },
+  { id: "sunset", label: "Sunset", swatch: "linear-gradient(135deg,#F472B6,#FB923C)" },
+  { id: "forest", label: "Forest", swatch: "linear-gradient(135deg,#34D399,#14B8A6)" },
+  { id: "rose", label: "Rose Gold", swatch: "linear-gradient(135deg,#F472B6,#A855F7)" },
+];
 
 type SectionId = (typeof sections)[number]["id"];
 type Lang = keyof typeof translations;
