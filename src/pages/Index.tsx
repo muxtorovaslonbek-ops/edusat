@@ -538,6 +538,7 @@ const Index = () => {
     setProfileName(nextName);
     setProfileEmail(email);
     setIsAuthenticated(true);
+    try { localStorage.setItem("edusat:session", JSON.stringify({ email, name: nextName })); } catch { /* ignore */ }
     setActive("profile");
     setAuthError("");
     setAuthOpen(false);
