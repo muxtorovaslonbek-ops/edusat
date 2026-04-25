@@ -1475,20 +1475,20 @@ const Index = () => {
   }[active];
 
   const authModal = authOpen ? (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-background/80 p-4 backdrop-blur-xl">
-      <form className="glass-panel w-full max-w-md rounded-3xl p-6 shadow-premium" onSubmit={(event) => { event.preventDefault(); handleAuthSubmit(); }}>
+    <div className="fixed inset-0 z-50 grid place-items-center bg-background/80 p-4 backdrop-blur-xl animate-fade-in-up">
+      <form className="w-full max-w-md rounded-3xl border border-white/10 bg-card p-6 shadow-premium animate-scale-in" onSubmit={(event) => { event.preventDefault(); handleAuthSubmit(); }}>
         <div className="flex items-center justify-between">
           <h3 className="text-2xl font-black text-foreground">{authMode === "login" ? t.login : t.register}</h3>
-          <button type="button" className="rounded-2xl p-2 hover:bg-accent" onClick={() => setAuthOpen(false)}><X /></button>
+          <button type="button" className="rounded-2xl p-2 text-muted-foreground transition-all hover:bg-primary/10 hover:text-primary" onClick={() => setAuthOpen(false)}><X /></button>
         </div>
         <div className="mt-5 space-y-3 text-foreground">
-          {authMode === "register" && <input className="h-12 w-full rounded-2xl border border-input bg-card px-4 text-foreground outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring" placeholder="Ismingiz" value={authName} onChange={(e) => setAuthName(e.target.value)} autoComplete="name" />}
-          <input className="h-12 w-full rounded-2xl border border-input bg-card px-4 text-foreground outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring" placeholder="Email" type="email" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} autoComplete="email" />
-          <input className="h-12 w-full rounded-2xl border border-input bg-card px-4 text-foreground outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring" placeholder="Parol" type="password" value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} autoComplete={authMode === "login" ? "current-password" : "new-password"} />
-          {authError && <p className="rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm font-bold text-destructive">{authError}</p>}
+          {authMode === "register" && <input className="input-premium h-12 w-full rounded-2xl px-4 text-foreground placeholder:text-muted-foreground" placeholder="Ismingiz" value={authName} onChange={(e) => setAuthName(e.target.value)} autoComplete="name" />}
+          <input className="input-premium h-12 w-full rounded-2xl px-4 text-foreground placeholder:text-muted-foreground" placeholder="Email" type="email" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} autoComplete="email" />
+          <input className="input-premium h-12 w-full rounded-2xl px-4 text-foreground placeholder:text-muted-foreground" placeholder="Parol" type="password" value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} autoComplete={authMode === "login" ? "current-password" : "new-password"} />
+          {authError && <p className="rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm font-bold text-destructive animate-fade-in-up">{authError}</p>}
           <button type="submit" className="premium-button w-full rounded-2xl py-3 font-black">{authMode === "login" ? "Kirish" : "Ro‘yxatdan o‘tish"} +100 coin</button>
         </div>
-        <button type="button" className="mt-4 text-sm font-bold text-primary" onClick={() => { setAuthError(""); setAuthMode(authMode === "login" ? "register" : "login"); }}>{authMode === "login" ? "Hisob yo‘qmi? Ro‘yxatdan o‘ting" : "Hisobingiz bormi? Kirish"}</button>
+        <button type="button" className="mt-4 text-sm font-bold text-primary transition-all hover:opacity-80" onClick={() => { setAuthError(""); setAuthMode(authMode === "login" ? "register" : "login"); }}>{authMode === "login" ? "Hisob yo‘qmi? Ro‘yxatdan o‘ting" : "Hisobingiz bormi? Kirish"}</button>
       </form>
     </div>
   ) : null;
