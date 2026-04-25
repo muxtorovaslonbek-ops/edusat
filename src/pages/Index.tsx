@@ -710,28 +710,45 @@ const Index = () => {
   const renderHome = () => (
     <>
       <section className="grid gap-5 xl:grid-cols-[1.35fr_0.65fr]">
-        <GlassCard className="relative min-h-[360px] overflow-hidden p-7 md:p-10">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_78%_30%,hsl(var(--primary)/0.2),transparent_34%)]" />
+        <GlassCard className="relative min-h-[420px] overflow-hidden p-7 md:p-10">
+          <div className="pointer-events-none absolute -left-20 -top-24 h-72 w-72 rounded-full bg-[hsl(var(--premium-violet)/0.35)] blur-3xl animate-orb" />
+          <div className="pointer-events-none absolute -right-16 top-10 h-80 w-80 rounded-full bg-[hsl(var(--premium-blue,var(--premium-violet))/0.3)] blur-3xl animate-orb" style={{ animationDelay: "-4s" }} />
+          <div className="pointer-events-none absolute bottom-0 left-1/3 h-64 w-64 rounded-full bg-[hsl(var(--primary)/0.25)] blur-3xl animate-orb" style={{ animationDelay: "-8s" }} />
+          <span className="pointer-events-none absolute left-[12%] top-[18%] h-2 w-2 rounded-full bg-primary animate-sparkle" />
+          <span className="pointer-events-none absolute right-[20%] top-[32%] h-1.5 w-1.5 rounded-full bg-primary animate-sparkle" style={{ animationDelay: "0.6s" }} />
+          <span className="pointer-events-none absolute left-[42%] bottom-[22%] h-2 w-2 rounded-full bg-primary animate-sparkle" style={{ animationDelay: "1.2s" }} />
+          <span className="pointer-events-none absolute right-[8%] bottom-[14%] h-2.5 w-2.5 rounded-full bg-primary animate-sparkle" style={{ animationDelay: "1.8s" }} />
           <div className="relative z-10 flex h-full flex-col justify-center">
-            <h1 className="max-w-4xl text-4xl font-black leading-tight text-foreground md:text-6xl">
-              EduSAT <span className="text-primary">Academy</span><br />Sizning <span className="text-primary">Muvaffaqiyat</span> Yo‘lingiz
+            <span className="mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-black uppercase tracking-wider text-primary backdrop-blur-md animate-fade-in-up">
+              <span className="h-2 w-2 animate-ping rounded-full bg-primary" /> Premium ta’lim · 2025
+            </span>
+            <h1 className="max-w-4xl text-4xl font-black leading-tight md:text-6xl animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
+              <span className="text-foreground">EduSAT </span>
+              <span className="animate-gradient-text">Academy</span>
+              <br />
+              <span className="text-foreground">{t.heroTitle} </span>
+              <span className="animate-gradient-text">{t.heroBrand}</span>
+              <span className="text-foreground"> {t.heroTail}</span>
+              <span className="ml-1 inline-block h-[0.9em] w-[3px] translate-y-1 bg-primary animate-cursor" />
             </h1>
-            <p className="mt-6 max-w-2xl text-lg leading-8 text-muted-foreground">
-              {t.greeting}, <b className="text-foreground">{displayName === "Mehmon" ? t.guest : displayName}</b>! SAT, OTM va xalqaro imtihonlarga premium tayyorlaning.
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-muted-foreground animate-fade-in-up" style={{ animationDelay: "0.25s" }}>
+              {t.greeting}, <b className="text-foreground">{displayName === "Mehmon" ? t.guest : displayName}</b>! {t.heroSub}
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
+            <div className="mt-8 flex flex-wrap gap-3 animate-fade-in-up" style={{ animationDelay: "0.4s" }}>
               {["Daraja aniqlash", "Free Testlar", "3D qo‘llanmalar", "Bepul darslar"].map((item) => (
-                <button key={item} className="premium-button rounded-2xl px-5 py-3 text-sm font-black" onClick={() => setActive(sections.find((s) => s.label === item)?.id ?? "level")}>
-                  {item}
+                <button key={item} className="premium-button relative overflow-hidden rounded-2xl px-5 py-3 text-sm font-black transition-transform hover:scale-105" onClick={() => setActive(sections.find((s) => s.label === item)?.id ?? "level")}>
+                  <span className="relative z-10">{item}</span>
+                  <span className="shimmer-overlay absolute inset-0" />
                 </button>
               ))}
             </div>
-            <div className="pointer-events-none absolute bottom-4 right-6 text-[180px] font-black leading-none text-primary/10">”</div>
+            <div className="pointer-events-none absolute -bottom-6 right-6 text-[200px] font-black leading-none text-primary/10 animate-floaty">”</div>
           </div>
         </GlassCard>
-        <GlassCard>
+        <GlassCard className="relative overflow-hidden">
+          <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-[hsl(var(--premium-violet)/0.25)] blur-3xl animate-orb" />
           <div className="flex items-center gap-3">
-            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-primary/15 text-primary">
+            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-primary/15 text-primary animate-floaty">
               <Star />
             </div>
             <div>
@@ -739,16 +756,21 @@ const Index = () => {
               <p className="text-xs text-muted-foreground">Har kuni avtomatik almashadi</p>
             </div>
           </div>
-          <blockquote className="mt-5 text-xl font-black leading-8 text-foreground">“{todayQuote[0]}”</blockquote>
-          <p className="mt-4 font-bold text-muted-foreground">— {todayQuote[1]}</p>
+          <blockquote className="mt-5 text-xl font-black leading-8 text-foreground animate-fade-in-up">“{todayQuote[0]}”</blockquote>
+          <p className="mt-4 font-bold text-muted-foreground animate-fade-in-up" style={{ animationDelay: "0.15s" }}>— {todayQuote[1]}</p>
         </GlassCard>
       </section>
       <section className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {statCards.map(({ label, value, icon: Icon }) => (
-          <GlassCard key={label}>
-            <Icon className="mb-4 h-7 w-7 text-primary" />
-            <p className="text-sm font-bold text-muted-foreground">{label}</p>
-            <p className="mt-1 text-3xl font-black text-foreground">{label === "Coin balans" ? coins : value}</p>
+        {statCards.map(({ label, value, icon: Icon }, i) => (
+          <GlassCard key={label} className="group relative overflow-hidden transition-transform hover:-translate-y-1 animate-fade-in-up">
+            <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-[hsl(var(--premium-violet)/0.18)] blur-2xl" />
+            <div className="relative">
+              <div className="mb-4 inline-grid h-12 w-12 place-items-center rounded-2xl icon-bubble shadow-glow animate-glow-pulse" style={{ animationDelay: `${i * 0.4}s` }}>
+                <Icon className="h-6 w-6 text-primary-foreground" />
+              </div>
+              <p className="text-sm font-bold text-muted-foreground">{label}</p>
+              <p className="mt-1 text-3xl font-black text-foreground">{label === "Coin balans" ? coins : value}</p>
+            </div>
           </GlassCard>
         ))}
       </section>
