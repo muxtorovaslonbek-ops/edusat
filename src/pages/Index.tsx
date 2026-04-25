@@ -434,6 +434,25 @@ const Index = () => {
     document.documentElement.classList.toggle("dark", dark);
   }, [dark]);
 
+  // Persist registered users
+  useEffect(() => {
+    try { localStorage.setItem("edusat:users", JSON.stringify(registeredUsers)); } catch { /* ignore */ }
+  }, [registeredUsers]);
+
+  // Restore session on first mount
+  useEffect(() => {
+    try {
+      const session = JSON.parse(localStorage.getItem("edusat:session") || "null");
+      if (session?.email && session?.name) {
+        setUserName(session.name);
+        setProfileName(session.name);
+        setProfileEmail(session.email);
+        setIsAuthenticated(true);
+      }
+    } catch { /* ignore */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const todayQuote = useMemo(() => {
     const day = Math.floor(Date.now() / 86400000);
     return quotes[day % quotes.length];
