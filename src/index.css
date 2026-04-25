@@ -59,7 +59,8 @@ All colors MUST be HSL.
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
-  .dark {
+  .dark,
+  .theme-violet.dark {
     /* Backgrounds — deep premium navy */
     --background: 222 39% 9%;            /* #0F172A */
     --foreground: 210 40% 98%;
@@ -230,4 +231,120 @@ All colors MUST be HSL.
   .animate-fade-in-up { animation: fade-in-up 0.4s ease-out both; }
   .animate-slide-in-left { animation: slide-in-left 0.35s ease-out both; }
   .animate-scale-in { animation: scale-in 0.25s ease-out both; }
+
+  /* === HOME-PAGE WOW ANIMATIONS === */
+  @keyframes floaty {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+  }
+  @keyframes glow-pulse {
+    0%, 100% { box-shadow: 0 0 30px hsl(var(--premium-violet) / 0.35), 0 0 60px hsl(var(--premium-blue, var(--premium-violet)) / 0.25); }
+    50% { box-shadow: 0 0 50px hsl(var(--premium-violet) / 0.65), 0 0 100px hsl(var(--premium-blue, var(--premium-violet)) / 0.45); }
+  }
+  @keyframes gradient-shift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  @keyframes orb-drift {
+    0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.5; }
+    33% { transform: translate(30px, -20px) scale(1.1); opacity: 0.7; }
+    66% { transform: translate(-20px, 25px) scale(0.95); opacity: 0.6; }
+  }
+  @keyframes sparkle {
+    0%, 100% { opacity: 0; transform: scale(0.5) rotate(0deg); }
+    50% { opacity: 1; transform: scale(1) rotate(180deg); }
+  }
+  @keyframes typing-cursor {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  .animate-floaty { animation: floaty 4s ease-in-out infinite; }
+  .animate-glow-pulse { animation: glow-pulse 3s ease-in-out infinite; }
+  .animate-orb { animation: orb-drift 12s ease-in-out infinite; }
+  .animate-sparkle { animation: sparkle 2.5s ease-in-out infinite; }
+  .animate-cursor { animation: typing-cursor 1s step-end infinite; }
+
+  .animate-gradient-text {
+    background: linear-gradient(90deg,
+      hsl(var(--premium-violet)),
+      hsl(var(--premium-blue, var(--premium-violet))),
+      hsl(var(--premium-violet)));
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: gradient-shift 4s linear infinite;
+  }
+
+  .shimmer-overlay {
+    background: linear-gradient(110deg,
+      transparent 30%,
+      hsl(var(--primary-foreground) / 0.15) 50%,
+      transparent 70%);
+    background-size: 200% 100%;
+    animation: shimmer 3s linear infinite;
+  }
+
+  /* === Theme variants (work with .dark) === */
+  .theme-ocean.dark {
+    --background: 210 50% 8%;
+    --card: 210 55% 10%;
+    --popover: 210 55% 9%;
+    --secondary: 210 40% 14%;
+    --muted: 210 30% 14%;
+    --accent: 195 70% 18%;
+    --primary: 195 100% 60%;
+    --premium-violet: 195 100% 60%;
+    --premium-blue: 175 90% 55%;
+    --premium-glow: 195 100% 60%;
+    --ring: 195 100% 60%;
+    --sidebar-background: 210 55% 7%;
+  }
+  .theme-sunset.dark {
+    --background: 18 30% 9%;
+    --card: 18 35% 11%;
+    --popover: 18 35% 10%;
+    --secondary: 18 30% 14%;
+    --muted: 18 20% 15%;
+    --accent: 12 60% 20%;
+    --primary: 18 95% 62%;
+    --premium-violet: 340 90% 62%;
+    --premium-blue: 25 95% 60%;
+    --premium-glow: 18 95% 62%;
+    --ring: 18 95% 62%;
+    --sidebar-background: 18 35% 8%;
+  }
+  .theme-forest.dark {
+    --background: 150 30% 8%;
+    --card: 150 30% 10%;
+    --popover: 150 30% 9%;
+    --secondary: 150 25% 13%;
+    --muted: 150 20% 14%;
+    --accent: 145 50% 18%;
+    --primary: 145 70% 55%;
+    --premium-violet: 145 70% 55%;
+    --premium-blue: 175 80% 50%;
+    --premium-glow: 145 70% 55%;
+    --ring: 145 70% 55%;
+    --sidebar-background: 150 30% 7%;
+  }
+  .theme-rose.dark {
+    --background: 330 25% 9%;
+    --card: 330 30% 11%;
+    --popover: 330 30% 10%;
+    --secondary: 330 25% 14%;
+    --muted: 330 20% 15%;
+    --accent: 320 55% 20%;
+    --primary: 330 90% 65%;
+    --premium-violet: 330 90% 65%;
+    --premium-blue: 280 90% 65%;
+    --premium-glow: 330 90% 65%;
+    --ring: 330 90% 65%;
+    --sidebar-background: 330 30% 8%;
+  }
 }

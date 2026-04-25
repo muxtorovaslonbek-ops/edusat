@@ -323,10 +323,34 @@ const team = [
 ];
 
 const translations = {
-  uz: { greeting: "Xush kelibsiz", guest: "Mehmon", login: "Kirish", register: "Ro‘yxatdan o‘tish", search: "Qidirish" },
-  en: { greeting: "Welcome", guest: "Guest", login: "Login", register: "Sign up", search: "Search" },
-  ru: { greeting: "Добро пожаловать", guest: "Гость", login: "Войти", register: "Регистрация", search: "Поиск" },
+  uz: {
+    greeting: "Xush kelibsiz", guest: "Mehmon", login: "Kirish", register: "Ro‘yxatdan o‘tish", search: "Qidirish",
+    settings: "Sozlamalar", theme: "Mavzu", language: "Til",
+    heroTitle: "Sizning", heroBrand: "Muvaffaqiyat", heroTail: "Yo‘lingiz",
+    heroSub: "SAT, OTM va xalqaro imtihonlarga premium tayyorlaning.",
+  },
+  en: {
+    greeting: "Welcome", guest: "Guest", login: "Login", register: "Sign up", search: "Search",
+    settings: "Settings", theme: "Theme", language: "Language",
+    heroTitle: "Your", heroBrand: "Success", heroTail: "Path",
+    heroSub: "Premium prep for SAT, university and international exams.",
+  },
+  ru: {
+    greeting: "Добро пожаловать", guest: "Гость", login: "Войти", register: "Регистрация", search: "Поиск",
+    settings: "Настройки", theme: "Тема", language: "Язык",
+    heroTitle: "Ваш", heroBrand: "Успех", heroTail: "Путь",
+    heroSub: "Премиум подготовка к SAT, ВУЗам и международным экзаменам.",
+  },
 };
+
+type ThemeId = "violet" | "ocean" | "sunset" | "forest" | "rose";
+const themeOptions: Array<{ id: ThemeId; label: string; swatch: string }> = [
+  { id: "violet", label: "Violet Dream", swatch: "linear-gradient(135deg,#7C5CFF,#3BA3FF)" },
+  { id: "ocean", label: "Deep Ocean", swatch: "linear-gradient(135deg,#22D3EE,#0EA5E9)" },
+  { id: "sunset", label: "Sunset", swatch: "linear-gradient(135deg,#F472B6,#FB923C)" },
+  { id: "forest", label: "Forest", swatch: "linear-gradient(135deg,#34D399,#14B8A6)" },
+  { id: "rose", label: "Rose Gold", swatch: "linear-gradient(135deg,#F472B6,#A855F7)" },
+];
 
 type SectionId = (typeof sections)[number]["id"];
 type Lang = keyof typeof translations;
@@ -370,7 +394,14 @@ const Index = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarHidden, setSidebarHidden] = useState(false);
   const [dark, setDark] = useState(true);
-  const [lang, setLang] = useState<Lang>("uz");
+  const [lang, setLang] = useState<Lang>(() => {
+    if (typeof window === "undefined") return "uz";
+    return (localStorage.getItem("edusat:lang") as Lang) || "uz";
+  });
+  const [theme, setTheme] = useState<ThemeId>(() => {
+    if (typeof window === "undefined") return "violet";
+    return (localStorage.getItem("edusat:theme") as ThemeId) || "violet";
+  });
   const [coins, setCoins] = useState(1280);
   const [userName, setUserName] = useState("Mehmon");
   const [authOpen, setAuthOpen] = useState(false);
@@ -433,6 +464,19 @@ const Index = () => {
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);
   }, [dark]);
+
+  // Apply + persist theme
+  useEffect(() => {
+    const root = document.documentElement;
+    ["theme-violet", "theme-ocean", "theme-sunset", "theme-forest", "theme-rose"].forEach((c) => root.classList.remove(c));
+    root.classList.add(`theme-${theme}`);
+    try { localStorage.setItem("edusat:theme", theme); } catch { /* ignore */ }
+  }, [theme]);
+
+  // Persist language
+  useEffect(() => {
+    try { localStorage.setItem("edusat:lang", lang); } catch { /* ignore */ }
+  }, [lang]);
 
   // Persist registered users
   useEffect(() => {
@@ -666,28 +710,45 @@ const Index = () => {
   const renderHome = () => (
     <>
       <section className="grid gap-5 xl:grid-cols-[1.35fr_0.65fr]">
-        <GlassCard className="relative min-h-[360px] overflow-hidden p-7 md:p-10">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_78%_30%,hsl(var(--primary)/0.2),transparent_34%)]" />
+        <GlassCard className="relative min-h-[420px] overflow-hidden p-7 md:p-10">
+          <div className="pointer-events-none absolute -left-20 -top-24 h-72 w-72 rounded-full bg-[hsl(var(--premium-violet)/0.35)] blur-3xl animate-orb" />
+          <div className="pointer-events-none absolute -right-16 top-10 h-80 w-80 rounded-full bg-[hsl(var(--premium-blue,var(--premium-violet))/0.3)] blur-3xl animate-orb" style={{ animationDelay: "-4s" }} />
+          <div className="pointer-events-none absolute bottom-0 left-1/3 h-64 w-64 rounded-full bg-[hsl(var(--primary)/0.25)] blur-3xl animate-orb" style={{ animationDelay: "-8s" }} />
+          <span className="pointer-events-none absolute left-[12%] top-[18%] h-2 w-2 rounded-full bg-primary animate-sparkle" />
+          <span className="pointer-events-none absolute right-[20%] top-[32%] h-1.5 w-1.5 rounded-full bg-primary animate-sparkle" style={{ animationDelay: "0.6s" }} />
+          <span className="pointer-events-none absolute left-[42%] bottom-[22%] h-2 w-2 rounded-full bg-primary animate-sparkle" style={{ animationDelay: "1.2s" }} />
+          <span className="pointer-events-none absolute right-[8%] bottom-[14%] h-2.5 w-2.5 rounded-full bg-primary animate-sparkle" style={{ animationDelay: "1.8s" }} />
           <div className="relative z-10 flex h-full flex-col justify-center">
-            <h1 className="max-w-4xl text-4xl font-black leading-tight text-foreground md:text-6xl">
-              EduSAT <span className="text-primary">Academy</span><br />Sizning <span className="text-primary">Muvaffaqiyat</span> Yo‘lingiz
+            <span className="mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-black uppercase tracking-wider text-primary backdrop-blur-md animate-fade-in-up">
+              <span className="h-2 w-2 animate-ping rounded-full bg-primary" /> Premium ta’lim · 2025
+            </span>
+            <h1 className="max-w-4xl text-4xl font-black leading-tight md:text-6xl animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
+              <span className="text-foreground">EduSAT </span>
+              <span className="animate-gradient-text">Academy</span>
+              <br />
+              <span className="text-foreground">{t.heroTitle} </span>
+              <span className="animate-gradient-text">{t.heroBrand}</span>
+              <span className="text-foreground"> {t.heroTail}</span>
+              <span className="ml-1 inline-block h-[0.9em] w-[3px] translate-y-1 bg-primary animate-cursor" />
             </h1>
-            <p className="mt-6 max-w-2xl text-lg leading-8 text-muted-foreground">
-              {t.greeting}, <b className="text-foreground">{displayName === "Mehmon" ? t.guest : displayName}</b>! SAT, OTM va xalqaro imtihonlarga premium tayyorlaning.
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-muted-foreground animate-fade-in-up" style={{ animationDelay: "0.25s" }}>
+              {t.greeting}, <b className="text-foreground">{displayName === "Mehmon" ? t.guest : displayName}</b>! {t.heroSub}
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
+            <div className="mt-8 flex flex-wrap gap-3 animate-fade-in-up" style={{ animationDelay: "0.4s" }}>
               {["Daraja aniqlash", "Free Testlar", "3D qo‘llanmalar", "Bepul darslar"].map((item) => (
-                <button key={item} className="premium-button rounded-2xl px-5 py-3 text-sm font-black" onClick={() => setActive(sections.find((s) => s.label === item)?.id ?? "level")}>
-                  {item}
+                <button key={item} className="premium-button relative overflow-hidden rounded-2xl px-5 py-3 text-sm font-black transition-transform hover:scale-105" onClick={() => setActive(sections.find((s) => s.label === item)?.id ?? "level")}>
+                  <span className="relative z-10">{item}</span>
+                  <span className="shimmer-overlay absolute inset-0" />
                 </button>
               ))}
             </div>
-            <div className="pointer-events-none absolute bottom-4 right-6 text-[180px] font-black leading-none text-primary/10">”</div>
+            <div className="pointer-events-none absolute -bottom-6 right-6 text-[200px] font-black leading-none text-primary/10 animate-floaty">”</div>
           </div>
         </GlassCard>
-        <GlassCard>
+        <GlassCard className="relative overflow-hidden">
+          <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-[hsl(var(--premium-violet)/0.25)] blur-3xl animate-orb" />
           <div className="flex items-center gap-3">
-            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-primary/15 text-primary">
+            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-primary/15 text-primary animate-floaty">
               <Star />
             </div>
             <div>
@@ -695,16 +756,21 @@ const Index = () => {
               <p className="text-xs text-muted-foreground">Har kuni avtomatik almashadi</p>
             </div>
           </div>
-          <blockquote className="mt-5 text-xl font-black leading-8 text-foreground">“{todayQuote[0]}”</blockquote>
-          <p className="mt-4 font-bold text-muted-foreground">— {todayQuote[1]}</p>
+          <blockquote className="mt-5 text-xl font-black leading-8 text-foreground animate-fade-in-up">“{todayQuote[0]}”</blockquote>
+          <p className="mt-4 font-bold text-muted-foreground animate-fade-in-up" style={{ animationDelay: "0.15s" }}>— {todayQuote[1]}</p>
         </GlassCard>
       </section>
       <section className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {statCards.map(({ label, value, icon: Icon }) => (
-          <GlassCard key={label}>
-            <Icon className="mb-4 h-7 w-7 text-primary" />
-            <p className="text-sm font-bold text-muted-foreground">{label}</p>
-            <p className="mt-1 text-3xl font-black text-foreground">{label === "Coin balans" ? coins : value}</p>
+        {statCards.map(({ label, value, icon: Icon }, i) => (
+          <GlassCard key={label} className="group relative overflow-hidden transition-transform hover:-translate-y-1 animate-fade-in-up">
+            <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-[hsl(var(--premium-violet)/0.18)] blur-2xl" />
+            <div className="relative">
+              <div className="mb-4 inline-grid h-12 w-12 place-items-center rounded-2xl icon-bubble shadow-glow animate-glow-pulse" style={{ animationDelay: `${i * 0.4}s` }}>
+                <Icon className="h-6 w-6 text-primary-foreground" />
+              </div>
+              <p className="text-sm font-bold text-muted-foreground">{label}</p>
+              <p className="mt-1 text-3xl font-black text-foreground">{label === "Coin balans" ? coins : value}</p>
+            </div>
           </GlassCard>
         ))}
       </section>
@@ -762,6 +828,56 @@ const Index = () => {
                 <p className="mt-2 text-sm text-muted-foreground">{[78, 64, 82, 56][index]}% yakunlangan</p>
               </div>
             ))}
+          </div>
+        </GlassCard>
+        <GlassCard className="relative overflow-hidden">
+          <div className="pointer-events-none absolute -right-12 -top-12 h-44 w-44 rounded-full bg-[hsl(var(--premium-violet)/0.2)] blur-3xl animate-orb" />
+          <Pill>4-bosqich • {t.settings}</Pill>
+          <h3 className="mt-3 text-2xl font-black text-foreground">{t.settings}</h3>
+          <p className="mt-1 text-sm text-muted-foreground">Sayt mavzusini va tilini o‘zingizga moslang. Tanlovingiz avtomatik saqlanadi.</p>
+
+          <div className="mt-6">
+            <p className="mb-3 text-sm font-black text-foreground">{t.theme}</p>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+              {themeOptions.map((opt) => {
+                const selected = theme === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    onClick={() => setTheme(opt.id)}
+                    className={`group relative overflow-hidden rounded-2xl border p-3 text-left transition-all hover:-translate-y-0.5 ${selected ? "border-primary shadow-glow" : "border-border/60 hover:border-primary/40"}`}
+                  >
+                    <div className="h-16 w-full rounded-xl shadow-inner transition-transform group-hover:scale-105" style={{ background: opt.swatch }} />
+                    <p className="mt-3 text-sm font-black text-foreground">{opt.label}</p>
+                    {selected && <span className="absolute right-2 top-2 rounded-full bg-primary px-2 py-0.5 text-[10px] font-black text-primary-foreground">✓</span>}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="mt-6">
+            <p className="mb-3 text-sm font-black text-foreground">{t.language}</p>
+            <div className="flex flex-wrap gap-2">
+              {languageOptions.map((opt) => {
+                const selected = lang === opt.code;
+                return (
+                  <button
+                    key={opt.code}
+                    onClick={() => setLang(opt.code)}
+                    className={`inline-flex items-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-black transition-all hover:-translate-y-0.5 ${selected ? "nav-item-active border-transparent" : "border-border/60 text-foreground hover:border-primary/40 hover:bg-primary/10"}`}
+                  >
+                    <Languages className="h-4 w-4" /> {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="mt-6 flex flex-wrap items-center gap-3">
+            <button onClick={() => setDark(!dark)} className="inline-flex items-center gap-2 rounded-2xl border border-border/60 px-4 py-2.5 text-sm font-black text-foreground transition-all hover:bg-primary/10 hover:text-primary">
+              {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />} {dark ? "Yorug‘ rejim" : "Tungi rejim"}
+            </button>
           </div>
         </GlassCard>
       </div>
