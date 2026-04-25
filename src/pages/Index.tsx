@@ -404,6 +404,13 @@ const Index = () => {
   const [purchasedItems, setPurchasedItems] = useState<Record<string, boolean>>({});
   const [shopMessage, setShopMessage] = useState("");
   const [reviewSaved, setReviewSaved] = useState(false);
+  const [jobName, setJobName] = useState("");
+  const [jobSubject, setJobSubject] = useState(subjects[0]);
+  const [jobPhone, setJobPhone] = useState("");
+  const [jobExperience, setJobExperience] = useState("");
+  const [jobCertificate, setJobCertificate] = useState<string | null>(null);
+  const [jobSent, setJobSent] = useState(false);
+  const [jobError, setJobError] = useState("");
 
   useEffect(() => {
     if (!examRunning) return;
