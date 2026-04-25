@@ -606,10 +606,11 @@ const Index = () => {
             <span className="text-xs font-bold text-muted-foreground">Academy Premium</span>
           </span>
         </button>
-        <button className="rounded-2xl p-2 text-muted-foreground hover:bg-accent lg:hidden" onClick={() => setSidebarOpen(false)} aria-label="Menyuni yopish">
-          <X />
-        </button>
-        <button className="hidden rounded-2xl p-2 text-muted-foreground hover:bg-accent lg:inline-flex" onClick={() => setSidebarHidden(true)} aria-label="Yon panelni yashirish">
+        <button
+          className="rounded-2xl p-2 text-muted-foreground transition-all hover:bg-primary/10 hover:text-primary"
+          onClick={() => { setSidebarOpen(false); setSidebarHidden(true); }}
+          aria-label="Yon panelni yopish"
+        >
           <X />
         </button>
       </div>
@@ -729,7 +730,7 @@ const Index = () => {
                 <input type="file" accept="image/*" className="hidden" onChange={handleAvatar} />
               </label>
               {avatar && <button className="rounded-2xl border border-border px-5 py-3 text-sm font-black text-foreground hover:bg-accent" onClick={() => setAvatar(null)}>Rasmni olib tashlash</button>}
-              <button className="rounded-2xl border border-border px-5 py-3 text-sm font-black text-foreground hover:bg-accent" onClick={() => { setIsAuthenticated(false); setUserName("Mehmon"); setProfileName("Mehmon"); setAvatar(null); setAuthEmail(""); setAuthPassword(""); setActive("home"); }}>Profildan chiqish</button>
+              <button className="rounded-2xl border border-border px-5 py-3 text-sm font-black text-foreground transition-all hover:bg-accent hover:text-accent-foreground" onClick={() => { setIsAuthenticated(false); setUserName("Mehmon"); setProfileName("Mehmon"); setAvatar(null); setAuthEmail(""); setAuthPassword(""); setActive("home"); try { localStorage.removeItem("edusat:session"); } catch { /* ignore */ } }}>Profildan chiqish</button>
             </div>
           </div>
         </GlassCard>
