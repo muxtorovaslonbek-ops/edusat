@@ -1498,12 +1498,12 @@ const Index = () => {
       <div className="fixed inset-0 -z-10 bg-premium-radial" />
       <div className="flex min-h-screen gap-4 p-3">
         {nav}
-        {sidebarOpen && <button className="fixed inset-0 z-30 bg-background/60 backdrop-blur-sm lg:hidden" onClick={() => setSidebarOpen(false)} aria-label="Menyuni yopish" />}
+        {sidebarOpen && <button className="fixed inset-0 z-30 bg-background/60 backdrop-blur-sm lg:hidden animate-fade-in-up" onClick={() => setSidebarOpen(false)} aria-label="Menyuni yopish" />}
         <div className="min-w-0 flex-1">
-          <header className="glass-panel sticky top-3 z-20 mb-5 flex items-center justify-between gap-3 rounded-3xl px-4 py-3 shadow-premium">
+          <header className="sticky top-3 z-20 mb-5 flex items-center justify-between gap-3 rounded-3xl border-b border-white/5 bg-card/90 px-4 py-3 shadow-premium backdrop-blur-xl">
             <div className="flex items-center gap-3">
               <button
-                className="rounded-2xl p-3 hover:bg-accent"
+                className="rounded-2xl p-3 text-muted-foreground transition-all hover:bg-primary/10 hover:text-primary"
                 onClick={() => {
                   // Toggle: hide if currently visible, otherwise show.
                   const visible = sidebarOpen || !sidebarHidden;
@@ -1515,22 +1515,22 @@ const Index = () => {
                 <Menu />
               </button>
               <div>
-                <p className="text-xs font-black uppercase text-primary">{sections.find((s) => s.id === active)?.label}</p>
+                <p className="text-xs font-black uppercase tracking-wider text-primary">{sections.find((s) => s.id === active)?.label}</p>
                 <p className="hidden text-sm text-muted-foreground sm:block">Bilim, test, 3D qo‘llanma va premium tayyorgarlik markazi</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <div className="hidden items-center gap-2 rounded-2xl border border-border bg-secondary/50 px-3 py-2 font-black text-foreground sm:flex"><Coins className="h-4 w-4 text-primary" />{coins}</div>
-              <button className="rounded-2xl p-3 hover:bg-accent" onClick={() => setDark(!dark)} aria-label="Theme almashtirish">{dark ? <Sun /> : <Moon />}</button>
+              <div className="hidden items-center gap-2 rounded-2xl border border-white/5 bg-background/60 px-3 py-2 font-black text-foreground sm:flex"><Coins className="h-4 w-4 text-primary" />{coins}</div>
+              <button className="rounded-2xl p-3 text-muted-foreground transition-all hover:bg-primary/10 hover:text-primary" onClick={() => setDark(!dark)} aria-label="Theme almashtirish">{dark ? <Sun /> : <Moon />}</button>
               <div className="relative">
-                <button className="inline-flex items-center gap-2 rounded-2xl border border-border bg-secondary/50 px-3 py-3 font-black text-foreground hover:bg-accent" onClick={() => setLangOpen(!langOpen)} aria-label="Til tanlash"><Languages className="h-5 w-5" /><span className="text-xs uppercase">{lang}</span></button>
-                {langOpen && <div className="absolute right-0 top-14 z-40 w-40 rounded-3xl border border-border bg-card/95 p-2 shadow-premium backdrop-blur-xl">{languageOptions.map((option) => <button key={option.code} className={`w-full rounded-2xl px-3 py-2 text-left text-sm font-black ${lang === option.code ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-accent"}`} onClick={() => { setLang(option.code); setLangOpen(false); }}>{option.label}</button>)}</div>}
+                <button className="inline-flex items-center gap-2 rounded-2xl border border-white/5 bg-background/60 px-3 py-3 font-black text-foreground transition-all hover:bg-primary/10 hover:text-primary" onClick={() => setLangOpen(!langOpen)} aria-label="Til tanlash"><Languages className="h-5 w-5" /><span className="text-xs uppercase">{lang}</span></button>
+                {langOpen && <div className="absolute right-0 top-14 z-40 w-40 rounded-3xl border border-white/10 bg-card/95 p-2 shadow-premium backdrop-blur-xl animate-fade-in-up">{languageOptions.map((option) => <button key={option.code} className={`w-full rounded-2xl px-3 py-2 text-left text-sm font-black transition-all ${lang === option.code ? "nav-item-active" : "text-foreground hover:bg-primary/10 hover:text-primary"}`} onClick={() => { setLang(option.code); setLangOpen(false); }}>{option.label}</button>)}</div>}
               </div>
-              <button className="hidden rounded-2xl bg-primary px-4 py-3 font-black text-primary-foreground md:inline-flex" onClick={() => { if (isAuthenticated) { setActive("profile"); } else { setAuthMode("register"); setAuthOpen(true); } }}><LogIn className="mr-2 h-4 w-4" />{isAuthenticated ? "Profil" : t.register}</button>
+              <button className="hidden rounded-2xl premium-button px-4 py-3 font-black md:inline-flex" onClick={() => { if (isAuthenticated) { setActive("profile"); } else { setAuthMode("register"); setAuthOpen(true); } }}><LogIn className="mr-2 h-4 w-4" />{isAuthenticated ? "Profil" : t.register}</button>
               <button onClick={() => { if (isAuthenticated) { setActive("profile"); } else { setAuthMode("register"); setAuthOpen(true); } }} aria-label="Profilga o‘tish"><AvatarBlock size="sm" /></button>
             </div>
           </header>
-          <div className="pb-8">{content()}</div>
+          <div key={active} className="pb-8 animate-fade-in-up">{content()}</div>
         </div>
       </div>
       {authModal}
