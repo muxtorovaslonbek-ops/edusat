@@ -59,7 +59,8 @@ All colors MUST be HSL.
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
-  .dark {
+  .dark,
+  .theme-violet.dark {
     /* Backgrounds — deep premium navy */
     --background: 222 39% 9%;            /* #0F172A */
     --foreground: 210 40% 98%;
