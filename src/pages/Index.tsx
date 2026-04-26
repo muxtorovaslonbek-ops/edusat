@@ -393,7 +393,11 @@ const Index = () => {
   const [active, setActive] = useState<SectionId>("home");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarHidden, setSidebarHidden] = useState(false);
-  const [dark, setDark] = useState(true);
+  const [dark, setDark] = useState<boolean>(() => {
+    if (typeof window === "undefined") return true;
+    const saved = localStorage.getItem("edusat:dark");
+    return saved === null ? true : saved === "1";
+  });
   const [lang, setLang] = useState<Lang>(() => {
     if (typeof window === "undefined") return "uz";
     return (localStorage.getItem("edusat:lang") as Lang) || "uz";
@@ -414,9 +418,17 @@ const Index = () => {
     if (typeof window === "undefined") return {};
     try { return JSON.parse(localStorage.getItem("edusat:users") || "{}"); } catch { return {}; }
   });
+  const [userAvatars, setUserAvatars] = useState<Record<string, string>>(() => {
+    if (typeof window === "undefined") return {};
+    try { return JSON.parse(localStorage.getItem("edusat:avatars") || "{}"); } catch { return {}; }
+  });
   const [profileName, setProfileName] = useState("Mehmon");
   const [profileEmail, setProfileEmail] = useState("demo@edusat.uz");
   const [avatar, setAvatar] = useState<string | null>(null);
+  const [aiMessages, setAiMessages] = useState<Array<{ role: "user" | "assistant"; content: string }>>([]);
+  const [aiInput, setAiInput] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState("");
   const [ratings, setRatings] = useState<Record<string, number>>({});
   const [favorites, setFavorites] = useState<Array<{ id: string; title: string; category: string; section: SectionId }>>([]);
   const [testAnswers, setTestAnswers] = useState<Record<string, string>>({});
