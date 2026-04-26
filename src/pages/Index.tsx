@@ -63,10 +63,10 @@ const sections = [
 const subjects = ["Matematika", "Ingliz tili", "Rus tili", "Biologiya", "Kimyo", "Fizika", "Tarix"];
 const science3d = ["Biologiya", "Kimyo", "Fizika", "Tarix", "Geografiya"];
 const levels = ["C", "C+", "B", "B+", "A", "A+"];
-const languageOptions: Array<{ code: Lang; label: string }> = [
-  { code: "uz", label: "O‘zbek" },
-  { code: "en", label: "English" },
-  { code: "ru", label: "Русский" },
+const languageOptions: Array<{ code: Lang; label: string; flag: string }> = [
+  { code: "uz", label: "O‘zbek", flag: "🇺🇿" },
+  { code: "en", label: "English", flag: "🇬🇧" },
+  { code: "ru", label: "Русский", flag: "🇷🇺" },
 ];
 
 const libraryBooks = [
