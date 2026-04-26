@@ -713,21 +713,92 @@ const Index = () => {
     </button>
   );
 
+  // Deterministic shuffle (seedable so options stay stable per question)
+  const seededShuffle = <T,>(arr: T[], seed: number): T[] => {
+    const a = [...arr];
+    let s = seed || 1;
+    for (let i = a.length - 1; i > 0; i--) {
+      s = (s * 9301 + 49297) % 233280;
+      const j = Math.floor((s / 233280) * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  };
+  const hashString = (str: string) => {
+    let h = 0;
+    for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) | 0;
+    return Math.abs(h) || 1;
+  };
+
+  const buildOptionsFor = (
+    q: { question: string; answer: string; options?: string[] },
+    pool: Array<{ answer: string }>,
+    testId: string,
+  ): string[] => {
+    if (q.options && q.options.length >= 2) {
+      return seededShuffle(q.options, hashString(testId + q.question));
+    }
+    const correct = q.answer;
+    const distractorsAll = Array.from(
+      new Set(
+        pool
+          .map((p) => p.answer)
+          .filter((a) => normalizeAnswer(a) !== normalizeAnswer(correct)),
+      ),
+    );
+    const shuffled = seededShuffle(distractorsAll, hashString(testId + q.question));
+    const picked = shuffled.slice(0, 3);
+    while (picked.length < 3) picked.push(`Variant ${picked.length + 1}`);
+    return seededShuffle([correct, ...picked], hashString(testId + q.question + "x"));
+  };
+
   const TestRunner = ({ testId, questions }: { testId: string; questions: typeof sampleQuestions }) => {
     const submitted = submittedTests[testId];
     const score = getTestScore(testId, questions);
+    const optionLabels = ["A", "B", "C", "D", "E"];
 
     return (
       <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {questions.map((q, index) => {
-          const answerKey = `${testId}-${q.subject}`;
-          const isCorrect = normalizeAnswer(testAnswers[answerKey] || "") === normalizeAnswer(q.answer);
+          const answerKey = `${testId}-${q.subject}-${index}`;
+          const userAnswer = testAnswers[answerKey] || "";
+          const isCorrect = normalizeAnswer(userAnswer) === normalizeAnswer(q.answer);
+          const options = buildOptionsFor(q, questions, testId);
           return (
-            <div key={`${testId}-${q.subject}-${index}`} className="rounded-3xl border border-border/60 bg-card/70 p-5">
+            <div key={`${testId}-${q.subject}-${index}`} className="rounded-3xl border border-border/60 bg-card/70 p-5 transition-all hover:border-primary/40">
               <Pill>{q.subject}</Pill>
               <p className="mt-4 font-black text-foreground">{q.question}</p>
-              <input className="mt-4 h-11 w-full rounded-2xl border border-input bg-background px-4 font-bold text-foreground outline-none focus:ring-2 focus:ring-ring" placeholder="Javob yozing" value={testAnswers[answerKey] || ""} onChange={(event) => setTestAnswers({ ...testAnswers, [answerKey]: event.target.value })} />
-              {submitted && <p className={`mt-3 text-sm font-black ${isCorrect ? "text-primary" : "text-destructive"}`}>{isCorrect ? "To‘g‘ri javob" : `Noto‘g‘ri. To‘g‘ri javob: ${q.answer}`}</p>}
+              <div className="mt-4 space-y-2">
+                {options.map((opt, oi) => {
+                  const selected = userAnswer === opt;
+                  const optionCorrect = normalizeAnswer(opt) === normalizeAnswer(q.answer);
+                  let stateCls = "border-border/60 bg-background/40 hover:border-primary/40 hover:bg-primary/5";
+                  if (submitted) {
+                    if (optionCorrect) stateCls = "border-primary/70 bg-primary/15 text-foreground";
+                    else if (selected && !optionCorrect) stateCls = "border-destructive/60 bg-destructive/10 text-foreground";
+                    else stateCls = "border-border/40 bg-background/30 opacity-70";
+                  } else if (selected) {
+                    stateCls = "border-primary bg-primary/15 text-foreground shadow-glow";
+                  }
+                  return (
+                    <button
+                      key={oi}
+                      type="button"
+                      disabled={submitted}
+                      onClick={() => setTestAnswers({ ...testAnswers, [answerKey]: opt })}
+                      className={`flex w-full items-start gap-3 rounded-2xl border px-4 py-3 text-left text-sm font-bold text-foreground transition-all disabled:cursor-not-allowed ${stateCls}`}
+                    >
+                      <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-xl text-xs font-black ${selected || (submitted && optionCorrect) ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>{optionLabels[oi]}</span>
+                      <span className="flex-1 leading-relaxed">{opt}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              {submitted && (
+                <p className={`mt-3 text-sm font-black ${isCorrect ? "text-primary" : "text-destructive"}`}>
+                  {isCorrect ? "✓ To‘g‘ri javob" : `✗ Noto‘g‘ri. To‘g‘ri javob: ${q.answer}`}
+                </p>
+              )}
             </div>
           );
         })}
@@ -735,9 +806,37 @@ const Index = () => {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h3 className="text-2xl font-black text-foreground">Test natijasi</h3>
-              <p className="mt-1 text-sm text-muted-foreground">{submitted ? `${score}/${questions.length} ta to‘g‘ri javob` : "Javoblarni yozib, tekshirish tugmasini bosing."}</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {submitted
+                  ? `${score}/${questions.length} ta to‘g‘ri javob • ${Math.round((score / questions.length) * 100)}%`
+                  : "Variantlardan birini tanlang va tekshirish tugmasini bosing."}
+              </p>
             </div>
-            <button className="premium-button rounded-2xl px-5 py-3 font-black" onClick={() => { setSubmittedTests({ ...submittedTests, [testId]: true }); completeActivity(30); }}>Tekshirish +30 coin</button>
+            <div className="flex flex-wrap gap-2">
+              {submitted && (
+                <button
+                  className="rounded-2xl border border-border px-5 py-3 font-black text-foreground transition-all hover:bg-accent"
+                  onClick={() => {
+                    const next = { ...submittedTests };
+                    delete next[testId];
+                    setSubmittedTests(next);
+                    const cleared = { ...testAnswers };
+                    questions.forEach((_, i) => { delete cleared[`${testId}-${questions[i].subject}-${i}`]; });
+                    setTestAnswers(cleared);
+                  }}
+                >
+                  Qayta urinish
+                </button>
+              )}
+              {!submitted && (
+                <button
+                  className="premium-button rounded-2xl px-5 py-3 font-black"
+                  onClick={() => { setSubmittedTests({ ...submittedTests, [testId]: true }); completeActivity(30); }}
+                >
+                  Tekshirish +30 coin
+                </button>
+              )}
+            </div>
           </div>
         </GlassCard>
       </div>
