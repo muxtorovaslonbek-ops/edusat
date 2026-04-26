@@ -565,7 +565,15 @@ const Index = () => {
   const handleAvatar = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    setAvatar(URL.createObjectURL(file));
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = String(reader.result || "");
+      setAvatar(dataUrl);
+      if (isAuthenticated && profileEmail) {
+        setUserAvatars((prev) => ({ ...prev, [profileEmail]: dataUrl }));
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleAuthSubmit = () => {
