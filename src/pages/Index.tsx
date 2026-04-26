@@ -825,7 +825,7 @@ const Index = () => {
                 {avatar ? "Rasmni o‘zgartirish" : "Rasm yuklash"}
                 <input type="file" accept="image/*" className="hidden" onChange={handleAvatar} />
               </label>
-              {avatar && <button className="rounded-2xl border border-border px-5 py-3 text-sm font-black text-foreground hover:bg-accent" onClick={() => setAvatar(null)}>Rasmni olib tashlash</button>}
+              {avatar && <button className="rounded-2xl border border-border px-5 py-3 text-sm font-black text-foreground hover:bg-accent" onClick={() => { setAvatar(null); if (profileEmail) setUserAvatars((prev) => { const next = { ...prev }; delete next[profileEmail]; return next; }); }}>Rasmni olib tashlash</button>}
               <button className="rounded-2xl border border-border px-5 py-3 text-sm font-black text-foreground transition-all hover:bg-accent hover:text-accent-foreground" onClick={() => { setIsAuthenticated(false); setUserName("Mehmon"); setProfileName("Mehmon"); setAvatar(null); setAuthEmail(""); setAuthPassword(""); setActive("home"); try { localStorage.removeItem("edusat:session"); } catch { /* ignore */ } }}>Profildan chiqish</button>
             </div>
           </div>
