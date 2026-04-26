@@ -115,30 +115,32 @@ const quotes = [
   ["Katta ishlarni qilish uchun nafaqat harakat, balki orzu ham kerak.", "Anatole France"],
 ];
 
-const sampleQuestions = [
-  { subject: "Matematika", question: "Agar 3x + 7 = 22 bo‘lsa, x nechaga teng?", answer: "5" },
-  { subject: "Ingliz tili", question: "Choose the correct form: She ___ to school every day.", answer: "goes" },
-  { subject: "Rus tili", question: "Сколько падежей в русском языке?", answer: "6" },
-  { subject: "Biologiya", question: "Fotosintez jarayonida qaysi gaz ajraladi?", answer: "Kislorod" },
-  { subject: "Kimyo", question: "Suvning kimyoviy formulasi qanday?", answer: "H₂O" },
-  { subject: "Fizika", question: "Tok kuchi qaysi birlikda o‘lchanadi?", answer: "Amper" },
-  { subject: "Tarix", question: "Amir Temur davlati poytaxti qaysi shahar bo‘lgan?", answer: "Samarqand" },
+type QA = { subject: string; question: string; answer: string; options?: string[] };
+
+const sampleQuestions: QA[] = [
+  { subject: "Matematika", question: "Agar 3x + 7 = 22 bo‘lsa, x nechaga teng?", answer: "5", options: ["3", "5", "7", "15"] },
+  { subject: "Ingliz tili", question: "Choose the correct form: She ___ to school every day.", answer: "goes", options: ["go", "goes", "going", "gone"] },
+  { subject: "Rus tili", question: "Сколько падежей в русском языке?", answer: "6", options: ["5", "6", "7", "8"] },
+  { subject: "Biologiya", question: "Fotosintez jarayonida qaysi gaz ajraladi?", answer: "Kislorod", options: ["Karbonat angidrid", "Azot", "Kislorod", "Vodorod"] },
+  { subject: "Kimyo", question: "Suvning kimyoviy formulasi qanday?", answer: "H₂O", options: ["CO₂", "H₂O", "O₂", "NaCl"] },
+  { subject: "Fizika", question: "Tok kuchi qaysi birlikda o‘lchanadi?", answer: "Amper", options: ["Volt", "Vatt", "Amper", "Om"] },
+  { subject: "Tarix", question: "Amir Temur davlati poytaxti qaysi shahar bo‘lgan?", answer: "Samarqand", options: ["Toshkent", "Samarqand", "Buxoro", "Xiva"] },
 ];
 
-const satOtmQuestions = [
-  { subject: "SAT Math", question: "If f(x)=2x²-3x+1, find f(3).", answer: "10" },
-  { subject: "SAT Reading", question: "Main idea savolida avval nimani aniqlash kerak?", answer: "Matnning umumiy g‘oyasi" },
-  { subject: "SAT Writing", question: "Choose the concise version: Due to the fact that it rained, the match was delayed.", answer: "Because it rained, the match was delayed." },
-  { subject: "SAT Algebra", question: "2x - 5 = 13 bo‘lsa, x nechaga teng?", answer: "9" },
-  { subject: "SAT Data", question: "Agar 40 ning 25% i so‘ralsa, javob nechchi?", answer: "10" },
-  { subject: "OTM Matematika", question: "Kvadrat tenglama diskriminanti formulasi qanday?", answer: "D=b²-4ac" },
-  { subject: "OTM Ona tili", question: "Gap bo‘laklari nechta asosiy turga bo‘linadi?", answer: "5 ta" },
-  { subject: "OTM Tarix", question: "Mustaqillik deklaratsiyasi qachon qabul qilingan?", answer: "1990-yil 20-iyun" },
-  { subject: "OTM Ingliz tili", question: "Choose: I have lived here ___ 2020.", answer: "since" },
-  { subject: "OTM Biologiya", question: "DNK tarkibidagi azotli asoslardan biri qaysi?", answer: "Adenin" },
-  { subject: "OTM Kimyo", question: "NaCl moddasining nomi nima?", answer: "Natriy xlorid" },
-  { subject: "OTM Fizika", question: "Tezlik formulasi qanday?", answer: "v=s/t" },
-  { subject: "OTM Geografiya", question: "Yerning eng katta okeani qaysi?", answer: "Tinch okeani" },
+const satOtmQuestions: QA[] = [
+  { subject: "SAT Math", question: "If f(x)=2x²-3x+1, find f(3).", answer: "10", options: ["10", "12", "8", "16"] },
+  { subject: "SAT Reading", question: "Main idea savolida avval nimani aniqlash kerak?", answer: "Matnning umumiy g‘oyasi", options: ["Muallif ismini", "Matnning umumiy g‘oyasi", "Birinchi gapni", "Oxirgi xulosani"] },
+  { subject: "SAT Writing", question: "Choose the concise version: Due to the fact that it rained, the match was delayed.", answer: "Because it rained, the match was delayed.", options: ["Because it rained, the match was delayed.", "Owing to the fact of rain, match was delayed.", "Due to rain incident, match was delayed.", "By reason of the raining, match delayed."] },
+  { subject: "SAT Algebra", question: "2x - 5 = 13 bo‘lsa, x nechaga teng?", answer: "9", options: ["7", "8", "9", "10"] },
+  { subject: "SAT Data", question: "Agar 40 ning 25% i so‘ralsa, javob nechchi?", answer: "10", options: ["8", "10", "12", "15"] },
+  { subject: "OTM Matematika", question: "Kvadrat tenglama diskriminanti formulasi qanday?", answer: "D=b²-4ac", options: ["D=b²-4ac", "D=b²+4ac", "D=2b-4ac", "D=a²-4bc"] },
+  { subject: "OTM Ona tili", question: "Gap bo‘laklari nechta asosiy turga bo‘linadi?", answer: "5 ta", options: ["3 ta", "4 ta", "5 ta", "6 ta"] },
+  { subject: "OTM Tarix", question: "Mustaqillik deklaratsiyasi qachon qabul qilingan?", answer: "1990-yil 20-iyun", options: ["1989-yil 1-sentyabr", "1990-yil 20-iyun", "1991-yil 31-avgust", "1992-yil 8-dekabr"] },
+  { subject: "OTM Ingliz tili", question: "Choose: I have lived here ___ 2020.", answer: "since", options: ["for", "since", "from", "in"] },
+  { subject: "OTM Biologiya", question: "DNK tarkibidagi azotli asoslardan biri qaysi?", answer: "Adenin", options: ["Glyukoza", "Adenin", "Lipid", "Kalsiy"] },
+  { subject: "OTM Kimyo", question: "NaCl moddasining nomi nima?", answer: "Natriy xlorid", options: ["Natriy xlorid", "Kalsiy karbonat", "Natriy gidroksid", "Kaliy xlorid"] },
+  { subject: "OTM Fizika", question: "Tezlik formulasi qanday?", answer: "v=s/t", options: ["v=s·t", "v=s/t", "v=t/s", "v=s+t"] },
+  { subject: "OTM Geografiya", question: "Yerning eng katta okeani qaysi?", answer: "Tinch okeani", options: ["Atlantika okeani", "Hind okeani", "Tinch okeani", "Shimoliy Muz okeani"] },
 ];
 
 const freeTestPacks = [
@@ -560,7 +562,7 @@ const Index = () => {
     .map((category) => ({ category, items: favorites.filter((item) => item.category === category) }))
     .filter((group) => group.items.length > 0);
   const normalizeAnswer = (value: string) => value.trim().toLowerCase().replace(/[’']/g, "'").replace(/\s+/g, " ");
-  const getTestScore = (testId: string, questions: typeof sampleQuestions) => questions.filter((q) => normalizeAnswer(testAnswers[`${testId}-${q.subject}`] || "") === normalizeAnswer(q.answer)).length;
+  const getTestScore = (testId: string, questions: typeof sampleQuestions) => questions.filter((q, i) => normalizeAnswer(testAnswers[`${testId}-${q.subject}-${i}`] || "") === normalizeAnswer(q.answer)).length;
 
   const completeActivity = (reward = 25) => setCoins((current) => current + reward);
 
@@ -713,21 +715,92 @@ const Index = () => {
     </button>
   );
 
+  // Deterministic shuffle (seedable so options stay stable per question)
+  const seededShuffle = <T,>(arr: T[], seed: number): T[] => {
+    const a = [...arr];
+    let s = seed || 1;
+    for (let i = a.length - 1; i > 0; i--) {
+      s = (s * 9301 + 49297) % 233280;
+      const j = Math.floor((s / 233280) * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  };
+  const hashString = (str: string) => {
+    let h = 0;
+    for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) | 0;
+    return Math.abs(h) || 1;
+  };
+
+  const buildOptionsFor = (
+    q: { question: string; answer: string; options?: string[] },
+    pool: Array<{ answer: string }>,
+    testId: string,
+  ): string[] => {
+    if (q.options && q.options.length >= 2) {
+      return seededShuffle(q.options, hashString(testId + q.question));
+    }
+    const correct = q.answer;
+    const distractorsAll = Array.from(
+      new Set(
+        pool
+          .map((p) => p.answer)
+          .filter((a) => normalizeAnswer(a) !== normalizeAnswer(correct)),
+      ),
+    );
+    const shuffled = seededShuffle(distractorsAll, hashString(testId + q.question));
+    const picked = shuffled.slice(0, 3);
+    while (picked.length < 3) picked.push(`Variant ${picked.length + 1}`);
+    return seededShuffle([correct, ...picked], hashString(testId + q.question + "x"));
+  };
+
   const TestRunner = ({ testId, questions }: { testId: string; questions: typeof sampleQuestions }) => {
     const submitted = submittedTests[testId];
     const score = getTestScore(testId, questions);
+    const optionLabels = ["A", "B", "C", "D", "E"];
 
     return (
       <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {questions.map((q, index) => {
-          const answerKey = `${testId}-${q.subject}`;
-          const isCorrect = normalizeAnswer(testAnswers[answerKey] || "") === normalizeAnswer(q.answer);
+          const answerKey = `${testId}-${q.subject}-${index}`;
+          const userAnswer = testAnswers[answerKey] || "";
+          const isCorrect = normalizeAnswer(userAnswer) === normalizeAnswer(q.answer);
+          const options = buildOptionsFor(q, questions, testId);
           return (
-            <div key={`${testId}-${q.subject}-${index}`} className="rounded-3xl border border-border/60 bg-card/70 p-5">
+            <div key={`${testId}-${q.subject}-${index}`} className="rounded-3xl border border-border/60 bg-card/70 p-5 transition-all hover:border-primary/40">
               <Pill>{q.subject}</Pill>
               <p className="mt-4 font-black text-foreground">{q.question}</p>
-              <input className="mt-4 h-11 w-full rounded-2xl border border-input bg-background px-4 font-bold text-foreground outline-none focus:ring-2 focus:ring-ring" placeholder="Javob yozing" value={testAnswers[answerKey] || ""} onChange={(event) => setTestAnswers({ ...testAnswers, [answerKey]: event.target.value })} />
-              {submitted && <p className={`mt-3 text-sm font-black ${isCorrect ? "text-primary" : "text-destructive"}`}>{isCorrect ? "To‘g‘ri javob" : `Noto‘g‘ri. To‘g‘ri javob: ${q.answer}`}</p>}
+              <div className="mt-4 space-y-2">
+                {options.map((opt, oi) => {
+                  const selected = userAnswer === opt;
+                  const optionCorrect = normalizeAnswer(opt) === normalizeAnswer(q.answer);
+                  let stateCls = "border-border/60 bg-background/40 hover:border-primary/40 hover:bg-primary/5";
+                  if (submitted) {
+                    if (optionCorrect) stateCls = "border-primary/70 bg-primary/15 text-foreground";
+                    else if (selected && !optionCorrect) stateCls = "border-destructive/60 bg-destructive/10 text-foreground";
+                    else stateCls = "border-border/40 bg-background/30 opacity-70";
+                  } else if (selected) {
+                    stateCls = "border-primary bg-primary/15 text-foreground shadow-glow";
+                  }
+                  return (
+                    <button
+                      key={oi}
+                      type="button"
+                      disabled={submitted}
+                      onClick={() => setTestAnswers({ ...testAnswers, [answerKey]: opt })}
+                      className={`flex w-full items-start gap-3 rounded-2xl border px-4 py-3 text-left text-sm font-bold text-foreground transition-all disabled:cursor-not-allowed ${stateCls}`}
+                    >
+                      <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-xl text-xs font-black ${selected || (submitted && optionCorrect) ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>{optionLabels[oi]}</span>
+                      <span className="flex-1 leading-relaxed">{opt}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              {submitted && (
+                <p className={`mt-3 text-sm font-black ${isCorrect ? "text-primary" : "text-destructive"}`}>
+                  {isCorrect ? "✓ To‘g‘ri javob" : `✗ Noto‘g‘ri. To‘g‘ri javob: ${q.answer}`}
+                </p>
+              )}
             </div>
           );
         })}
@@ -735,9 +808,37 @@ const Index = () => {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h3 className="text-2xl font-black text-foreground">Test natijasi</h3>
-              <p className="mt-1 text-sm text-muted-foreground">{submitted ? `${score}/${questions.length} ta to‘g‘ri javob` : "Javoblarni yozib, tekshirish tugmasini bosing."}</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {submitted
+                  ? `${score}/${questions.length} ta to‘g‘ri javob • ${Math.round((score / questions.length) * 100)}%`
+                  : "Variantlardan birini tanlang va tekshirish tugmasini bosing."}
+              </p>
             </div>
-            <button className="premium-button rounded-2xl px-5 py-3 font-black" onClick={() => { setSubmittedTests({ ...submittedTests, [testId]: true }); completeActivity(30); }}>Tekshirish +30 coin</button>
+            <div className="flex flex-wrap gap-2">
+              {submitted && (
+                <button
+                  className="rounded-2xl border border-border px-5 py-3 font-black text-foreground transition-all hover:bg-accent"
+                  onClick={() => {
+                    const next = { ...submittedTests };
+                    delete next[testId];
+                    setSubmittedTests(next);
+                    const cleared = { ...testAnswers };
+                    questions.forEach((_, i) => { delete cleared[`${testId}-${questions[i].subject}-${i}`]; });
+                    setTestAnswers(cleared);
+                  }}
+                >
+                  Qayta urinish
+                </button>
+              )}
+              {!submitted && (
+                <button
+                  className="premium-button rounded-2xl px-5 py-3 font-black"
+                  onClick={() => { setSubmittedTests({ ...submittedTests, [testId]: true }); completeActivity(30); }}
+                >
+                  Tekshirish +30 coin
+                </button>
+              )}
+            </div>
           </div>
         </GlassCard>
       </div>
@@ -1233,8 +1334,9 @@ const Index = () => {
         const meta = quizModeMeta[activeQuiz.mode];
         const bank = quizBank[activeQuiz.subject];
         const count = Math.min(meta.count, bank.length);
-        const questions = (activeQuiz.mode === "Random" ? [...bank].sort(() => 0.5 - Math.random()) : bank).slice(0, count).map((q) => ({ subject: `${activeQuiz.subject} ${activeQuiz.mode}`, question: q.question, answer: q.answer }));
         const testId = `quiz-${activeQuiz.subject}-${activeQuiz.mode}`;
+        const baseQuestions = activeQuiz.mode === "Random" ? seededShuffle(bank, hashString(testId)) : bank;
+        const questions: QA[] = baseQuestions.slice(0, count).map((q) => ({ subject: `${activeQuiz.subject} ${activeQuiz.mode}`, question: q.question, answer: q.answer }));
         return (
           <div className="mt-6">
             <GlassCard>
