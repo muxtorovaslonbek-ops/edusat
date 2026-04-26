@@ -578,6 +578,85 @@ const Index = () => {
     reader.readAsDataURL(file);
   };
 
+  const aiScrollRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    aiScrollRef.current?.scrollTo({ top: aiScrollRef.current.scrollHeight, behavior: "smooth" });
+  }, [aiMessages, aiLoading]);
+
+  const sendAiMessage = async (text: string) => {
+    const trimmed = text.trim();
+    if (!trimmed || aiLoading) return;
+    setAiError("");
+    const userMsg = { role: "user" as const, content: trimmed };
+    const nextMessages = [...aiMessages, userMsg];
+    setAiMessages(nextMessages);
+    setAiInput("");
+    setAiLoading(true);
+
+    try {
+      const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-chat`;
+      const resp = await fetch(CHAT_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({ messages: nextMessages }),
+      });
+
+      if (!resp.ok) {
+        if (resp.status === 429) throw new Error("So‘rovlar limiti oshib ketdi, biroz kuting.");
+        if (resp.status === 402) throw new Error("AI kreditlari tugadi. Workspace > Usage’dan to‘ldiring.");
+        throw new Error("AI bilan bog‘lanishda xatolik");
+      }
+      if (!resp.body) throw new Error("Stream mavjud emas");
+
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let textBuffer = "";
+      let assistantSoFar = "";
+      let started = false;
+      let streamDone = false;
+
+      while (!streamDone) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        textBuffer += decoder.decode(value, { stream: true });
+        let nl: number;
+        while ((nl = textBuffer.indexOf("\n")) !== -1) {
+          let line = textBuffer.slice(0, nl);
+          textBuffer = textBuffer.slice(nl + 1);
+          if (line.endsWith("\r")) line = line.slice(0, -1);
+          if (line.startsWith(":") || line.trim() === "") continue;
+          if (!line.startsWith("data: ")) continue;
+          const jsonStr = line.slice(6).trim();
+          if (jsonStr === "[DONE]") { streamDone = true; break; }
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+            if (content) {
+              assistantSoFar += content;
+              setAiMessages((prev) => {
+                if (!started) {
+                  started = true;
+                  return [...prev, { role: "assistant", content: assistantSoFar }];
+                }
+                return prev.map((m, i) => (i === prev.length - 1 ? { ...m, content: assistantSoFar } : m));
+              });
+            }
+          } catch {
+            textBuffer = line + "\n" + textBuffer;
+            break;
+          }
+        }
+      }
+    } catch (e) {
+      setAiError(e instanceof Error ? e.message : "Noma‘lum xatolik");
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   const handleAuthSubmit = () => {
     const name = authName.trim();
     const email = authEmail.trim().toLowerCase();
