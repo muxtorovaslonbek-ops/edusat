@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import {
   Award,
   BookOpen,
@@ -24,6 +24,7 @@ import {
   Send,
   ShieldCheck,
   ShoppingBag,
+  Sparkles,
   Star,
   Sun,
   Timer,
@@ -42,6 +43,7 @@ import azizaImg from "@/assets/edusat/aziza.jpg";
 
 const sections = [
   { id: "home", label: "Bosh sahifa", icon: Home },
+  { id: "ai", label: "AI Yordamchi", icon: Sparkles },
   { id: "profile", label: "Profil", icon: User },
   { id: "sat", label: "SAT/OTM tayyorgarlik", icon: GraduationCap },
   { id: "courses", label: "Kurslar", icon: BookOpen },
