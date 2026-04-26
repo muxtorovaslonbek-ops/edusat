@@ -592,6 +592,7 @@ const Index = () => {
       setUserName(user.name);
       setProfileName(user.name);
       setProfileEmail(email);
+      setAvatar(userAvatars[email] || null);
       setIsAuthenticated(true);
       try { localStorage.setItem("edusat:session", JSON.stringify({ email, name: user.name })); } catch { /* ignore */ }
       setActive("profile");
