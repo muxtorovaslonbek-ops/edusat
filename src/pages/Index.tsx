@@ -115,14 +115,16 @@ const quotes = [
   ["Katta ishlarni qilish uchun nafaqat harakat, balki orzu ham kerak.", "Anatole France"],
 ];
 
-const sampleQuestions = [
-  { subject: "Matematika", question: "Agar 3x + 7 = 22 bo‘lsa, x nechaga teng?", answer: "5" },
-  { subject: "Ingliz tili", question: "Choose the correct form: She ___ to school every day.", answer: "goes" },
-  { subject: "Rus tili", question: "Сколько падежей в русском языке?", answer: "6" },
-  { subject: "Biologiya", question: "Fotosintez jarayonida qaysi gaz ajraladi?", answer: "Kislorod" },
-  { subject: "Kimyo", question: "Suvning kimyoviy formulasi qanday?", answer: "H₂O" },
-  { subject: "Fizika", question: "Tok kuchi qaysi birlikda o‘lchanadi?", answer: "Amper" },
-  { subject: "Tarix", question: "Amir Temur davlati poytaxti qaysi shahar bo‘lgan?", answer: "Samarqand" },
+type QA = { subject: string; question: string; answer: string; options?: string[] };
+
+const sampleQuestions: QA[] = [
+  { subject: "Matematika", question: "Agar 3x + 7 = 22 bo‘lsa, x nechaga teng?", answer: "5", options: ["3", "5", "7", "15"] },
+  { subject: "Ingliz tili", question: "Choose the correct form: She ___ to school every day.", answer: "goes", options: ["go", "goes", "going", "gone"] },
+  { subject: "Rus tili", question: "Сколько падежей в русском языке?", answer: "6", options: ["5", "6", "7", "8"] },
+  { subject: "Biologiya", question: "Fotosintez jarayonida qaysi gaz ajraladi?", answer: "Kislorod", options: ["Karbonat angidrid", "Azot", "Kislorod", "Vodorod"] },
+  { subject: "Kimyo", question: "Suvning kimyoviy formulasi qanday?", answer: "H₂O", options: ["CO₂", "H₂O", "O₂", "NaCl"] },
+  { subject: "Fizika", question: "Tok kuchi qaysi birlikda o‘lchanadi?", answer: "Amper", options: ["Volt", "Vatt", "Amper", "Om"] },
+  { subject: "Tarix", question: "Amir Temur davlati poytaxti qaysi shahar bo‘lgan?", answer: "Samarqand", options: ["Toshkent", "Samarqand", "Buxoro", "Xiva"] },
 ];
 
 const satOtmQuestions = [
