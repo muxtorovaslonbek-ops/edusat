@@ -560,7 +560,7 @@ const Index = () => {
     .map((category) => ({ category, items: favorites.filter((item) => item.category === category) }))
     .filter((group) => group.items.length > 0);
   const normalizeAnswer = (value: string) => value.trim().toLowerCase().replace(/[’']/g, "'").replace(/\s+/g, " ");
-  const getTestScore = (testId: string, questions: typeof sampleQuestions) => questions.filter((q) => normalizeAnswer(testAnswers[`${testId}-${q.subject}`] || "") === normalizeAnswer(q.answer)).length;
+  const getTestScore = (testId: string, questions: typeof sampleQuestions) => questions.filter((q, i) => normalizeAnswer(testAnswers[`${testId}-${q.subject}-${i}`] || "") === normalizeAnswer(q.answer)).length;
 
   const completeActivity = (reward = 25) => setCoins((current) => current + reward);
 
