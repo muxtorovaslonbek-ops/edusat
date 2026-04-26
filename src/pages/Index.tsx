@@ -127,20 +127,20 @@ const sampleQuestions: QA[] = [
   { subject: "Tarix", question: "Amir Temur davlati poytaxti qaysi shahar bo‘lgan?", answer: "Samarqand", options: ["Toshkent", "Samarqand", "Buxoro", "Xiva"] },
 ];
 
-const satOtmQuestions = [
-  { subject: "SAT Math", question: "If f(x)=2x²-3x+1, find f(3).", answer: "10" },
-  { subject: "SAT Reading", question: "Main idea savolida avval nimani aniqlash kerak?", answer: "Matnning umumiy g‘oyasi" },
-  { subject: "SAT Writing", question: "Choose the concise version: Due to the fact that it rained, the match was delayed.", answer: "Because it rained, the match was delayed." },
-  { subject: "SAT Algebra", question: "2x - 5 = 13 bo‘lsa, x nechaga teng?", answer: "9" },
-  { subject: "SAT Data", question: "Agar 40 ning 25% i so‘ralsa, javob nechchi?", answer: "10" },
-  { subject: "OTM Matematika", question: "Kvadrat tenglama diskriminanti formulasi qanday?", answer: "D=b²-4ac" },
-  { subject: "OTM Ona tili", question: "Gap bo‘laklari nechta asosiy turga bo‘linadi?", answer: "5 ta" },
-  { subject: "OTM Tarix", question: "Mustaqillik deklaratsiyasi qachon qabul qilingan?", answer: "1990-yil 20-iyun" },
-  { subject: "OTM Ingliz tili", question: "Choose: I have lived here ___ 2020.", answer: "since" },
-  { subject: "OTM Biologiya", question: "DNK tarkibidagi azotli asoslardan biri qaysi?", answer: "Adenin" },
-  { subject: "OTM Kimyo", question: "NaCl moddasining nomi nima?", answer: "Natriy xlorid" },
-  { subject: "OTM Fizika", question: "Tezlik formulasi qanday?", answer: "v=s/t" },
-  { subject: "OTM Geografiya", question: "Yerning eng katta okeani qaysi?", answer: "Tinch okeani" },
+const satOtmQuestions: QA[] = [
+  { subject: "SAT Math", question: "If f(x)=2x²-3x+1, find f(3).", answer: "10", options: ["10", "12", "8", "16"] },
+  { subject: "SAT Reading", question: "Main idea savolida avval nimani aniqlash kerak?", answer: "Matnning umumiy g‘oyasi", options: ["Muallif ismini", "Matnning umumiy g‘oyasi", "Birinchi gapni", "Oxirgi xulosani"] },
+  { subject: "SAT Writing", question: "Choose the concise version: Due to the fact that it rained, the match was delayed.", answer: "Because it rained, the match was delayed.", options: ["Because it rained, the match was delayed.", "Owing to the fact of rain, match was delayed.", "Due to rain incident, match was delayed.", "By reason of the raining, match delayed."] },
+  { subject: "SAT Algebra", question: "2x - 5 = 13 bo‘lsa, x nechaga teng?", answer: "9", options: ["7", "8", "9", "10"] },
+  { subject: "SAT Data", question: "Agar 40 ning 25% i so‘ralsa, javob nechchi?", answer: "10", options: ["8", "10", "12", "15"] },
+  { subject: "OTM Matematika", question: "Kvadrat tenglama diskriminanti formulasi qanday?", answer: "D=b²-4ac", options: ["D=b²-4ac", "D=b²+4ac", "D=2b-4ac", "D=a²-4bc"] },
+  { subject: "OTM Ona tili", question: "Gap bo‘laklari nechta asosiy turga bo‘linadi?", answer: "5 ta", options: ["3 ta", "4 ta", "5 ta", "6 ta"] },
+  { subject: "OTM Tarix", question: "Mustaqillik deklaratsiyasi qachon qabul qilingan?", answer: "1990-yil 20-iyun", options: ["1989-yil 1-sentyabr", "1990-yil 20-iyun", "1991-yil 31-avgust", "1992-yil 8-dekabr"] },
+  { subject: "OTM Ingliz tili", question: "Choose: I have lived here ___ 2020.", answer: "since", options: ["for", "since", "from", "in"] },
+  { subject: "OTM Biologiya", question: "DNK tarkibidagi azotli asoslardan biri qaysi?", answer: "Adenin", options: ["Glyukoza", "Adenin", "Lipid", "Kalsiy"] },
+  { subject: "OTM Kimyo", question: "NaCl moddasining nomi nima?", answer: "Natriy xlorid", options: ["Natriy xlorid", "Kalsiy karbonat", "Natriy gidroksid", "Kaliy xlorid"] },
+  { subject: "OTM Fizika", question: "Tezlik formulasi qanday?", answer: "v=s/t", options: ["v=s·t", "v=s/t", "v=t/s", "v=s+t"] },
+  { subject: "OTM Geografiya", question: "Yerning eng katta okeani qaysi?", answer: "Tinch okeani", options: ["Atlantika okeani", "Hind okeani", "Tinch okeani", "Shimoliy Muz okeani"] },
 ];
 
 const freeTestPacks = [
