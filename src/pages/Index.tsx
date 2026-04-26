@@ -475,9 +475,10 @@ const Index = () => {
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);
+    try { localStorage.setItem("edusat:dark", dark ? "1" : "0"); } catch { /* ignore */ }
   }, [dark]);
 
-  // Apply + persist theme
+  // Apply + persist theme (works in both light & dark mode)
   useEffect(() => {
     const root = document.documentElement;
     ["theme-violet", "theme-ocean", "theme-sunset", "theme-forest", "theme-rose"].forEach((c) => root.classList.remove(c));
@@ -495,7 +496,12 @@ const Index = () => {
     try { localStorage.setItem("edusat:users", JSON.stringify(registeredUsers)); } catch { /* ignore */ }
   }, [registeredUsers]);
 
-  // Restore session on first mount
+  // Persist user avatars (per email)
+  useEffect(() => {
+    try { localStorage.setItem("edusat:avatars", JSON.stringify(userAvatars)); } catch { /* ignore */ }
+  }, [userAvatars]);
+
+  // Restore session + avatar on first mount
   useEffect(() => {
     try {
       const session = JSON.parse(localStorage.getItem("edusat:session") || "null");
@@ -504,6 +510,8 @@ const Index = () => {
         setProfileName(session.name);
         setProfileEmail(session.email);
         setIsAuthenticated(true);
+        const savedAvatars = JSON.parse(localStorage.getItem("edusat:avatars") || "{}");
+        if (savedAvatars[session.email]) setAvatar(savedAvatars[session.email]);
       }
     } catch { /* ignore */ }
     // eslint-disable-next-line react-hooks/exhaustive-deps
