@@ -290,7 +290,8 @@ All colors MUST be HSL.
     animation: shimmer 3s linear infinite;
   }
 
-  /* === Theme variants (work with .dark) === */
+  /* === Theme variants — work in both DARK and LIGHT modes === */
+  /* Dark variants */
   .theme-ocean.dark {
     --background: 210 50% 8%;
     --card: 210 55% 10%;
@@ -346,5 +347,69 @@ All colors MUST be HSL.
     --premium-glow: 330 90% 65%;
     --ring: 330 90% 65%;
     --sidebar-background: 330 30% 8%;
+  }
+
+  /* Light variants — apply to :root when not dark */
+  .theme-violet:not(.dark) {
+    --primary: 259 83% 67%;
+    --accent: 259 83% 92%;
+    --premium-violet: 259 83% 67%;
+    --premium-blue: 220 90% 60%;
+    --premium-glow: 259 83% 67%;
+    --ring: 259 83% 67%;
+    --sidebar-accent: 259 83% 92%;
+    --sidebar-accent-foreground: 259 83% 30%;
+  }
+  .theme-ocean:not(.dark) {
+    --background: 200 60% 97%;
+    --card: 0 0% 100%;
+    --secondary: 200 50% 92%;
+    --muted: 200 40% 94%;
+    --accent: 195 80% 90%;
+    --primary: 195 90% 45%;
+    --premium-violet: 195 90% 45%;
+    --premium-blue: 175 85% 40%;
+    --premium-glow: 195 90% 45%;
+    --ring: 195 90% 45%;
+    --sidebar-accent: 195 80% 90%;
+  }
+  .theme-sunset:not(.dark) {
+    --background: 30 80% 97%;
+    --card: 0 0% 100%;
+    --secondary: 25 60% 92%;
+    --muted: 25 50% 94%;
+    --accent: 18 80% 90%;
+    --primary: 18 90% 52%;
+    --premium-violet: 340 80% 55%;
+    --premium-blue: 25 90% 55%;
+    --premium-glow: 18 90% 52%;
+    --ring: 18 90% 52%;
+    --sidebar-accent: 18 80% 90%;
+  }
+  .theme-forest:not(.dark) {
+    --background: 145 40% 97%;
+    --card: 0 0% 100%;
+    --secondary: 145 30% 92%;
+    --muted: 145 25% 94%;
+    --accent: 145 45% 88%;
+    --primary: 145 60% 38%;
+    --premium-violet: 145 60% 38%;
+    --premium-blue: 175 70% 40%;
+    --premium-glow: 145 60% 38%;
+    --ring: 145 60% 38%;
+    --sidebar-accent: 145 45% 88%;
+  }
+  .theme-rose:not(.dark) {
+    --background: 340 70% 98%;
+    --card: 0 0% 100%;
+    --secondary: 335 50% 94%;
+    --muted: 335 40% 95%;
+    --accent: 330 70% 92%;
+    --primary: 330 75% 52%;
+    --premium-violet: 330 75% 52%;
+    --premium-blue: 280 75% 55%;
+    --premium-glow: 330 75% 52%;
+    --ring: 330 75% 52%;
+    --sidebar-accent: 330 70% 92%;
   }
 }

@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import {
   Award,
   BookOpen,
@@ -24,6 +24,7 @@ import {
   Send,
   ShieldCheck,
   ShoppingBag,
+  Sparkles,
   Star,
   Sun,
   Timer,
@@ -42,6 +43,7 @@ import azizaImg from "@/assets/edusat/aziza.jpg";
 
 const sections = [
   { id: "home", label: "Bosh sahifa", icon: Home },
+  { id: "ai", label: "AI Yordamchi", icon: Sparkles },
   { id: "profile", label: "Profil", icon: User },
   { id: "sat", label: "SAT/OTM tayyorgarlik", icon: GraduationCap },
   { id: "courses", label: "Kurslar", icon: BookOpen },
@@ -63,10 +65,10 @@ const sections = [
 const subjects = ["Matematika", "Ingliz tili", "Rus tili", "Biologiya", "Kimyo", "Fizika", "Tarix"];
 const science3d = ["Biologiya", "Kimyo", "Fizika", "Tarix", "Geografiya"];
 const levels = ["C", "C+", "B", "B+", "A", "A+"];
-const languageOptions: Array<{ code: Lang; label: string }> = [
-  { code: "uz", label: "O‘zbek" },
-  { code: "en", label: "English" },
-  { code: "ru", label: "Русский" },
+const languageOptions: Array<{ code: Lang; label: string; flag: string }> = [
+  { code: "uz", label: "O‘zbek", flag: "🇺🇿" },
+  { code: "en", label: "English", flag: "🇬🇧" },
+  { code: "ru", label: "Русский", flag: "🇷🇺" },
 ];
 
 const libraryBooks = [
@@ -393,7 +395,11 @@ const Index = () => {
   const [active, setActive] = useState<SectionId>("home");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarHidden, setSidebarHidden] = useState(false);
-  const [dark, setDark] = useState(true);
+  const [dark, setDark] = useState<boolean>(() => {
+    if (typeof window === "undefined") return true;
+    const saved = localStorage.getItem("edusat:dark");
+    return saved === null ? true : saved === "1";
+  });
   const [lang, setLang] = useState<Lang>(() => {
     if (typeof window === "undefined") return "uz";
     return (localStorage.getItem("edusat:lang") as Lang) || "uz";
@@ -414,9 +420,17 @@ const Index = () => {
     if (typeof window === "undefined") return {};
     try { return JSON.parse(localStorage.getItem("edusat:users") || "{}"); } catch { return {}; }
   });
+  const [userAvatars, setUserAvatars] = useState<Record<string, string>>(() => {
+    if (typeof window === "undefined") return {};
+    try { return JSON.parse(localStorage.getItem("edusat:avatars") || "{}"); } catch { return {}; }
+  });
   const [profileName, setProfileName] = useState("Mehmon");
   const [profileEmail, setProfileEmail] = useState("demo@edusat.uz");
   const [avatar, setAvatar] = useState<string | null>(null);
+  const [aiMessages, setAiMessages] = useState<Array<{ role: "user" | "assistant"; content: string }>>([]);
+  const [aiInput, setAiInput] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState("");
   const [ratings, setRatings] = useState<Record<string, number>>({});
   const [favorites, setFavorites] = useState<Array<{ id: string; title: string; category: string; section: SectionId }>>([]);
   const [testAnswers, setTestAnswers] = useState<Record<string, string>>({});
@@ -463,9 +477,10 @@ const Index = () => {
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);
+    try { localStorage.setItem("edusat:dark", dark ? "1" : "0"); } catch { /* ignore */ }
   }, [dark]);
 
-  // Apply + persist theme
+  // Apply + persist theme (works in both light & dark mode)
   useEffect(() => {
     const root = document.documentElement;
     ["theme-violet", "theme-ocean", "theme-sunset", "theme-forest", "theme-rose"].forEach((c) => root.classList.remove(c));
@@ -483,7 +498,12 @@ const Index = () => {
     try { localStorage.setItem("edusat:users", JSON.stringify(registeredUsers)); } catch { /* ignore */ }
   }, [registeredUsers]);
 
-  // Restore session on first mount
+  // Persist user avatars (per email)
+  useEffect(() => {
+    try { localStorage.setItem("edusat:avatars", JSON.stringify(userAvatars)); } catch { /* ignore */ }
+  }, [userAvatars]);
+
+  // Restore session + avatar on first mount
   useEffect(() => {
     try {
       const session = JSON.parse(localStorage.getItem("edusat:session") || "null");
@@ -492,6 +512,8 @@ const Index = () => {
         setProfileName(session.name);
         setProfileEmail(session.email);
         setIsAuthenticated(true);
+        const savedAvatars = JSON.parse(localStorage.getItem("edusat:avatars") || "{}");
+        if (savedAvatars[session.email]) setAvatar(savedAvatars[session.email]);
       }
     } catch { /* ignore */ }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -545,7 +567,94 @@ const Index = () => {
   const handleAvatar = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    setAvatar(URL.createObjectURL(file));
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = String(reader.result || "");
+      setAvatar(dataUrl);
+      if (isAuthenticated && profileEmail) {
+        setUserAvatars((prev) => ({ ...prev, [profileEmail]: dataUrl }));
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const aiScrollRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    aiScrollRef.current?.scrollTo({ top: aiScrollRef.current.scrollHeight, behavior: "smooth" });
+  }, [aiMessages, aiLoading]);
+
+  const sendAiMessage = async (text: string) => {
+    const trimmed = text.trim();
+    if (!trimmed || aiLoading) return;
+    setAiError("");
+    const userMsg = { role: "user" as const, content: trimmed };
+    const nextMessages = [...aiMessages, userMsg];
+    setAiMessages(nextMessages);
+    setAiInput("");
+    setAiLoading(true);
+
+    try {
+      const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-chat`;
+      const resp = await fetch(CHAT_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({ messages: nextMessages }),
+      });
+
+      if (!resp.ok) {
+        if (resp.status === 429) throw new Error("So‘rovlar limiti oshib ketdi, biroz kuting.");
+        if (resp.status === 402) throw new Error("AI kreditlari tugadi. Workspace > Usage’dan to‘ldiring.");
+        throw new Error("AI bilan bog‘lanishda xatolik");
+      }
+      if (!resp.body) throw new Error("Stream mavjud emas");
+
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let textBuffer = "";
+      let assistantSoFar = "";
+      let started = false;
+      let streamDone = false;
+
+      while (!streamDone) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        textBuffer += decoder.decode(value, { stream: true });
+        let nl: number;
+        while ((nl = textBuffer.indexOf("\n")) !== -1) {
+          let line = textBuffer.slice(0, nl);
+          textBuffer = textBuffer.slice(nl + 1);
+          if (line.endsWith("\r")) line = line.slice(0, -1);
+          if (line.startsWith(":") || line.trim() === "") continue;
+          if (!line.startsWith("data: ")) continue;
+          const jsonStr = line.slice(6).trim();
+          if (jsonStr === "[DONE]") { streamDone = true; break; }
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+            if (content) {
+              assistantSoFar += content;
+              setAiMessages((prev) => {
+                if (!started) {
+                  started = true;
+                  return [...prev, { role: "assistant", content: assistantSoFar }];
+                }
+                return prev.map((m, i) => (i === prev.length - 1 ? { ...m, content: assistantSoFar } : m));
+              });
+            }
+          } catch {
+            textBuffer = line + "\n" + textBuffer;
+            break;
+          }
+        }
+      }
+    } catch (e) {
+      setAiError(e instanceof Error ? e.message : "Noma‘lum xatolik");
+    } finally {
+      setAiLoading(false);
+    }
   };
 
   const handleAuthSubmit = () => {
@@ -564,6 +673,7 @@ const Index = () => {
       setUserName(user.name);
       setProfileName(user.name);
       setProfileEmail(email);
+      setAvatar(userAvatars[email] || null);
       setIsAuthenticated(true);
       try { localStorage.setItem("edusat:session", JSON.stringify({ email, name: user.name })); } catch { /* ignore */ }
       setActive("profile");
@@ -707,6 +817,122 @@ const Index = () => {
     </aside>
   );
 
+  const renderAi = () => {
+    const suggestions = [
+      "SAT matematika misolini tushuntirib bering",
+      "IELTS Writing Task 2 uchun struktura bering",
+      "Fotosintez jarayonini qisqacha tushuntiring",
+      "Kvadrat tenglama formulasini misol bilan ko‘rsating",
+    ];
+    return (
+      <div className="space-y-6 animate-fade-in-up">
+        <SectionTitle
+          kicker="AI Yordamchi"
+          title="Har qanday savolingizga javob beradigan sun‘iy intellekt"
+          text="SAT, IELTS, maktab fanlari va umumiy bilim — yozing va sekundlar ichida javob oling."
+        />
+
+        <div className="card-premium overflow-hidden p-0">
+          <div className="flex items-center gap-3 border-b border-border/40 bg-gradient-to-r from-primary/10 to-transparent px-5 py-4">
+            <div className="icon-bubble grid h-11 w-11 place-items-center rounded-2xl shadow-glow animate-glow-pulse">
+              <Sparkles className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-base font-black text-foreground">EduSAT AI</p>
+              <p className="text-xs text-muted-foreground">Onlayn • barcha tillarda javob beradi</p>
+            </div>
+            {aiMessages.length > 0 && (
+              <button
+                onClick={() => { setAiMessages([]); setAiError(""); }}
+                className="ml-auto rounded-2xl border border-border/60 px-3 py-1.5 text-xs font-black text-muted-foreground transition-all hover:bg-primary/10 hover:text-primary"
+              >
+                Yangi suhbat
+              </button>
+            )}
+          </div>
+
+          <div ref={aiScrollRef} className="max-h-[55vh] min-h-[320px] space-y-4 overflow-y-auto px-5 py-6">
+            {aiMessages.length === 0 && (
+              <div className="space-y-4">
+                <div className="rounded-3xl border border-border/40 bg-background/40 p-5 text-sm text-muted-foreground">
+                  👋 Salom! Men <span className="font-black text-foreground">EduSAT AI</span> yordamchisiman. Quyidagi tayyor savollardan birini bosing yoki o‘zingizning savolingizni yozing.
+                </div>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {suggestions.map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => sendAiMessage(s)}
+                      className="rounded-2xl border border-border/60 bg-background/40 p-3 text-left text-sm font-bold text-foreground transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:bg-primary/10"
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {aiMessages.map((m, i) => (
+              <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"} animate-fade-in-up`}>
+                <div
+                  className={`max-w-[85%] whitespace-pre-wrap rounded-3xl px-4 py-3 text-sm leading-relaxed ${
+                    m.role === "user"
+                      ? "premium-button rounded-br-md font-bold"
+                      : "rounded-bl-md border border-border/60 bg-background/60 text-foreground"
+                  }`}
+                >
+                  {m.content}
+                </div>
+              </div>
+            ))}
+
+            {aiLoading && aiMessages[aiMessages.length - 1]?.role === "user" && (
+              <div className="flex justify-start animate-fade-in-up">
+                <div className="flex items-center gap-1.5 rounded-3xl rounded-bl-md border border-border/60 bg-background/60 px-4 py-3">
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-primary [animation-delay:-0.3s]" />
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-primary [animation-delay:-0.15s]" />
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-primary" />
+                </div>
+              </div>
+            )}
+
+            {aiError && (
+              <div className="rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm font-bold text-destructive">
+                {aiError}
+              </div>
+            )}
+          </div>
+
+          <form
+            onSubmit={(e) => { e.preventDefault(); sendAiMessage(aiInput); }}
+            className="flex items-end gap-2 border-t border-border/40 bg-background/40 p-3"
+          >
+            <textarea
+              value={aiInput}
+              onChange={(e) => setAiInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  sendAiMessage(aiInput);
+                }
+              }}
+              rows={1}
+              placeholder="Savolingizni yozing... (Enter — yuborish, Shift+Enter — yangi qator)"
+              className="input-premium max-h-32 min-h-[48px] flex-1 resize-none rounded-2xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground"
+            />
+            <button
+              type="submit"
+              disabled={aiLoading || !aiInput.trim()}
+              className="premium-button grid h-12 w-12 shrink-0 place-items-center rounded-2xl disabled:cursor-not-allowed disabled:opacity-50"
+              aria-label="Yuborish"
+            >
+              <Send className="h-5 w-5" />
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  };
+
   const renderHome = () => (
     <>
       <section className="grid gap-5 xl:grid-cols-[1.35fr_0.65fr]">
@@ -796,7 +1022,7 @@ const Index = () => {
                 {avatar ? "Rasmni o‘zgartirish" : "Rasm yuklash"}
                 <input type="file" accept="image/*" className="hidden" onChange={handleAvatar} />
               </label>
-              {avatar && <button className="rounded-2xl border border-border px-5 py-3 text-sm font-black text-foreground hover:bg-accent" onClick={() => setAvatar(null)}>Rasmni olib tashlash</button>}
+              {avatar && <button className="rounded-2xl border border-border px-5 py-3 text-sm font-black text-foreground hover:bg-accent" onClick={() => { setAvatar(null); if (profileEmail) setUserAvatars((prev) => { const next = { ...prev }; delete next[profileEmail]; return next; }); }}>Rasmni olib tashlash</button>}
               <button className="rounded-2xl border border-border px-5 py-3 text-sm font-black text-foreground transition-all hover:bg-accent hover:text-accent-foreground" onClick={() => { setIsAuthenticated(false); setUserName("Mehmon"); setProfileName("Mehmon"); setAvatar(null); setAuthEmail(""); setAuthPassword(""); setActive("home"); try { localStorage.removeItem("edusat:session"); } catch { /* ignore */ } }}>Profildan chiqish</button>
             </div>
           </div>
@@ -867,7 +1093,7 @@ const Index = () => {
                     onClick={() => setLang(opt.code)}
                     className={`inline-flex items-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-black transition-all hover:-translate-y-0.5 ${selected ? "nav-item-active border-transparent" : "border-border/60 text-foreground hover:border-primary/40 hover:bg-primary/10"}`}
                   >
-                    <Languages className="h-4 w-4" /> {opt.label}
+                    <span className="text-lg leading-none">{opt.flag}</span> {opt.label}
                   </button>
                 );
               })}
@@ -1572,6 +1798,7 @@ const Index = () => {
 
   const content = {
     home: renderHome,
+    ai: renderAi,
     profile: renderProfile,
     sat: renderSat,
     courses: renderCourses,
@@ -1639,8 +1866,8 @@ const Index = () => {
               <div className="hidden items-center gap-2 rounded-2xl border border-white/5 bg-background/60 px-3 py-2 font-black text-foreground sm:flex"><Coins className="h-4 w-4 text-primary" />{coins}</div>
               <button className="rounded-2xl p-3 text-muted-foreground transition-all hover:bg-primary/10 hover:text-primary" onClick={() => setDark(!dark)} aria-label="Theme almashtirish">{dark ? <Sun /> : <Moon />}</button>
               <div className="relative">
-                <button className="inline-flex items-center gap-2 rounded-2xl border border-white/5 bg-background/60 px-3 py-3 font-black text-foreground transition-all hover:bg-primary/10 hover:text-primary" onClick={() => setLangOpen(!langOpen)} aria-label="Til tanlash"><Languages className="h-5 w-5" /><span className="text-xs uppercase">{lang}</span></button>
-                {langOpen && <div className="absolute right-0 top-14 z-40 w-40 rounded-3xl border border-white/10 bg-card/95 p-2 shadow-premium backdrop-blur-xl animate-fade-in-up">{languageOptions.map((option) => <button key={option.code} className={`w-full rounded-2xl px-3 py-2 text-left text-sm font-black transition-all ${lang === option.code ? "nav-item-active" : "text-foreground hover:bg-primary/10 hover:text-primary"}`} onClick={() => { setLang(option.code); setLangOpen(false); }}>{option.label}</button>)}</div>}
+                <button className="inline-flex items-center gap-2 rounded-2xl border border-white/5 bg-background/60 px-3 py-3 font-black text-foreground transition-all hover:bg-primary/10 hover:text-primary" onClick={() => setLangOpen(!langOpen)} aria-label="Til tanlash"><span className="text-base leading-none">{languageOptions.find((o) => o.code === lang)?.flag}</span><span className="text-xs uppercase">{lang}</span></button>
+                {langOpen && <div className="absolute right-0 top-14 z-40 w-44 rounded-3xl border border-white/10 bg-card/95 p-2 shadow-premium backdrop-blur-xl animate-fade-in-up">{languageOptions.map((option) => <button key={option.code} className={`flex w-full items-center gap-2 rounded-2xl px-3 py-2 text-left text-sm font-black transition-all ${lang === option.code ? "nav-item-active" : "text-foreground hover:bg-primary/10 hover:text-primary"}`} onClick={() => { setLang(option.code); setLangOpen(false); }}><span className="text-lg leading-none">{option.flag}</span>{option.label}</button>)}</div>}
               </div>
               <button className="hidden rounded-2xl premium-button px-4 py-3 font-black md:inline-flex" onClick={() => { if (isAuthenticated) { setActive("profile"); } else { setAuthMode("register"); setAuthOpen(true); } }}><LogIn className="mr-2 h-4 w-4" />{isAuthenticated ? "Profil" : t.register}</button>
               <button onClick={() => { if (isAuthenticated) { setActive("profile"); } else { setAuthMode("register"); setAuthOpen(true); } }} aria-label="Profilga o‘tish"><AvatarBlock size="sm" /></button>
