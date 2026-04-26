@@ -1337,7 +1337,6 @@ const Index = () => {
         const testId = `quiz-${activeQuiz.subject}-${activeQuiz.mode}`;
         const baseQuestions = activeQuiz.mode === "Random" ? seededShuffle(bank, hashString(testId)) : bank;
         const questions: QA[] = baseQuestions.slice(0, count).map((q) => ({ subject: `${activeQuiz.subject} ${activeQuiz.mode}`, question: q.question, answer: q.answer }));
-        const testId = `quiz-${activeQuiz.subject}-${activeQuiz.mode}`;
         return (
           <div className="mt-6">
             <GlassCard>
