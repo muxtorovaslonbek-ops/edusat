@@ -1798,6 +1798,7 @@ const Index = () => {
 
   const content = {
     home: renderHome,
+    ai: renderAi,
     profile: renderProfile,
     sat: renderSat,
     courses: renderCourses,
