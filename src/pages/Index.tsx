@@ -817,6 +817,122 @@ const Index = () => {
     </aside>
   );
 
+  const renderAi = () => {
+    const suggestions = [
+      "SAT matematika misolini tushuntirib bering",
+      "IELTS Writing Task 2 uchun struktura bering",
+      "Fotosintez jarayonini qisqacha tushuntiring",
+      "Kvadrat tenglama formulasini misol bilan ko‘rsating",
+    ];
+    return (
+      <div className="space-y-6 animate-fade-in-up">
+        <SectionTitle
+          kicker="AI Yordamchi"
+          title="Har qanday savolingizga javob beradigan sun‘iy intellekt"
+          text="SAT, IELTS, maktab fanlari va umumiy bilim — yozing va sekundlar ichida javob oling."
+        />
+
+        <div className="card-premium overflow-hidden p-0">
+          <div className="flex items-center gap-3 border-b border-border/40 bg-gradient-to-r from-primary/10 to-transparent px-5 py-4">
+            <div className="icon-bubble grid h-11 w-11 place-items-center rounded-2xl shadow-glow animate-glow-pulse">
+              <Sparkles className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-base font-black text-foreground">EduSAT AI</p>
+              <p className="text-xs text-muted-foreground">Onlayn • barcha tillarda javob beradi</p>
+            </div>
+            {aiMessages.length > 0 && (
+              <button
+                onClick={() => { setAiMessages([]); setAiError(""); }}
+                className="ml-auto rounded-2xl border border-border/60 px-3 py-1.5 text-xs font-black text-muted-foreground transition-all hover:bg-primary/10 hover:text-primary"
+              >
+                Yangi suhbat
+              </button>
+            )}
+          </div>
+
+          <div ref={aiScrollRef} className="max-h-[55vh] min-h-[320px] space-y-4 overflow-y-auto px-5 py-6">
+            {aiMessages.length === 0 && (
+              <div className="space-y-4">
+                <div className="rounded-3xl border border-border/40 bg-background/40 p-5 text-sm text-muted-foreground">
+                  👋 Salom! Men <span className="font-black text-foreground">EduSAT AI</span> yordamchisiman. Quyidagi tayyor savollardan birini bosing yoki o‘zingizning savolingizni yozing.
+                </div>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {suggestions.map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => sendAiMessage(s)}
+                      className="rounded-2xl border border-border/60 bg-background/40 p-3 text-left text-sm font-bold text-foreground transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:bg-primary/10"
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {aiMessages.map((m, i) => (
+              <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"} animate-fade-in-up`}>
+                <div
+                  className={`max-w-[85%] whitespace-pre-wrap rounded-3xl px-4 py-3 text-sm leading-relaxed ${
+                    m.role === "user"
+                      ? "premium-button rounded-br-md font-bold"
+                      : "rounded-bl-md border border-border/60 bg-background/60 text-foreground"
+                  }`}
+                >
+                  {m.content}
+                </div>
+              </div>
+            ))}
+
+            {aiLoading && aiMessages[aiMessages.length - 1]?.role === "user" && (
+              <div className="flex justify-start animate-fade-in-up">
+                <div className="flex items-center gap-1.5 rounded-3xl rounded-bl-md border border-border/60 bg-background/60 px-4 py-3">
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-primary [animation-delay:-0.3s]" />
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-primary [animation-delay:-0.15s]" />
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-primary" />
+                </div>
+              </div>
+            )}
+
+            {aiError && (
+              <div className="rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm font-bold text-destructive">
+                {aiError}
+              </div>
+            )}
+          </div>
+
+          <form
+            onSubmit={(e) => { e.preventDefault(); sendAiMessage(aiInput); }}
+            className="flex items-end gap-2 border-t border-border/40 bg-background/40 p-3"
+          >
+            <textarea
+              value={aiInput}
+              onChange={(e) => setAiInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  sendAiMessage(aiInput);
+                }
+              }}
+              rows={1}
+              placeholder="Savolingizni yozing... (Enter — yuborish, Shift+Enter — yangi qator)"
+              className="input-premium max-h-32 min-h-[48px] flex-1 resize-none rounded-2xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground"
+            />
+            <button
+              type="submit"
+              disabled={aiLoading || !aiInput.trim()}
+              className="premium-button grid h-12 w-12 shrink-0 place-items-center rounded-2xl disabled:cursor-not-allowed disabled:opacity-50"
+              aria-label="Yuborish"
+            >
+              <Send className="h-5 w-5" />
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  };
+
   const renderHome = () => (
     <>
       <section className="grid gap-5 xl:grid-cols-[1.35fr_0.65fr]">
