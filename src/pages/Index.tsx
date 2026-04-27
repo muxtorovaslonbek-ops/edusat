@@ -460,6 +460,15 @@ const Index = () => {
   const [jobCertificate, setJobCertificate] = useState<string | null>(null);
   const [jobSent, setJobSent] = useState(false);
   const [jobError, setJobError] = useState("");
+  const [introMuted, setIntroMuted] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("edusat:introMuted") === "1";
+  });
+  const [introVisible, setIntroVisible] = useState<boolean>(() => {
+    if (typeof window === "undefined") return true;
+    return sessionStorage.getItem("edusat:introSeen") !== "1";
+  });
+  const introAudioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     if (!examRunning) return;
