@@ -105,14 +105,15 @@ const statCards: Array<{ label: string; value: string | number; icon: LucideIcon
   { label: "Sevimlilar", value: 18, icon: Heart },
 ];
 
-const quotes = [
-  ["Muvaffaqiyat – bu yakun emas, mag‘lubiyat – bu halokat emas. Eng muhimi – davom etish jasoratidir.", "Winston Churchill"],
-  ["Kelajak bugun nima qilayotganingizga bog‘liq.", "Mahatma Gandhi"],
-  ["Orzularingizni amalga oshirish uchun eng yaxshi vaqt — hozir.", "Napoleon Hill"],
-  ["Men yutqazmadim. Men ishlamaydigan 10 000 usulni topdim.", "Thomas Edison"],
-  ["Agar siz tez borishni xohlasangiz — yolg‘iz boring. Agar uzoqqa borishni xohlasangiz — birga boring.", "Afrika maqoli"],
-  ["Qiyinchiliklar ichida imkoniyat yashirinadi.", "Albert Einstein"],
-  ["Katta ishlarni qilish uchun nafaqat harakat, balki orzu ham kerak.", "Anatole France"],
+// Haftaning har bir kuni uchun shior (0 = Yakshanba ... 6 = Shanba)
+const quotes: Array<[string, string, string]> = [
+  ["Muvaffaqiyat – bu yakun emas, mag‘lubiyat – bu halokat emas. Eng muhimi – davom etish jasoratidir.", "Winston Churchill", "Yakshanba"],
+  ["Kelajak bugun nima qilayotganingizga bog‘liq.", "Mahatma Gandhi", "Dushanba"],
+  ["Orzularingizni amalga oshirish uchun eng yaxshi vaqt — hozir.", "Napoleon Hill", "Seshanba"],
+  ["Men yutqazmadim. Men ishlamaydigan 10 000 usulni topdim.", "Thomas Edison", "Chorshanba"],
+  ["Agar siz tez borishni xohlasangiz — yolg‘iz boring. Agar uzoqqa borishni xohlasangiz — birga boring.", "Afrika maqoli", "Payshanba"],
+  ["Qiyinchiliklar ichida imkoniyat yashirinadi.", "Albert Einstein", "Juma"],
+  ["Bilim — bu kuch. Har kuni bir qadam oldinga — bir umrlik yutuq.", "Francis Bacon", "Shanba"],
 ];
 
 type QA = { subject: string; question: string; answer: string; options?: string[] };
