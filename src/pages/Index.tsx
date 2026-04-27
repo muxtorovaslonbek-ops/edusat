@@ -1084,14 +1084,17 @@ const Index = () => {
         </GlassCard>
         <GlassCard className="relative overflow-hidden">
           <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-[hsl(var(--premium-violet)/0.25)] blur-3xl animate-orb" />
-          <div className="flex items-center gap-3">
-            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-primary/15 text-primary animate-floaty">
-              <Star />
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="grid h-12 w-12 place-items-center rounded-2xl bg-primary/15 text-primary animate-floaty">
+                <Star />
+              </div>
+              <div>
+                <p className="text-sm font-black text-primary">Bugungi shior · {todayQuote[2]}</p>
+                <p className="text-xs text-muted-foreground">Har kuni avtomatik almashadi</p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-black text-primary">Bugungi shior</p>
-              <p className="text-xs text-muted-foreground">Har kuni avtomatik almashadi</p>
-            </div>
+            <FavoriteButton item={{ id: `quote-${todayQuote[2]}`, title: `“${todayQuote[0]}” — ${todayQuote[1]}`, category: "Shior", section: "favorites" }} />
           </div>
           <blockquote className="mt-5 text-xl font-black leading-8 text-foreground animate-fade-in-up">“{todayQuote[0]}”</blockquote>
           <p className="mt-4 font-bold text-muted-foreground animate-fade-in-up" style={{ animationDelay: "0.15s" }}>— {todayQuote[1]}</p>
