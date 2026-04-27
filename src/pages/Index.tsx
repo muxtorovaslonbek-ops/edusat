@@ -464,8 +464,13 @@ const Index = () => {
     if (typeof window === "undefined") return false;
     return localStorage.getItem("edusat:introMuted") === "1";
   });
+  const [introEnabled, setIntroEnabled] = useState<boolean>(() => {
+    if (typeof window === "undefined") return true;
+    return localStorage.getItem("edusat:introEnabled") !== "0";
+  });
   const [introVisible, setIntroVisible] = useState<boolean>(() => {
     if (typeof window === "undefined") return true;
+    if (localStorage.getItem("edusat:introEnabled") === "0") return false;
     return sessionStorage.getItem("edusat:introSeen") !== "1";
   });
   const introAudioRef = useRef<HTMLAudioElement | null>(null);
