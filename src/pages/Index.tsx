@@ -567,7 +567,7 @@ const Index = () => {
     []
   );
   const visible3dModels = active3dSubject === "Hammasi" ? all3dModels : all3dModels.filter((model) => model.subject === active3dSubject);
-  const favoriteCategoryOrder = ["Kurs", "Free test", "Fan testi", "Kitob", "3D qo‘llanma", "Bepul dars", "Edu market"];
+  const favoriteCategoryOrder = ["Shior", "Kurs", "Free test", "Fan testi", "Kitob", "3D qo‘llanma", "Bepul dars", "Edu market"];
   const groupedFavorites = favoriteCategoryOrder
     .map((category) => ({ category, items: favorites.filter((item) => item.category === category) }))
     .filter((group) => group.items.length > 0);
