@@ -34,6 +34,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
+import introMusicSrc from "@/assets/intro-music.mp3";
 import hayitovImg from "@/assets/edusat/hayitov.jpg";
 import halimovaImg from "@/assets/edusat/halimova.jpg";
 import jorayevaImg from "@/assets/edusat/jorayeva.jpg";
