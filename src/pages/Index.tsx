@@ -65,10 +65,10 @@ const sections = [
 const subjects = ["Matematika", "Ingliz tili", "Rus tili", "Biologiya", "Kimyo", "Fizika", "Tarix"];
 const science3d = ["Biologiya", "Kimyo", "Fizika", "Tarix", "Geografiya"];
 const levels = ["C", "C+", "B", "B+", "A", "A+"];
-const languageOptions: Array<{ code: Lang; label: string; flag: string }> = [
-  { code: "uz", label: "O‘zbek", flag: "🇺🇿" },
-  { code: "en", label: "English", flag: "🇬🇧" },
-  { code: "ru", label: "Русский", flag: "🇷🇺" },
+const languageOptions: Array<{ code: Lang; label: string; flag: string; iso: string }> = [
+  { code: "uz", label: "O‘zbek", flag: "🇺🇿", iso: "uz" },
+  { code: "en", label: "English", flag: "🇬🇧", iso: "gb" },
+  { code: "ru", label: "Русский", flag: "🇷🇺", iso: "ru" },
 ];
 
 const libraryBooks = [
@@ -105,14 +105,15 @@ const statCards: Array<{ label: string; value: string | number; icon: LucideIcon
   { label: "Sevimlilar", value: 18, icon: Heart },
 ];
 
-const quotes = [
-  ["Muvaffaqiyat – bu yakun emas, mag‘lubiyat – bu halokat emas. Eng muhimi – davom etish jasoratidir.", "Winston Churchill"],
-  ["Kelajak bugun nima qilayotganingizga bog‘liq.", "Mahatma Gandhi"],
-  ["Orzularingizni amalga oshirish uchun eng yaxshi vaqt — hozir.", "Napoleon Hill"],
-  ["Men yutqazmadim. Men ishlamaydigan 10 000 usulni topdim.", "Thomas Edison"],
-  ["Agar siz tez borishni xohlasangiz — yolg‘iz boring. Agar uzoqqa borishni xohlasangiz — birga boring.", "Afrika maqoli"],
-  ["Qiyinchiliklar ichida imkoniyat yashirinadi.", "Albert Einstein"],
-  ["Katta ishlarni qilish uchun nafaqat harakat, balki orzu ham kerak.", "Anatole France"],
+// Haftaning har bir kuni uchun shior (0 = Yakshanba ... 6 = Shanba)
+const quotes: Array<[string, string, string]> = [
+  ["Muvaffaqiyat – bu yakun emas, mag‘lubiyat – bu halokat emas. Eng muhimi – davom etish jasoratidir.", "Winston Churchill", "Yakshanba"],
+  ["Kelajak bugun nima qilayotganingizga bog‘liq.", "Mahatma Gandhi", "Dushanba"],
+  ["Orzularingizni amalga oshirish uchun eng yaxshi vaqt — hozir.", "Napoleon Hill", "Seshanba"],
+  ["Men yutqazmadim. Men ishlamaydigan 10 000 usulni topdim.", "Thomas Edison", "Chorshanba"],
+  ["Agar siz tez borishni xohlasangiz — yolg‘iz boring. Agar uzoqqa borishni xohlasangiz — birga boring.", "Afrika maqoli", "Payshanba"],
+  ["Qiyinchiliklar ichida imkoniyat yashirinadi.", "Albert Einstein", "Juma"],
+  ["Bilim — bu kuch. Har kuni bir qadam oldinga — bir umrlik yutuq.", "Francis Bacon", "Shanba"],
 ];
 
 type QA = { subject: string; question: string; answer: string; options?: string[] };
@@ -522,8 +523,8 @@ const Index = () => {
   }, []);
 
   const todayQuote = useMemo(() => {
-    const day = Math.floor(Date.now() / 86400000);
-    return quotes[day % quotes.length];
+    const weekday = new Date().getDay(); // 0..6
+    return quotes[weekday % quotes.length];
   }, []);
 
   const t = translations[lang];
@@ -537,6 +538,15 @@ const Index = () => {
     if (avatar) return <img src={avatar} alt="Profil rasmi" className={`${dim} rounded-full border-2 border-primary/40 object-cover shadow-glow`} />;
     return <span className={`${dim} grid place-items-center rounded-full border-2 border-primary/40 bg-primary/15 font-black text-primary shadow-glow`}>{initials}</span>;
   };
+  const Flag = ({ iso, className = "h-4 w-6" }: { iso: string; className?: string }) => (
+    <img
+      src={`https://flagcdn.com/w40/${iso}.png`}
+      srcSet={`https://flagcdn.com/w80/${iso}.png 2x`}
+      alt={`${iso} flag`}
+      className={`${className} inline-block rounded-sm object-cover shadow-sm ring-1 ring-white/10`}
+      loading="lazy"
+    />
+  );
   const normalizedSearch = searchQuery.trim().toLowerCase();
   const searchableItems = useMemo(() => [
     ...sections.map((section) => ({ title: section.label, category: "Bo‘lim", section: section.id })),
@@ -557,7 +567,7 @@ const Index = () => {
     []
   );
   const visible3dModels = active3dSubject === "Hammasi" ? all3dModels : all3dModels.filter((model) => model.subject === active3dSubject);
-  const favoriteCategoryOrder = ["Kurs", "Free test", "Fan testi", "Kitob", "3D qo‘llanma", "Bepul dars", "Edu market"];
+  const favoriteCategoryOrder = ["Shior", "Kurs", "Free test", "Fan testi", "Kitob", "3D qo‘llanma", "Bepul dars", "Edu market"];
   const groupedFavorites = favoriteCategoryOrder
     .map((category) => ({ category, items: favorites.filter((item) => item.category === category) }))
     .filter((group) => group.items.length > 0);
@@ -1047,7 +1057,7 @@ const Index = () => {
           <span className="pointer-events-none absolute right-[8%] bottom-[14%] h-2.5 w-2.5 rounded-full bg-primary animate-sparkle" style={{ animationDelay: "1.8s" }} />
           <div className="relative z-10 flex h-full flex-col justify-center">
             <span className="mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-black uppercase tracking-wider text-primary backdrop-blur-md animate-fade-in-up">
-              <span className="h-2 w-2 animate-ping rounded-full bg-primary" /> Premium ta’lim · 2025
+              <span className="h-2 w-2 animate-ping rounded-full bg-primary" /> Premium ta’lim · 2026
             </span>
             <h1 className="max-w-4xl text-4xl font-black leading-tight md:text-6xl animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
               <span className="text-foreground">EduSAT </span>
@@ -1074,14 +1084,17 @@ const Index = () => {
         </GlassCard>
         <GlassCard className="relative overflow-hidden">
           <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-[hsl(var(--premium-violet)/0.25)] blur-3xl animate-orb" />
-          <div className="flex items-center gap-3">
-            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-primary/15 text-primary animate-floaty">
-              <Star />
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="grid h-12 w-12 place-items-center rounded-2xl bg-primary/15 text-primary animate-floaty">
+                <Star />
+              </div>
+              <div>
+                <p className="text-sm font-black text-primary">Bugungi shior · {todayQuote[2]}</p>
+                <p className="text-xs text-muted-foreground">Har kuni avtomatik almashadi</p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-black text-primary">Bugungi shior</p>
-              <p className="text-xs text-muted-foreground">Har kuni avtomatik almashadi</p>
-            </div>
+            <FavoriteButton item={{ id: `quote-${todayQuote[2]}`, title: `“${todayQuote[0]}” — ${todayQuote[1]}`, category: "Shior", section: "favorites" }} />
           </div>
           <blockquote className="mt-5 text-xl font-black leading-8 text-foreground animate-fade-in-up">“{todayQuote[0]}”</blockquote>
           <p className="mt-4 font-bold text-muted-foreground animate-fade-in-up" style={{ animationDelay: "0.15s" }}>— {todayQuote[1]}</p>
@@ -1194,7 +1207,7 @@ const Index = () => {
                     onClick={() => setLang(opt.code)}
                     className={`inline-flex items-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-black transition-all hover:-translate-y-0.5 ${selected ? "nav-item-active border-transparent" : "border-border/60 text-foreground hover:border-primary/40 hover:bg-primary/10"}`}
                   >
-                    <span className="text-lg leading-none">{opt.flag}</span> {opt.label}
+                    <Flag iso={opt.iso} className="h-4 w-6" /> {opt.label}
                   </button>
                 );
               })}
@@ -1968,8 +1981,8 @@ const Index = () => {
               <div className="hidden items-center gap-2 rounded-2xl border border-white/5 bg-background/60 px-3 py-2 font-black text-foreground sm:flex"><Coins className="h-4 w-4 text-primary" />{coins}</div>
               <button className="rounded-2xl p-3 text-muted-foreground transition-all hover:bg-primary/10 hover:text-primary" onClick={() => setDark(!dark)} aria-label="Theme almashtirish">{dark ? <Sun /> : <Moon />}</button>
               <div className="relative">
-                <button className="inline-flex items-center gap-2 rounded-2xl border border-white/5 bg-background/60 px-3 py-3 font-black text-foreground transition-all hover:bg-primary/10 hover:text-primary" onClick={() => setLangOpen(!langOpen)} aria-label="Til tanlash"><span className="text-base leading-none">{languageOptions.find((o) => o.code === lang)?.flag}</span><span className="text-xs uppercase">{lang}</span></button>
-                {langOpen && <div className="absolute right-0 top-14 z-40 w-44 rounded-3xl border border-white/10 bg-card/95 p-2 shadow-premium backdrop-blur-xl animate-fade-in-up">{languageOptions.map((option) => <button key={option.code} className={`flex w-full items-center gap-2 rounded-2xl px-3 py-2 text-left text-sm font-black transition-all ${lang === option.code ? "nav-item-active" : "text-foreground hover:bg-primary/10 hover:text-primary"}`} onClick={() => { setLang(option.code); setLangOpen(false); }}><span className="text-lg leading-none">{option.flag}</span>{option.label}</button>)}</div>}
+                <button className="inline-flex items-center gap-2 rounded-2xl border border-white/5 bg-background/60 px-3 py-3 font-black text-foreground transition-all hover:bg-primary/10 hover:text-primary" onClick={() => setLangOpen(!langOpen)} aria-label="Til tanlash"><Flag iso={languageOptions.find((o) => o.code === lang)?.iso || "uz"} className="h-4 w-6" /><span className="text-xs uppercase">{lang}</span></button>
+                {langOpen && <div className="absolute right-0 top-14 z-40 w-48 rounded-3xl border border-white/10 bg-card/95 p-2 shadow-premium backdrop-blur-xl animate-fade-in-up">{languageOptions.map((option) => <button key={option.code} className={`flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-left text-sm font-black transition-all ${lang === option.code ? "nav-item-active" : "text-foreground hover:bg-primary/10 hover:text-primary"}`} onClick={() => { setLang(option.code); setLangOpen(false); }}><Flag iso={option.iso} className="h-4 w-6" />{option.label}</button>)}</div>}
               </div>
               <button className="hidden rounded-2xl premium-button px-4 py-3 font-black md:inline-flex" onClick={() => { if (isAuthenticated) { setActive("profile"); } else { setAuthMode("register"); setAuthOpen(true); } }}><LogIn className="mr-2 h-4 w-4" />{isAuthenticated ? "Profil" : t.register}</button>
               <button onClick={() => { if (isAuthenticated) { setActive("profile"); } else { setAuthMode("register"); setAuthOpen(true); } }} aria-label="Profilga o‘tish"><AvatarBlock size="sm" /></button>
