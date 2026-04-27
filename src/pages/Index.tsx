@@ -527,6 +527,17 @@ const Index = () => {
     if (introAudioRef.current) introAudioRef.current.muted = introMuted;
   }, [introMuted]);
 
+  // Persist intro enabled preference
+  useEffect(() => {
+    try { localStorage.setItem("edusat:introEnabled", introEnabled ? "1" : "0"); } catch { /* ignore */ }
+    if (!introEnabled && introVisible) {
+      setIntroVisible(false);
+      if (introAudioRef.current) {
+        try { introAudioRef.current.pause(); } catch { /* ignore */ }
+      }
+    }
+  }, [introEnabled]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const closeIntro = () => {
     try { sessionStorage.setItem("edusat:introSeen", "1"); } catch { /* ignore */ }
     if (introAudioRef.current) {
