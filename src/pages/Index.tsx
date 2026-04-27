@@ -1057,7 +1057,7 @@ const Index = () => {
           <span className="pointer-events-none absolute right-[8%] bottom-[14%] h-2.5 w-2.5 rounded-full bg-primary animate-sparkle" style={{ animationDelay: "1.8s" }} />
           <div className="relative z-10 flex h-full flex-col justify-center">
             <span className="mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-black uppercase tracking-wider text-primary backdrop-blur-md animate-fade-in-up">
-              <span className="h-2 w-2 animate-ping rounded-full bg-primary" /> Premium ta’lim · 2025
+              <span className="h-2 w-2 animate-ping rounded-full bg-primary" /> Premium ta’lim · 2026
             </span>
             <h1 className="max-w-4xl text-4xl font-black leading-tight md:text-6xl animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
               <span className="text-foreground">EduSAT </span>
