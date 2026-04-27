@@ -537,6 +537,15 @@ const Index = () => {
     if (avatar) return <img src={avatar} alt="Profil rasmi" className={`${dim} rounded-full border-2 border-primary/40 object-cover shadow-glow`} />;
     return <span className={`${dim} grid place-items-center rounded-full border-2 border-primary/40 bg-primary/15 font-black text-primary shadow-glow`}>{initials}</span>;
   };
+  const Flag = ({ iso, className = "h-4 w-6" }: { iso: string; className?: string }) => (
+    <img
+      src={`https://flagcdn.com/w40/${iso}.png`}
+      srcSet={`https://flagcdn.com/w80/${iso}.png 2x`}
+      alt={`${iso} flag`}
+      className={`${className} inline-block rounded-sm object-cover shadow-sm ring-1 ring-white/10`}
+      loading="lazy"
+    />
+  );
   const normalizedSearch = searchQuery.trim().toLowerCase();
   const searchableItems = useMemo(() => [
     ...sections.map((section) => ({ title: section.label, category: "Bo‘lim", section: section.id })),
