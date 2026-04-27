@@ -1242,6 +1242,20 @@ const Index = () => {
             <button onClick={() => setDark(!dark)} className="inline-flex items-center gap-2 rounded-2xl border border-border/60 px-4 py-2.5 text-sm font-black text-foreground transition-all hover:bg-primary/10 hover:text-primary">
               {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />} {dark ? "Yorug‘ rejim" : "Tungi rejim"}
             </button>
+            <button
+              onClick={() => setIntroMuted(!introMuted)}
+              className={`inline-flex items-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-black transition-all hover:-translate-y-0.5 ${introMuted ? "border-border/60 text-foreground hover:border-primary/40 hover:bg-primary/10" : "nav-item-active border-transparent"}`}
+              aria-pressed={!introMuted}
+            >
+              <Sparkles className="h-4 w-4" />
+              Ovozli kutib olish: {introMuted ? "O‘chirilgan" : "Yoqilgan"}
+            </button>
+            <button
+              onClick={() => { try { sessionStorage.removeItem("edusat:introSeen"); } catch { /* ignore */ } setIntroVisible(true); }}
+              className="inline-flex items-center gap-2 rounded-2xl border border-border/60 px-4 py-2.5 text-sm font-black text-foreground transition-all hover:bg-primary/10 hover:text-primary"
+            >
+              <PlayCircle className="h-4 w-4" /> Intro animatsiyani ko‘rish
+            </button>
           </div>
         </GlassCard>
       </div>
