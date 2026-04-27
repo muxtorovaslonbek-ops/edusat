@@ -516,6 +516,20 @@ const Index = () => {
     try { localStorage.setItem("edusat:avatars", JSON.stringify(userAvatars)); } catch { /* ignore */ }
   }, [userAvatars]);
 
+  // Persist intro mute preference
+  useEffect(() => {
+    try { localStorage.setItem("edusat:introMuted", introMuted ? "1" : "0"); } catch { /* ignore */ }
+    if (introAudioRef.current) introAudioRef.current.muted = introMuted;
+  }, [introMuted]);
+
+  const closeIntro = () => {
+    try { sessionStorage.setItem("edusat:introSeen", "1"); } catch { /* ignore */ }
+    if (introAudioRef.current) {
+      try { introAudioRef.current.pause(); } catch { /* ignore */ }
+    }
+    setIntroVisible(false);
+  };
+
   // Restore session + avatar on first mount
   useEffect(() => {
     try {
