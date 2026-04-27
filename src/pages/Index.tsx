@@ -523,8 +523,8 @@ const Index = () => {
   }, []);
 
   const todayQuote = useMemo(() => {
-    const day = Math.floor(Date.now() / 86400000);
-    return quotes[day % quotes.length];
+    const weekday = new Date().getDay(); // 0..6
+    return quotes[weekday % quotes.length];
   }, []);
 
   const t = translations[lang];
