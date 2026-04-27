@@ -1203,7 +1203,7 @@ const Index = () => {
                     onClick={() => setLang(opt.code)}
                     className={`inline-flex items-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-black transition-all hover:-translate-y-0.5 ${selected ? "nav-item-active border-transparent" : "border-border/60 text-foreground hover:border-primary/40 hover:bg-primary/10"}`}
                   >
-                    <span className="text-lg leading-none">{opt.flag}</span> {opt.label}
+                    <Flag iso={opt.iso} className="h-4 w-6" /> {opt.label}
                   </button>
                 );
               })}
