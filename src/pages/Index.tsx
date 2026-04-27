@@ -2133,21 +2133,21 @@ const Index = () => {
             </div>
             {/* Brand title with shimmer */}
             <div className="relative animate-title-rise">
-              <h1 className="relative bg-gradient-to-r from-white via-[#bcd6ff] to-[#c9b6ff] bg-clip-text text-6xl font-black leading-[1.05] tracking-tight text-transparent sm:text-8xl drop-shadow-[0_8px_30px_rgba(124,92,255,0.4)]">
-                <span className="inline-block animate-letter" style={{ animationDelay: "0.05s" }}>E</span>
-                <span className="inline-block animate-letter" style={{ animationDelay: "0.1s" }}>d</span>
-                <span className="inline-block animate-letter" style={{ animationDelay: "0.15s" }}>u</span>
+              <h1 className="relative text-6xl font-black leading-[1.05] tracking-tight sm:text-8xl drop-shadow-[0_8px_30px_rgba(124,92,255,0.4)]">
+                <span className="inline-block animate-letter text-white" style={{ animationDelay: "0.05s" }}>E</span>
+                <span className="inline-block animate-letter text-white" style={{ animationDelay: "0.1s" }}>d</span>
+                <span className="inline-block animate-letter text-white" style={{ animationDelay: "0.15s" }}>u</span>
                 <span className="inline-block animate-letter bg-gradient-to-r from-[hsl(var(--premium-violet))] via-[hsl(var(--premium-blue))] to-[hsl(var(--premium-pink))] bg-clip-text text-transparent" style={{ animationDelay: "0.2s" }}>S</span>
                 <span className="inline-block animate-letter bg-gradient-to-r from-[hsl(var(--premium-violet))] via-[hsl(var(--premium-blue))] to-[hsl(var(--premium-pink))] bg-clip-text text-transparent" style={{ animationDelay: "0.25s" }}>A</span>
                 <span className="inline-block animate-letter bg-gradient-to-r from-[hsl(var(--premium-violet))] via-[hsl(var(--premium-blue))] to-[hsl(var(--premium-pink))] bg-clip-text text-transparent" style={{ animationDelay: "0.3s" }}>T</span>
                 <span className="inline-block">&nbsp;</span>
-                <span className="inline-block animate-letter" style={{ animationDelay: "0.4s" }}>A</span>
-                <span className="inline-block animate-letter" style={{ animationDelay: "0.45s" }}>c</span>
-                <span className="inline-block animate-letter" style={{ animationDelay: "0.5s" }}>a</span>
-                <span className="inline-block animate-letter" style={{ animationDelay: "0.55s" }}>d</span>
-                <span className="inline-block animate-letter" style={{ animationDelay: "0.6s" }}>e</span>
-                <span className="inline-block animate-letter" style={{ animationDelay: "0.65s" }}>m</span>
-                <span className="inline-block animate-letter" style={{ animationDelay: "0.7s" }}>y</span>
+                <span className="inline-block animate-letter text-white" style={{ animationDelay: "0.4s" }}>A</span>
+                <span className="inline-block animate-letter text-white" style={{ animationDelay: "0.45s" }}>c</span>
+                <span className="inline-block animate-letter text-white" style={{ animationDelay: "0.5s" }}>a</span>
+                <span className="inline-block animate-letter text-white" style={{ animationDelay: "0.55s" }}>d</span>
+                <span className="inline-block animate-letter text-white" style={{ animationDelay: "0.6s" }}>e</span>
+                <span className="inline-block animate-letter text-white" style={{ animationDelay: "0.65s" }}>m</span>
+                <span className="inline-block animate-letter text-white" style={{ animationDelay: "0.7s" }}>y</span>
               </h1>
               {/* Underline accent */}
               <div className="mx-auto mt-3 h-1 w-24 rounded-full bg-gradient-to-r from-transparent via-[hsl(var(--premium-blue))] to-transparent animate-underline-grow" />
