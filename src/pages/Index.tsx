@@ -2063,10 +2063,45 @@ const Index = () => {
           <div className="pointer-events-none absolute -left-32 -top-32 h-[28rem] w-[28rem] rounded-full bg-[hsl(var(--premium-violet)/0.45)] blur-3xl animate-orb" />
           <div className="pointer-events-none absolute -bottom-40 -right-32 h-[32rem] w-[32rem] rounded-full bg-[hsl(var(--premium-blue)/0.4)] blur-3xl animate-orb" style={{ animationDelay: "1.2s" }} />
           <div className="pointer-events-none absolute left-1/2 top-1/2 h-[40rem] w-[40rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[hsl(var(--premium-pink)/0.18)] blur-3xl animate-pulse-soft" />
-          {/* Stars */}
-          <div className="pointer-events-none absolute inset-0 opacity-60">
-            {Array.from({ length: 32 }).map((_, i) => (
-              <span key={i} className="absolute block rounded-full bg-white/80 animate-twinkle" style={{ top: `${(i * 53) % 100}%`, left: `${(i * 37) % 100}%`, width: `${(i % 3) + 1}px`, height: `${(i % 3) + 1}px`, animationDelay: `${(i % 10) * 0.25}s` }} />
+          {/* Twinkling stars */}
+          <div className="pointer-events-none absolute inset-0 opacity-70">
+            {Array.from({ length: 60 }).map((_, i) => (
+              <span key={i} className="absolute block rounded-full bg-white/90 animate-twinkle" style={{ top: `${(i * 53) % 100}%`, left: `${(i * 37) % 100}%`, width: `${(i % 3) + 1}px`, height: `${(i % 3) + 1}px`, animationDelay: `${(i % 10) * 0.25}s`, boxShadow: "0 0 6px rgba(255,255,255,0.85)" }} />
+            ))}
+          </div>
+          {/* Shooting stars */}
+          <div className="pointer-events-none absolute inset-0 overflow-hidden">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <span
+                key={`shoot-${i}`}
+                className="absolute block h-px w-40 animate-shooting-star"
+                style={{
+                  top: `${10 + (i * 13) % 70}%`,
+                  left: `-10%`,
+                  background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.95), rgba(124,92,255,0.6), transparent)",
+                  transform: "rotate(18deg)",
+                  filter: "drop-shadow(0 0 6px rgba(180,200,255,0.8))",
+                  animationDelay: `${i * 1.6}s`,
+                  animationDuration: `${4 + (i % 3)}s`,
+                }}
+              />
+            ))}
+          </div>
+          {/* Floating particles */}
+          <div className="pointer-events-none absolute inset-0">
+            {Array.from({ length: 14 }).map((_, i) => (
+              <span
+                key={`p-${i}`}
+                className="absolute block h-1.5 w-1.5 rounded-full animate-particle-float"
+                style={{
+                  bottom: `-5%`,
+                  left: `${(i * 71) % 100}%`,
+                  background: i % 2 === 0 ? "hsl(var(--premium-violet))" : "hsl(var(--premium-blue))",
+                  boxShadow: "0 0 12px currentColor",
+                  animationDelay: `${i * 0.8}s`,
+                  animationDuration: `${8 + (i % 5)}s`,
+                }}
+              />
             ))}
           </div>
           {/* Mute toggle */}
@@ -2086,19 +2121,49 @@ const Index = () => {
           </button>
           {/* Center content */}
           <div className="relative z-10 flex flex-col items-center px-6 text-center">
-            <div className="mb-6 grid h-24 w-24 place-items-center rounded-3xl bg-gradient-to-br from-[hsl(var(--premium-violet))] via-[hsl(var(--premium-blue))] to-[hsl(var(--premium-pink))] shadow-[0_20px_60px_-15px_hsl(var(--premium-violet)/0.7)] animate-logo-pop">
-              <GraduationCap className="h-12 w-12 text-white" strokeWidth={2.4} />
+            {/* Glowing ring around logo */}
+            <div className="relative mb-8 animate-logo-pop">
+              <div className="absolute inset-0 -m-4 rounded-full bg-gradient-to-r from-[hsl(var(--premium-violet))] via-[hsl(var(--premium-blue))] to-[hsl(var(--premium-pink))] opacity-50 blur-2xl animate-glow-pulse" />
+              <div className="absolute inset-0 -m-2 rounded-full border border-white/20 animate-spin-slow" />
+              <div className="relative grid h-28 w-28 place-items-center rounded-3xl bg-gradient-to-br from-[hsl(var(--premium-violet))] via-[hsl(var(--premium-blue))] to-[hsl(var(--premium-pink))] shadow-[0_20px_60px_-15px_hsl(var(--premium-violet)/0.9)]">
+                <GraduationCap className="h-14 w-14 text-white drop-shadow-[0_4px_12px_rgba(0,0,0,0.4)]" strokeWidth={2.4} />
+                <Sparkles className="absolute -right-2 -top-2 h-5 w-5 text-white/90 animate-twinkle" />
+                <Sparkles className="absolute -left-3 bottom-0 h-4 w-4 text-white/80 animate-twinkle" style={{ animationDelay: "0.6s" }} />
+              </div>
             </div>
-            <h1 className="bg-gradient-to-r from-white via-[#bcd6ff] to-[#c9b6ff] bg-clip-text text-5xl font-black leading-tight tracking-tight text-transparent sm:text-7xl animate-title-rise">
-              EduSAT Academy
-            </h1>
-            <p className="mt-5 max-w-xl text-base font-semibold text-white/70 sm:text-lg animate-subtitle-rise">
-              Muvaffaqiyat sari birinchi qadamni tashlang
+            {/* Brand title with shimmer */}
+            <div className="relative animate-title-rise">
+              <h1 className="relative bg-gradient-to-r from-white via-[#bcd6ff] to-[#c9b6ff] bg-clip-text text-6xl font-black leading-[1.05] tracking-tight text-transparent sm:text-8xl drop-shadow-[0_8px_30px_rgba(124,92,255,0.4)]">
+                <span className="inline-block animate-letter" style={{ animationDelay: "0.05s" }}>E</span>
+                <span className="inline-block animate-letter" style={{ animationDelay: "0.1s" }}>d</span>
+                <span className="inline-block animate-letter" style={{ animationDelay: "0.15s" }}>u</span>
+                <span className="inline-block animate-letter bg-gradient-to-r from-[hsl(var(--premium-violet))] via-[hsl(var(--premium-blue))] to-[hsl(var(--premium-pink))] bg-clip-text text-transparent" style={{ animationDelay: "0.2s" }}>S</span>
+                <span className="inline-block animate-letter bg-gradient-to-r from-[hsl(var(--premium-violet))] via-[hsl(var(--premium-blue))] to-[hsl(var(--premium-pink))] bg-clip-text text-transparent" style={{ animationDelay: "0.25s" }}>A</span>
+                <span className="inline-block animate-letter bg-gradient-to-r from-[hsl(var(--premium-violet))] via-[hsl(var(--premium-blue))] to-[hsl(var(--premium-pink))] bg-clip-text text-transparent" style={{ animationDelay: "0.3s" }}>T</span>
+                <span className="inline-block">&nbsp;</span>
+                <span className="inline-block animate-letter" style={{ animationDelay: "0.4s" }}>A</span>
+                <span className="inline-block animate-letter" style={{ animationDelay: "0.45s" }}>c</span>
+                <span className="inline-block animate-letter" style={{ animationDelay: "0.5s" }}>a</span>
+                <span className="inline-block animate-letter" style={{ animationDelay: "0.55s" }}>d</span>
+                <span className="inline-block animate-letter" style={{ animationDelay: "0.6s" }}>e</span>
+                <span className="inline-block animate-letter" style={{ animationDelay: "0.65s" }}>m</span>
+                <span className="inline-block animate-letter" style={{ animationDelay: "0.7s" }}>y</span>
+              </h1>
+              {/* Underline accent */}
+              <div className="mx-auto mt-3 h-1 w-24 rounded-full bg-gradient-to-r from-transparent via-[hsl(var(--premium-blue))] to-transparent animate-underline-grow" />
+            </div>
+            {/* Subtitle */}
+            <p className="mt-6 max-w-xl text-base font-bold uppercase tracking-[0.25em] text-white/60 sm:text-lg animate-subtitle-rise">
+              <span className="bg-gradient-to-r from-[hsl(var(--premium-violet))] via-white to-[hsl(var(--premium-blue))] bg-clip-text text-transparent">
+                Muvaffaqiyat sari birinchi qadamni tashlang
+              </span>
             </p>
+            {/* CTA */}
             <button
               onClick={closeIntro}
-              className="group mt-10 inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-[hsl(var(--premium-violet))] via-[hsl(var(--premium-blue))] to-[hsl(var(--premium-pink))] px-10 py-4 text-base font-black text-white shadow-[0_15px_50px_-10px_hsl(var(--premium-violet)/0.7)] transition-all hover:scale-105 hover:shadow-[0_25px_70px_-10px_hsl(var(--premium-blue)/0.8)] animate-cta-rise"
+              className="group relative mt-12 inline-flex items-center gap-3 overflow-hidden rounded-full bg-gradient-to-r from-[hsl(var(--premium-violet))] via-[hsl(var(--premium-blue))] to-[hsl(var(--premium-pink))] px-12 py-5 text-base font-black uppercase tracking-wider text-white shadow-[0_15px_50px_-10px_hsl(var(--premium-violet)/0.8)] transition-all hover:scale-110 hover:shadow-[0_25px_70px_-10px_hsl(var(--premium-blue)/0.9)] animate-cta-rise"
             >
+              <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-1000 group-hover:translate-x-full" />
               <Rocket className="h-5 w-5 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
               Boshlash
               <ChevronRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
