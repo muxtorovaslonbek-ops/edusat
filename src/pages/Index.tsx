@@ -34,6 +34,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
+import introMusicSrc from "@/assets/intro-music.mp3";
 import hayitovImg from "@/assets/edusat/hayitov.jpg";
 import halimovaImg from "@/assets/edusat/halimova.jpg";
 import jorayevaImg from "@/assets/edusat/jorayeva.jpg";
@@ -459,6 +460,15 @@ const Index = () => {
   const [jobCertificate, setJobCertificate] = useState<string | null>(null);
   const [jobSent, setJobSent] = useState(false);
   const [jobError, setJobError] = useState("");
+  const [introMuted, setIntroMuted] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("edusat:introMuted") === "1";
+  });
+  const [introVisible, setIntroVisible] = useState<boolean>(() => {
+    if (typeof window === "undefined") return true;
+    return sessionStorage.getItem("edusat:introSeen") !== "1";
+  });
+  const introAudioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     if (!examRunning) return;
@@ -505,6 +515,20 @@ const Index = () => {
   useEffect(() => {
     try { localStorage.setItem("edusat:avatars", JSON.stringify(userAvatars)); } catch { /* ignore */ }
   }, [userAvatars]);
+
+  // Persist intro mute preference
+  useEffect(() => {
+    try { localStorage.setItem("edusat:introMuted", introMuted ? "1" : "0"); } catch { /* ignore */ }
+    if (introAudioRef.current) introAudioRef.current.muted = introMuted;
+  }, [introMuted]);
+
+  const closeIntro = () => {
+    try { sessionStorage.setItem("edusat:introSeen", "1"); } catch { /* ignore */ }
+    if (introAudioRef.current) {
+      try { introAudioRef.current.pause(); } catch { /* ignore */ }
+    }
+    setIntroVisible(false);
+  };
 
   // Restore session + avatar on first mount
   useEffect(() => {
@@ -1217,6 +1241,20 @@ const Index = () => {
           <div className="mt-6 flex flex-wrap items-center gap-3">
             <button onClick={() => setDark(!dark)} className="inline-flex items-center gap-2 rounded-2xl border border-border/60 px-4 py-2.5 text-sm font-black text-foreground transition-all hover:bg-primary/10 hover:text-primary">
               {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />} {dark ? "Yorug‘ rejim" : "Tungi rejim"}
+            </button>
+            <button
+              onClick={() => setIntroMuted(!introMuted)}
+              className={`inline-flex items-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-black transition-all hover:-translate-y-0.5 ${introMuted ? "border-border/60 text-foreground hover:border-primary/40 hover:bg-primary/10" : "nav-item-active border-transparent"}`}
+              aria-pressed={!introMuted}
+            >
+              <Sparkles className="h-4 w-4" />
+              Ovozli kutib olish: {introMuted ? "O‘chirilgan" : "Yoqilgan"}
+            </button>
+            <button
+              onClick={() => { try { sessionStorage.removeItem("edusat:introSeen"); } catch { /* ignore */ } setIntroVisible(true); }}
+              className="inline-flex items-center gap-2 rounded-2xl border border-border/60 px-4 py-2.5 text-sm font-black text-foreground transition-all hover:bg-primary/10 hover:text-primary"
+            >
+              <PlayCircle className="h-4 w-4" /> Intro animatsiyani ko‘rish
             </button>
           </div>
         </GlassCard>
@@ -1993,6 +2031,56 @@ const Index = () => {
       </div>
       {authModal}
       <button className="fixed bottom-4 right-4 z-30 rounded-3xl bg-primary px-5 py-4 font-black text-primary-foreground shadow-glow md:hidden" onClick={() => { setAuthMode("login"); setAuthOpen(true); }}><Lock className="h-5 w-5" /></button>
+      {introVisible && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden bg-[#070b1a]">
+          <audio ref={introAudioRef} src={introMusicSrc} autoPlay loop muted={introMuted} />
+          {/* Animated gradient orbs */}
+          <div className="pointer-events-none absolute -left-32 -top-32 h-[28rem] w-[28rem] rounded-full bg-[hsl(var(--premium-violet)/0.45)] blur-3xl animate-orb" />
+          <div className="pointer-events-none absolute -bottom-40 -right-32 h-[32rem] w-[32rem] rounded-full bg-[hsl(var(--premium-blue)/0.4)] blur-3xl animate-orb" style={{ animationDelay: "1.2s" }} />
+          <div className="pointer-events-none absolute left-1/2 top-1/2 h-[40rem] w-[40rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[hsl(var(--premium-pink)/0.18)] blur-3xl animate-pulse-soft" />
+          {/* Stars */}
+          <div className="pointer-events-none absolute inset-0 opacity-60">
+            {Array.from({ length: 32 }).map((_, i) => (
+              <span key={i} className="absolute block rounded-full bg-white/80 animate-twinkle" style={{ top: `${(i * 53) % 100}%`, left: `${(i * 37) % 100}%`, width: `${(i % 3) + 1}px`, height: `${(i % 3) + 1}px`, animationDelay: `${(i % 10) * 0.25}s` }} />
+            ))}
+          </div>
+          {/* Mute toggle */}
+          <button
+            onClick={() => setIntroMuted(!introMuted)}
+            className="absolute right-5 top-5 z-10 rounded-2xl border border-white/15 bg-white/5 px-4 py-2 text-xs font-black text-white/80 backdrop-blur-md transition-all hover:bg-white/10"
+            aria-label={introMuted ? "Ovozni yoqish" : "Ovozni o‘chirish"}
+          >
+            {introMuted ? "🔇 Ovozsiz" : "🔊 Ovozli"}
+          </button>
+          {/* Skip */}
+          <button
+            onClick={closeIntro}
+            className="absolute left-5 top-5 z-10 rounded-2xl border border-white/15 bg-white/5 px-4 py-2 text-xs font-black text-white/70 backdrop-blur-md transition-all hover:bg-white/10"
+          >
+            O‘tkazib yuborish →
+          </button>
+          {/* Center content */}
+          <div className="relative z-10 flex flex-col items-center px-6 text-center">
+            <div className="mb-6 grid h-24 w-24 place-items-center rounded-3xl bg-gradient-to-br from-[hsl(var(--premium-violet))] via-[hsl(var(--premium-blue))] to-[hsl(var(--premium-pink))] shadow-[0_20px_60px_-15px_hsl(var(--premium-violet)/0.7)] animate-logo-pop">
+              <GraduationCap className="h-12 w-12 text-white" strokeWidth={2.4} />
+            </div>
+            <h1 className="bg-gradient-to-r from-white via-[#bcd6ff] to-[#c9b6ff] bg-clip-text text-5xl font-black leading-tight tracking-tight text-transparent sm:text-7xl animate-title-rise">
+              EduSAT Academy
+            </h1>
+            <p className="mt-5 max-w-xl text-base font-semibold text-white/70 sm:text-lg animate-subtitle-rise">
+              Muvaffaqiyat sari birinchi qadamni tashlang
+            </p>
+            <button
+              onClick={closeIntro}
+              className="group mt-10 inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-[hsl(var(--premium-violet))] via-[hsl(var(--premium-blue))] to-[hsl(var(--premium-pink))] px-10 py-4 text-base font-black text-white shadow-[0_15px_50px_-10px_hsl(var(--premium-violet)/0.7)] transition-all hover:scale-105 hover:shadow-[0_25px_70px_-10px_hsl(var(--premium-blue)/0.8)] animate-cta-rise"
+            >
+              <Rocket className="h-5 w-5 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+              Boshlash
+              <ChevronRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+            </button>
+          </div>
+        </div>
+      )}
     </main>
   );
 };
