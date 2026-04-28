@@ -524,8 +524,35 @@ const Index = () => {
   // Persist intro mute preference
   useEffect(() => {
     try { localStorage.setItem("edusat:introMuted", introMuted ? "1" : "0"); } catch { /* ignore */ }
-    if (introAudioRef.current) introAudioRef.current.muted = introMuted;
-  }, [introMuted]);
+    if (introAudioRef.current) {
+      introAudioRef.current.muted = introMuted;
+      if (!introMuted && introVisible) {
+        introAudioRef.current.play().catch(() => { /* ignore */ });
+      }
+    }
+  }, [introMuted, introVisible]);
+
+  // Try to autoplay intro audio; fallback to first user gesture
+  useEffect(() => {
+    if (!introVisible) return;
+    const el = introAudioRef.current;
+    if (!el) return;
+    el.muted = introMuted;
+    el.volume = 0.6;
+    const tryPlay = () => el.play().catch(() => { /* blocked */ });
+    tryPlay();
+    const onGesture = () => {
+      tryPlay();
+      window.removeEventListener("pointerdown", onGesture);
+      window.removeEventListener("keydown", onGesture);
+    };
+    window.addEventListener("pointerdown", onGesture, { once: true });
+    window.addEventListener("keydown", onGesture, { once: true });
+    return () => {
+      window.removeEventListener("pointerdown", onGesture);
+      window.removeEventListener("keydown", onGesture);
+    };
+  }, [introVisible]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Persist intro enabled preference
   useEffect(() => {
@@ -2121,33 +2148,20 @@ const Index = () => {
           </button>
           {/* Center content */}
           <div className="relative z-10 flex flex-col items-center px-6 text-center">
-            {/* Glowing ring around logo */}
+            {/* Glowing logo (no rotating ring) */}
             <div className="relative mb-8 animate-logo-pop">
               <div className="absolute inset-0 -m-4 rounded-full bg-gradient-to-r from-[hsl(var(--premium-violet))] via-[hsl(var(--premium-blue))] to-[hsl(var(--premium-pink))] opacity-50 blur-2xl animate-glow-pulse" />
-              <div className="absolute inset-0 -m-2 rounded-full border border-white/20 animate-spin-slow" />
               <div className="relative grid h-28 w-28 place-items-center rounded-3xl bg-gradient-to-br from-[hsl(var(--premium-violet))] via-[hsl(var(--premium-blue))] to-[hsl(var(--premium-pink))] shadow-[0_20px_60px_-15px_hsl(var(--premium-violet)/0.9)]">
                 <GraduationCap className="h-14 w-14 text-white drop-shadow-[0_4px_12px_rgba(0,0,0,0.4)]" strokeWidth={2.4} />
                 <Sparkles className="absolute -right-2 -top-2 h-5 w-5 text-white/90 animate-twinkle" />
                 <Sparkles className="absolute -left-3 bottom-0 h-4 w-4 text-white/80 animate-twinkle" style={{ animationDelay: "0.6s" }} />
               </div>
             </div>
-            {/* Brand title with shimmer */}
+            {/* Brand title */}
             <div className="relative animate-title-rise">
               <h1 className="relative text-6xl font-black leading-[1.05] tracking-tight sm:text-8xl drop-shadow-[0_8px_30px_rgba(124,92,255,0.4)]">
-                <span className="inline-block animate-letter text-white" style={{ animationDelay: "0.05s" }}>E</span>
-                <span className="inline-block animate-letter text-white" style={{ animationDelay: "0.1s" }}>d</span>
-                <span className="inline-block animate-letter text-white" style={{ animationDelay: "0.15s" }}>u</span>
-                <span className="inline-block animate-letter bg-gradient-to-r from-[hsl(var(--premium-violet))] via-[hsl(var(--premium-blue))] to-[hsl(var(--premium-pink))] bg-clip-text text-transparent" style={{ animationDelay: "0.2s" }}>S</span>
-                <span className="inline-block animate-letter bg-gradient-to-r from-[hsl(var(--premium-violet))] via-[hsl(var(--premium-blue))] to-[hsl(var(--premium-pink))] bg-clip-text text-transparent" style={{ animationDelay: "0.25s" }}>A</span>
-                <span className="inline-block animate-letter bg-gradient-to-r from-[hsl(var(--premium-violet))] via-[hsl(var(--premium-blue))] to-[hsl(var(--premium-pink))] bg-clip-text text-transparent" style={{ animationDelay: "0.3s" }}>T</span>
-                <span className="inline-block">&nbsp;</span>
-                <span className="inline-block animate-letter text-white" style={{ animationDelay: "0.4s" }}>A</span>
-                <span className="inline-block animate-letter text-white" style={{ animationDelay: "0.45s" }}>c</span>
-                <span className="inline-block animate-letter text-white" style={{ animationDelay: "0.5s" }}>a</span>
-                <span className="inline-block animate-letter text-white" style={{ animationDelay: "0.55s" }}>d</span>
-                <span className="inline-block animate-letter text-white" style={{ animationDelay: "0.6s" }}>e</span>
-                <span className="inline-block animate-letter text-white" style={{ animationDelay: "0.65s" }}>m</span>
-                <span className="inline-block animate-letter text-white" style={{ animationDelay: "0.7s" }}>y</span>
+                <span className="text-white">EduSAT</span>
+                <span className="ml-3 bg-gradient-to-r from-[hsl(var(--premium-violet))] via-[hsl(var(--premium-blue))] to-[hsl(var(--premium-pink))] bg-clip-text text-transparent">Academy</span>
               </h1>
               {/* Underline accent */}
               <div className="mx-auto mt-3 h-1 w-24 rounded-full bg-gradient-to-r from-transparent via-[hsl(var(--premium-blue))] to-transparent animate-underline-grow" />
