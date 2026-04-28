@@ -1605,9 +1605,9 @@ const Index = () => {
             <div className="mt-4 flex flex-wrap items-center gap-3">
               <FavoriteButton item={{ id: `book-${book.title}`, title: book.title, category: "Kitob", section: "library" }} />
               {book.pdf && (
-                <a href={book.pdf} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-2xl bg-primary px-4 py-2 text-sm font-black text-primary-foreground shadow-glow hover:opacity-90">
+                <button type="button" onClick={() => setPdfViewer({ url: book.pdf!, title: `${book.title} — ${book.author}` })} className="inline-flex items-center gap-2 rounded-2xl bg-primary px-4 py-2 text-sm font-black text-primary-foreground shadow-glow hover:opacity-90">
                   <BookOpen className="h-4 w-4" /> PDF o‘qish
-                </a>
+                </button>
               )}
             </div>
           </GlassCard>
@@ -1685,9 +1685,9 @@ const Index = () => {
             <div className="mt-4 flex flex-wrap items-center gap-3">
               <FavoriteButton item={{ id: `market-${item.title}`, title: item.title, category: "Edu market", section: "market" }} />
               {item.pdf && (
-                <a href={item.pdf} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-2xl bg-primary px-4 py-2 text-sm font-black text-primary-foreground shadow-glow hover:opacity-90">
+                <button type="button" onClick={() => setPdfViewer({ url: item.pdf!, title: item.title })} className="inline-flex items-center gap-2 rounded-2xl bg-primary px-4 py-2 text-sm font-black text-primary-foreground shadow-glow hover:opacity-90">
                   <BookOpen className="h-4 w-4" /> Ko‘rib chiqish
-                </a>
+                </button>
               )}
             </div>
           </GlassCard>
