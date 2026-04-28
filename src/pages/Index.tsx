@@ -77,7 +77,20 @@ const languageOptions: Array<{ code: Lang; label: string; flag: string; iso: str
   { code: "ru", label: "Русский", flag: "🇷🇺", iso: "ru" },
 ];
 
-const libraryBooks = [
+const libraryBooks: Array<{
+  title: string;
+  author: string;
+  level: string;
+  formats: string[];
+  cover: string;
+  scene: string;
+  image?: string;
+  pdf?: string;
+}> = [
+  { title: "Odam bo‘lish qiyin", author: "O‘lmas Umarbekov", level: "Zamonaviy nasr", formats: ["PDF", "Tahlil"], cover: "OB", scene: "Hayotiy hikoya", image: bookOdamCover, pdf: "/books/odam-bolish-qiyin.pdf" },
+  { title: "Ikki eshik orasi", author: "O‘tkir Hoshimov", level: "Roman", formats: ["PDF", "Tahlil"], cover: "IE", scene: "Oilaviy drama", image: bookIkkiEshikCover, pdf: "/books/ikki-eshik-orasi.pdf" },
+  { title: "Kecha va kunduz", author: "Abdulhamid Cho‘lpon", level: "Klassik", formats: ["PDF", "Tahlil"], cover: "KK", scene: "Mustamlaka davri", image: bookKechaKunduzCover, pdf: "/books/kecha-va-kunduz.pdf" },
+  { title: "Kichkina shahzoda", author: "Antuan de Sent-Ekzyuperi", level: "Jahon adabiyoti", formats: ["PDF", "Tahlil"], cover: "KS", scene: "Falsafiy ertak", image: bookShahzodaCover, pdf: "/books/kichkina-shahzoda.pdf" },
   { title: "O‘tkan kunlar", author: "Abdulla Qodiriy", level: "Adabiyot", formats: ["PDF", "Audio", "Tahlil"], cover: "OQ", scene: "Tarixiy roman" },
   { title: "Mehrobdan chayon", author: "Abdulla Qodiriy", level: "Roman", formats: ["PDF", "Audio"], cover: "MC", scene: "Klassik asar" },
   { title: "Boburnoma", author: "Zahiriddin Bobur", level: "Tarix", formats: ["PDF", "Xarita", "Izoh"], cover: "BN", scene: "Xotira va tarix" },
@@ -95,7 +108,16 @@ const coinShopItems = [
   { title: "Kitob paketi", price: 900, image: "KP", description: "Kutubxona PDF/audio resurslarini ochish." },
 ];
 
-const marketItems = [
+const marketItems: Array<{
+  title: string;
+  category: string;
+  price: string;
+  image: string;
+  description: string;
+  cover?: string;
+  pdf?: string;
+}> = [
+  { title: "Biologiya super qo‘llanma", category: "Biologiya", price: "129 000 so‘m", image: "BQ", description: "Nazariya, amaliyot, testlar va batafsil izohlar bilan to‘liq qo‘llanma.", cover: bookBiologiyaCover, pdf: "/books/biologiya-super-qollanma.pdf" },
   { title: "SAT Math workbook", category: "SAT", price: "79 000 so‘m", image: "SM", description: "Algebra, problem solving va practice setlar." },
   { title: "OTM blok to‘plami", category: "OTM", price: "69 000 so‘m", image: "OB", description: "Majburiy fanlar va asosiy blok savollari." },
   { title: "IELTS Writing kit", category: "IELTS", price: "89 000 so‘m", image: "IW", description: "Task 1/2 shablonlari, band descriptor va namunalar." },
