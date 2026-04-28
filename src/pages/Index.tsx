@@ -524,8 +524,35 @@ const Index = () => {
   // Persist intro mute preference
   useEffect(() => {
     try { localStorage.setItem("edusat:introMuted", introMuted ? "1" : "0"); } catch { /* ignore */ }
-    if (introAudioRef.current) introAudioRef.current.muted = introMuted;
-  }, [introMuted]);
+    if (introAudioRef.current) {
+      introAudioRef.current.muted = introMuted;
+      if (!introMuted && introVisible) {
+        introAudioRef.current.play().catch(() => { /* ignore */ });
+      }
+    }
+  }, [introMuted, introVisible]);
+
+  // Try to autoplay intro audio; fallback to first user gesture
+  useEffect(() => {
+    if (!introVisible) return;
+    const el = introAudioRef.current;
+    if (!el) return;
+    el.muted = introMuted;
+    el.volume = 0.6;
+    const tryPlay = () => el.play().catch(() => { /* blocked */ });
+    tryPlay();
+    const onGesture = () => {
+      tryPlay();
+      window.removeEventListener("pointerdown", onGesture);
+      window.removeEventListener("keydown", onGesture);
+    };
+    window.addEventListener("pointerdown", onGesture, { once: true });
+    window.addEventListener("keydown", onGesture, { once: true });
+    return () => {
+      window.removeEventListener("pointerdown", onGesture);
+      window.removeEventListener("keydown", onGesture);
+    };
+  }, [introVisible]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Persist intro enabled preference
   useEffect(() => {
