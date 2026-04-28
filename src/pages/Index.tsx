@@ -2237,6 +2237,25 @@ const Index = () => {
           </div>
         </div>
       )}
+      {pdfViewer && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/90 p-4 backdrop-blur-sm" onClick={() => setPdfViewer(null)}>
+          <div className="flex h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-3">
+              <div className="flex items-center gap-3 truncate">
+                <BookOpen className="h-5 w-5 shrink-0 text-primary" />
+                <h3 className="truncate text-base font-black text-foreground">{pdfViewer.title}</h3>
+              </div>
+              <div className="flex items-center gap-2">
+                <a href={pdfViewer.url} download className="rounded-2xl border border-border px-3 py-1.5 text-xs font-black text-foreground hover:bg-accent">Yuklab olish</a>
+                <button onClick={() => setPdfViewer(null)} className="grid h-9 w-9 place-items-center rounded-2xl border border-border text-foreground hover:bg-accent" aria-label="Yopish">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+            <iframe src={`${pdfViewer.url}#toolbar=1&navpanes=0`} title={pdfViewer.title} className="h-full w-full flex-1 bg-background" />
+          </div>
+        </div>
+      )}
     </main>
   );
 };
