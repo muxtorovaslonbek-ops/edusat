@@ -2159,9 +2159,9 @@ const Index = () => {
             </div>
             {/* Brand title */}
             <div className="relative animate-title-rise">
-              <h1 className="relative text-6xl font-black leading-[1.05] tracking-tight sm:text-8xl drop-shadow-[0_8px_30px_rgba(124,92,255,0.4)]">
-                <span className="text-white">EduSAT</span>
-                <span className="ml-3 bg-gradient-to-r from-[hsl(var(--premium-violet))] via-[hsl(var(--premium-blue))] to-[hsl(var(--premium-pink))] bg-clip-text text-transparent">Academy</span>
+              <h1 className="relative text-6xl font-black leading-[1.12] tracking-normal text-white sm:text-8xl drop-shadow-[0_8px_30px_rgba(124,92,255,0.4)]">
+                <span className="inline-block">EduSAT</span>{" "}
+                <span className="inline-block text-white">Academy</span>
               </h1>
               {/* Underline accent */}
               <div className="mx-auto mt-3 h-1 w-24 rounded-full bg-gradient-to-r from-transparent via-[hsl(var(--premium-blue))] to-transparent animate-underline-grow" />
