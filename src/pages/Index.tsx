@@ -41,6 +41,11 @@ import jorayevaImg from "@/assets/edusat/jorayeva.jpg";
 import oybekImg from "@/assets/edusat/oybek.jpg";
 import aslonbekImg from "@/assets/edusat/aslonbek.jpg";
 import azizaImg from "@/assets/edusat/aziza.jpg";
+import bookOdamCover from "@/assets/books/odam-bolish-qiyin.jpg";
+import bookIkkiEshikCover from "@/assets/books/ikki-eshik-orasi.jpg";
+import bookKechaKunduzCover from "@/assets/books/kecha-va-kunduz.jpg";
+import bookShahzodaCover from "@/assets/books/kichkina-shahzoda.jpg";
+import bookBiologiyaCover from "@/assets/books/biologiya-super-qollanma.jpg";
 
 const sections = [
   { id: "home", label: "Bosh sahifa", icon: Home },
