@@ -440,6 +440,7 @@ const Index = () => {
     return (localStorage.getItem("edusat:theme") as ThemeId) || "violet";
   });
   const [coins, setCoins] = useState(1280);
+  const [pdfViewer, setPdfViewer] = useState<{ url: string; title: string } | null>(null);
   const [userName, setUserName] = useState("Mehmon");
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
