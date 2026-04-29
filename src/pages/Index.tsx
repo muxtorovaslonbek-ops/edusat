@@ -17,6 +17,7 @@ import {
   LogIn,
   Menu,
   MessageCircle,
+  Mic,
   Moon,
   PlayCircle,
   Rocket,
@@ -46,10 +47,12 @@ import bookIkkiEshikCover from "@/assets/books/ikki-eshik-orasi.jpg";
 import bookKechaKunduzCover from "@/assets/books/kecha-va-kunduz.jpg";
 import bookShahzodaCover from "@/assets/books/kichkina-shahzoda.jpg";
 import bookBiologiyaCover from "@/assets/books/biologiya-super-qollanma.jpg";
+import SpeakingTutor from "@/components/SpeakingTutor";
 
 const sections = [
   { id: "home", label: "Bosh sahifa", icon: Home },
   { id: "ai", label: "AI Yordamchi", icon: Sparkles },
+  { id: "speaking", label: "AI Speaking", icon: Mic },
   { id: "profile", label: "Profil", icon: User },
   { id: "sat", label: "SAT/OTM tayyorgarlik", icon: GraduationCap },
   { id: "courses", label: "Kurslar", icon: BookOpen },
@@ -2056,6 +2059,7 @@ const Index = () => {
   const content = {
     home: renderHome,
     ai: renderAi,
+    speaking: () => <SpeakingTutor userName={profileName} />,
     profile: renderProfile,
     sat: renderSat,
     courses: renderCourses,
