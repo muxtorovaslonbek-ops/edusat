@@ -524,18 +524,62 @@ export default function SpeakingTutor({ userName = "" }: Props) {
 
       {/* Translator */}
       <div className="rounded-3xl border border-border bg-card p-5 shadow-premium">
-        <div className="mb-3 flex items-center gap-2">
+        <div className="mb-3 flex flex-wrap items-center gap-2">
           <Languages className="h-5 w-5 text-primary" />
           <h3 className="text-lg font-black text-foreground">Tarjimon</h3>
-          <span className="ml-auto text-xs text-muted-foreground">Istalgan til → O'zbek</span>
+          <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">
+            {translateFrom === "auto" ? "🌐 Avto-aniqlash" : translateFrom === "uz" ? "🇺🇿 O'zbek" : `${LANGS.find(l => l.code === translateFrom)?.flag} ${LANGS.find(l => l.code === translateFrom)?.label}`}
+            <span className="mx-1">→</span>
+            {translateTo === "uz" ? "🇺🇿 O'zbek" : `${LANGS.find(l => l.code === translateTo)?.flag} ${LANGS.find(l => l.code === translateTo)?.label}`}
+          </span>
         </div>
+
+        <div className="mb-3 grid gap-2 md:grid-cols-[1fr,auto,1fr] md:items-center">
+          <div>
+            <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Qaysi tildan</label>
+            <select
+              value={translateFrom}
+              onChange={(e) => setTranslateFrom(e.target.value as any)}
+              className="w-full rounded-2xl border border-border bg-background px-3 py-2 text-sm font-bold text-foreground outline-none focus:border-primary"
+            >
+              <option value="auto">🌐 Avto-aniqlash</option>
+              <option value="uz">🇺🇿 O'zbek</option>
+              {LANGS.map(l => <option key={l.code} value={l.code}>{l.flag} {l.label}</option>)}
+            </select>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              if (translateFrom === "auto") return;
+              const f = translateFrom; const t = translateTo;
+              setTranslateFrom(t as any); setTranslateTo(f as any);
+              setTranslateResult("");
+            }}
+            className="hidden md:inline-flex h-10 mt-5 items-center justify-center rounded-2xl border border-border bg-card px-3 text-foreground hover:bg-primary/10 hover:text-primary"
+            title="Tillarni almashtirish"
+          >
+            ⇄
+          </button>
+          <div>
+            <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Qaysi tilga</label>
+            <select
+              value={translateTo}
+              onChange={(e) => setTranslateTo(e.target.value as any)}
+              className="w-full rounded-2xl border border-border bg-background px-3 py-2 text-sm font-bold text-foreground outline-none focus:border-primary"
+            >
+              <option value="uz">🇺🇿 O'zbek</option>
+              {LANGS.map(l => <option key={l.code} value={l.code}>{l.flag} {l.label}</option>)}
+            </select>
+          </div>
+        </div>
+
         <div className="grid gap-3 md:grid-cols-2">
           <div>
             <textarea
               value={translateText}
               onChange={(e) => setTranslateText(e.target.value)}
               placeholder="Tarjima qilmoqchi bo'lgan so'z yoki gapni yozing..."
-              rows={3}
+              rows={4}
               className="w-full resize-none rounded-2xl border border-border bg-background p-3 text-sm text-foreground outline-none focus:border-primary"
             />
             <button
@@ -547,7 +591,7 @@ export default function SpeakingTutor({ userName = "" }: Props) {
               Tarjima qilish
             </button>
           </div>
-          <div className="rounded-2xl border border-border bg-background/60 p-3 text-sm text-foreground min-h-[100px]">
+          <div className="rounded-2xl border border-border bg-background/60 p-3 text-sm text-foreground min-h-[120px] whitespace-pre-wrap">
             {translating ? <span className="text-muted-foreground">Tarjima qilinmoqda…</span> : (translateResult || <span className="text-muted-foreground">Natija bu yerda chiqadi</span>)}
           </div>
         </div>
