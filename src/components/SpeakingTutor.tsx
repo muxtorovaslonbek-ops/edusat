@@ -653,10 +653,13 @@ export default function SpeakingTutor({ userName = "" }: Props) {
               </div>
 
               <div>
-                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Jins</label>
+                <label className="mb-2 flex items-center justify-between text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  <span>Jins</span>
+                  <button type="button" onClick={previewVoice} className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary hover:bg-primary/20">▶ Ovozni eshitish</button>
+                </label>
                 <div className="grid grid-cols-2 gap-2">
                   {(["female", "male"] as Gender[]).map(g => (
-                    <button key={g} onClick={() => { if (isActive) stopSession(); setGender(g); }} className={`rounded-2xl border px-3 py-2 text-sm font-bold transition-all ${gender === g ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-foreground hover:border-primary/60"}`}>
+                    <button key={g} onClick={() => { if (isActive) stopSession(); setGender(g); setTimeout(previewVoice, 50); }} className={`rounded-2xl border px-3 py-2 text-sm font-bold transition-all ${gender === g ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-foreground hover:border-primary/60"}`}>
                       {g === "female" ? "👩 Ayol" : "👨 Erkak"}
                     </button>
                   ))}
@@ -667,7 +670,7 @@ export default function SpeakingTutor({ userName = "" }: Props) {
                 <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Yosh</label>
                 <div className="grid grid-cols-3 gap-2">
                   {(Object.keys(AGE_LABEL) as AgeGroup[]).map((a) => (
-                    <button key={a} onClick={() => setAge(a)} className={`rounded-2xl border px-3 py-2 text-sm font-bold transition-all ${age === a ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-foreground hover:border-primary/60"}`}>
+                    <button key={a} onClick={() => { setAge(a); setTimeout(previewVoice, 50); }} className={`rounded-2xl border px-3 py-2 text-sm font-bold transition-all ${age === a ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-foreground hover:border-primary/60"}`}>
                       {AGE_LABEL[a]}
                     </button>
                   ))}
@@ -678,7 +681,7 @@ export default function SpeakingTutor({ userName = "" }: Props) {
                 <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Ovoz toni</label>
                 <div className="grid grid-cols-2 gap-2">
                   {(Object.keys(TONE_LABEL) as VoiceTone[]).map((t) => (
-                    <button key={t} onClick={() => setTone(t)} className={`rounded-2xl border px-3 py-2 text-sm font-bold transition-all ${tone === t ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-foreground hover:border-primary/60"}`}>
+                    <button key={t} onClick={() => { setTone(t); setTimeout(previewVoice, 50); }} className={`rounded-2xl border px-3 py-2 text-sm font-bold transition-all ${tone === t ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-foreground hover:border-primary/60"}`}>
                       {TONE_LABEL[t]}
                     </button>
                   ))}
@@ -686,7 +689,7 @@ export default function SpeakingTutor({ userName = "" }: Props) {
               </div>
 
               <p className="rounded-2xl bg-primary/10 p-3 text-xs text-foreground">
-                💡 Eng yaxshi natija uchun <b>Chrome</b> yoki <b>Edge</b> brauzerini ishlating. Mikrofonga ruxsat bering va aniq, sekin gapiring. Til o'zgarganda suhbat qaytadan boshlanadi.
+                💡 Eng yaxshi natija uchun <b>Chrome</b> yoki <b>Edge</b> brauzerini ishlating. Mikrofonga ruxsat bering va aniq, sekin gapiring. Til o'zgarganda suhbat qaytadan boshlanadi. Erkak ovozi mavjud bo'lmasa, tizim ovoz balandligini pasaytirib taqlid qiladi.
               </p>
             </div>
 
