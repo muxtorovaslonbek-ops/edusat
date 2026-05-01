@@ -78,6 +78,8 @@ export default function SpeakingTutor({ userName = "" }: Props) {
   const [translateText, setTranslateText] = useState("");
   const [translateResult, setTranslateResult] = useState("");
   const [translating, setTranslating] = useState(false);
+  const [translateFrom, setTranslateFrom] = useState<LangCode | "uz" | "auto">("auto");
+  const [translateTo, setTranslateTo] = useState<LangCode | "uz">("uz");
   const [popoverWord, setPopoverWord] = useState<{ word: string; translation: string; loading: boolean } | null>(null);
 
   const recogRef = useRef<any>(null);
@@ -114,17 +116,51 @@ export default function SpeakingTutor({ userName = "" }: Props) {
     const matching = voices.filter(v => v.lang?.toLowerCase().startsWith(prefix));
     const list = matching.length ? matching : voices;
 
-    const femaleHints = ["female", "samantha", "victoria", "karen", "moira", "tessa", "fiona", "zira", "hazel", "aria", "jenny", "emma", "ava", "susan", "anna", "katja", "marie", "amélie", "amelie", "yelda", "tingting", "milena"];
-    const maleHints = ["male", "daniel", "alex", "fred", "tom", "david", "mark", "george", "ivan", "minho", "max", "louis", "mehmet", "wei", "yunyang"];
+    const femaleHints = ["female", "samantha", "victoria", "karen", "moira", "tessa", "fiona", "zira", "hazel", "aria", "jenny", "emma", "ava", "susan", "anna", "katja", "marie", "amélie", "amelie", "yelda", "tingting", "milena", "google ".concat(prefix), "woman", "girl"];
+    const maleHints = ["male", "daniel", "alex", "fred", "tom", "david", "mark", "george", "ivan", "minho", "max", "louis", "mehmet", "wei", "yunyang", "diego", "jorge", "paul", "james", "matthew", "guy", "man"];
+    const avoidForMale = ["female", "woman", "girl"];
+    const avoidForFemale = ["male ", " male", "man ", "boy"];
 
-    const hints = gender === "male" ? maleHints : femaleHints;
+    const isMale = gender === "male";
+    const hints = isMale ? maleHints : femaleHints;
+    const avoid = isMale ? avoidForMale : avoidForFemale;
+
+    // Strict: prefer voices whose name matches the gender hint AND doesn't match opposite hint
     for (const h of hints) {
-      const f = list.find(v => v.name.toLowerCase().includes(h));
+      const f = list.find(v => {
+        const n = v.name.toLowerCase();
+        return n.includes(h) && !avoid.some(a => n.includes(a));
+      });
       if (f) return f;
     }
-    // fallback: any matching language voice
+    // Relaxed: any voice that doesn't match the opposite gender
+    const safe = list.find(v => !avoid.some(a => v.name.toLowerCase().includes(a)));
+    if (safe) return safe;
     return list[0];
   }, [voices, langInfo, gender]);
+
+  // Preview voice when settings change
+  const previewVoice = useCallback(() => {
+    if (!("speechSynthesis" in window)) return;
+    if (isActive) return; // don't interrupt session
+    window.speechSynthesis.cancel();
+    const samples: Record<LangCode, string> = {
+      en: "Hello, this is how I sound.",
+      ru: "Привет, вот так я звучу.",
+      ko: "안녕하세요, 제 목소리예요.",
+      de: "Hallo, so klinge ich.",
+      fr: "Bonjour, voici ma voix.",
+      tr: "Merhaba, sesim böyle.",
+      zh: "你好,这就是我的声音。",
+    };
+    const utter = new SpeechSynthesisUtterance(samples[lang]);
+    if (pickedVoice) utter.voice = pickedVoice;
+    utter.lang = pickedVoice?.lang || langInfo.bcp;
+    const params = VOICE_PARAMS[age][tone];
+    utter.pitch = gender === "male" ? Math.max(0.5, params.pitch - 0.4) : params.pitch;
+    utter.rate = params.rate;
+    window.speechSynthesis.speak(utter);
+  }, [pickedVoice, age, tone, gender, lang, langInfo, isActive]);
 
   // Pulse animation
   useEffect(() => {
@@ -147,7 +183,7 @@ export default function SpeakingTutor({ userName = "" }: Props) {
       if (pickedVoice) utter.voice = pickedVoice;
       utter.lang = pickedVoice?.lang || langInfo.bcp;
       const params = VOICE_PARAMS[age][tone];
-      utter.pitch = gender === "male" ? Math.max(0.6, params.pitch - 0.35) : params.pitch;
+      utter.pitch = gender === "male" ? Math.max(0.5, params.pitch - 0.4) : params.pitch;
       utter.rate = params.rate;
       utter.volume = 1;
       utter.onstart = () => setIsSpeaking(true);
@@ -325,15 +361,20 @@ export default function SpeakingTutor({ userName = "" }: Props) {
 
   const handleTranslateClick = useCallback(async () => {
     if (!translateText.trim()) return;
+    if (translateFrom === translateTo) {
+      setTranslateResult("Manba va maqsad til bir xil — boshqasini tanlang");
+      return;
+    }
     setTranslating(true);
     setTranslateResult("");
     try {
-      const t = await translate(translateText, "auto", lang === "en" ? "uz" : "uz");
-      setTranslateResult(t);
+      const t = await translate(translateText, translateFrom, translateTo);
+      setTranslateResult(t || "Tarjima topilmadi");
     } catch (e) {
-      setTranslateResult("Tarjima xatosi");
+      console.error(e);
+      setTranslateResult("Tarjima xatosi — qayta urinib ko'ring");
     } finally { setTranslating(false); }
-  }, [translateText, translate, lang]);
+  }, [translateText, translate, translateFrom, translateTo]);
 
   const handleWordClick = useCallback(async (word: string) => {
     const clean = word.replace(/[.,!?;:"()\[\]{}]/g, "").trim();
@@ -483,18 +524,62 @@ export default function SpeakingTutor({ userName = "" }: Props) {
 
       {/* Translator */}
       <div className="rounded-3xl border border-border bg-card p-5 shadow-premium">
-        <div className="mb-3 flex items-center gap-2">
+        <div className="mb-3 flex flex-wrap items-center gap-2">
           <Languages className="h-5 w-5 text-primary" />
           <h3 className="text-lg font-black text-foreground">Tarjimon</h3>
-          <span className="ml-auto text-xs text-muted-foreground">Istalgan til → O'zbek</span>
+          <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">
+            {translateFrom === "auto" ? "🌐 Avto-aniqlash" : translateFrom === "uz" ? "🇺🇿 O'zbek" : `${LANGS.find(l => l.code === translateFrom)?.flag} ${LANGS.find(l => l.code === translateFrom)?.label}`}
+            <span className="mx-1">→</span>
+            {translateTo === "uz" ? "🇺🇿 O'zbek" : `${LANGS.find(l => l.code === translateTo)?.flag} ${LANGS.find(l => l.code === translateTo)?.label}`}
+          </span>
         </div>
+
+        <div className="mb-3 grid gap-2 md:grid-cols-[1fr,auto,1fr] md:items-center">
+          <div>
+            <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Qaysi tildan</label>
+            <select
+              value={translateFrom}
+              onChange={(e) => setTranslateFrom(e.target.value as any)}
+              className="w-full rounded-2xl border border-border bg-background px-3 py-2 text-sm font-bold text-foreground outline-none focus:border-primary"
+            >
+              <option value="auto">🌐 Avto-aniqlash</option>
+              <option value="uz">🇺🇿 O'zbek</option>
+              {LANGS.map(l => <option key={l.code} value={l.code}>{l.flag} {l.label}</option>)}
+            </select>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              if (translateFrom === "auto") return;
+              const f = translateFrom; const t = translateTo;
+              setTranslateFrom(t as any); setTranslateTo(f as any);
+              setTranslateResult("");
+            }}
+            className="hidden md:inline-flex h-10 mt-5 items-center justify-center rounded-2xl border border-border bg-card px-3 text-foreground hover:bg-primary/10 hover:text-primary"
+            title="Tillarni almashtirish"
+          >
+            ⇄
+          </button>
+          <div>
+            <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Qaysi tilga</label>
+            <select
+              value={translateTo}
+              onChange={(e) => setTranslateTo(e.target.value as any)}
+              className="w-full rounded-2xl border border-border bg-background px-3 py-2 text-sm font-bold text-foreground outline-none focus:border-primary"
+            >
+              <option value="uz">🇺🇿 O'zbek</option>
+              {LANGS.map(l => <option key={l.code} value={l.code}>{l.flag} {l.label}</option>)}
+            </select>
+          </div>
+        </div>
+
         <div className="grid gap-3 md:grid-cols-2">
           <div>
             <textarea
               value={translateText}
               onChange={(e) => setTranslateText(e.target.value)}
               placeholder="Tarjima qilmoqchi bo'lgan so'z yoki gapni yozing..."
-              rows={3}
+              rows={4}
               className="w-full resize-none rounded-2xl border border-border bg-background p-3 text-sm text-foreground outline-none focus:border-primary"
             />
             <button
@@ -506,7 +591,7 @@ export default function SpeakingTutor({ userName = "" }: Props) {
               Tarjima qilish
             </button>
           </div>
-          <div className="rounded-2xl border border-border bg-background/60 p-3 text-sm text-foreground min-h-[100px]">
+          <div className="rounded-2xl border border-border bg-background/60 p-3 text-sm text-foreground min-h-[120px] whitespace-pre-wrap">
             {translating ? <span className="text-muted-foreground">Tarjima qilinmoqda…</span> : (translateResult || <span className="text-muted-foreground">Natija bu yerda chiqadi</span>)}
           </div>
         </div>
@@ -568,10 +653,13 @@ export default function SpeakingTutor({ userName = "" }: Props) {
               </div>
 
               <div>
-                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Jins</label>
+                <label className="mb-2 flex items-center justify-between text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  <span>Jins</span>
+                  <button type="button" onClick={previewVoice} className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary hover:bg-primary/20">▶ Ovozni eshitish</button>
+                </label>
                 <div className="grid grid-cols-2 gap-2">
                   {(["female", "male"] as Gender[]).map(g => (
-                    <button key={g} onClick={() => { if (isActive) stopSession(); setGender(g); }} className={`rounded-2xl border px-3 py-2 text-sm font-bold transition-all ${gender === g ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-foreground hover:border-primary/60"}`}>
+                    <button key={g} onClick={() => { if (isActive) stopSession(); setGender(g); setTimeout(previewVoice, 50); }} className={`rounded-2xl border px-3 py-2 text-sm font-bold transition-all ${gender === g ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-foreground hover:border-primary/60"}`}>
                       {g === "female" ? "👩 Ayol" : "👨 Erkak"}
                     </button>
                   ))}
@@ -582,7 +670,7 @@ export default function SpeakingTutor({ userName = "" }: Props) {
                 <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Yosh</label>
                 <div className="grid grid-cols-3 gap-2">
                   {(Object.keys(AGE_LABEL) as AgeGroup[]).map((a) => (
-                    <button key={a} onClick={() => setAge(a)} className={`rounded-2xl border px-3 py-2 text-sm font-bold transition-all ${age === a ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-foreground hover:border-primary/60"}`}>
+                    <button key={a} onClick={() => { setAge(a); setTimeout(previewVoice, 50); }} className={`rounded-2xl border px-3 py-2 text-sm font-bold transition-all ${age === a ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-foreground hover:border-primary/60"}`}>
                       {AGE_LABEL[a]}
                     </button>
                   ))}
@@ -593,7 +681,7 @@ export default function SpeakingTutor({ userName = "" }: Props) {
                 <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Ovoz toni</label>
                 <div className="grid grid-cols-2 gap-2">
                   {(Object.keys(TONE_LABEL) as VoiceTone[]).map((t) => (
-                    <button key={t} onClick={() => setTone(t)} className={`rounded-2xl border px-3 py-2 text-sm font-bold transition-all ${tone === t ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-foreground hover:border-primary/60"}`}>
+                    <button key={t} onClick={() => { setTone(t); setTimeout(previewVoice, 50); }} className={`rounded-2xl border px-3 py-2 text-sm font-bold transition-all ${tone === t ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-foreground hover:border-primary/60"}`}>
                       {TONE_LABEL[t]}
                     </button>
                   ))}
@@ -601,7 +689,7 @@ export default function SpeakingTutor({ userName = "" }: Props) {
               </div>
 
               <p className="rounded-2xl bg-primary/10 p-3 text-xs text-foreground">
-                💡 Eng yaxshi natija uchun <b>Chrome</b> yoki <b>Edge</b> brauzerini ishlating. Mikrofonga ruxsat bering va aniq, sekin gapiring. Til o'zgarganda suhbat qaytadan boshlanadi.
+                💡 Eng yaxshi natija uchun <b>Chrome</b> yoki <b>Edge</b> brauzerini ishlating. Mikrofonga ruxsat bering va aniq, sekin gapiring. Til o'zgarganda suhbat qaytadan boshlanadi. Erkak ovozi mavjud bo'lmasa, tizim ovoz balandligini pasaytirib taqlid qiladi.
               </p>
             </div>
 
