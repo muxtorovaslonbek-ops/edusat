@@ -116,17 +116,51 @@ export default function SpeakingTutor({ userName = "" }: Props) {
     const matching = voices.filter(v => v.lang?.toLowerCase().startsWith(prefix));
     const list = matching.length ? matching : voices;
 
-    const femaleHints = ["female", "samantha", "victoria", "karen", "moira", "tessa", "fiona", "zira", "hazel", "aria", "jenny", "emma", "ava", "susan", "anna", "katja", "marie", "amélie", "amelie", "yelda", "tingting", "milena"];
-    const maleHints = ["male", "daniel", "alex", "fred", "tom", "david", "mark", "george", "ivan", "minho", "max", "louis", "mehmet", "wei", "yunyang"];
+    const femaleHints = ["female", "samantha", "victoria", "karen", "moira", "tessa", "fiona", "zira", "hazel", "aria", "jenny", "emma", "ava", "susan", "anna", "katja", "marie", "amélie", "amelie", "yelda", "tingting", "milena", "google ".concat(prefix), "woman", "girl"];
+    const maleHints = ["male", "daniel", "alex", "fred", "tom", "david", "mark", "george", "ivan", "minho", "max", "louis", "mehmet", "wei", "yunyang", "diego", "jorge", "paul", "james", "matthew", "guy", "man"];
+    const avoidForMale = ["female", "woman", "girl"];
+    const avoidForFemale = ["male ", " male", "man ", "boy"];
 
-    const hints = gender === "male" ? maleHints : femaleHints;
+    const isMale = gender === "male";
+    const hints = isMale ? maleHints : femaleHints;
+    const avoid = isMale ? avoidForMale : avoidForFemale;
+
+    // Strict: prefer voices whose name matches the gender hint AND doesn't match opposite hint
     for (const h of hints) {
-      const f = list.find(v => v.name.toLowerCase().includes(h));
+      const f = list.find(v => {
+        const n = v.name.toLowerCase();
+        return n.includes(h) && !avoid.some(a => n.includes(a));
+      });
       if (f) return f;
     }
-    // fallback: any matching language voice
+    // Relaxed: any voice that doesn't match the opposite gender
+    const safe = list.find(v => !avoid.some(a => v.name.toLowerCase().includes(a)));
+    if (safe) return safe;
     return list[0];
   }, [voices, langInfo, gender]);
+
+  // Preview voice when settings change
+  const previewVoice = useCallback(() => {
+    if (!("speechSynthesis" in window)) return;
+    if (isActive) return; // don't interrupt session
+    window.speechSynthesis.cancel();
+    const samples: Record<LangCode, string> = {
+      en: "Hello, this is how I sound.",
+      ru: "Привет, вот так я звучу.",
+      ko: "안녕하세요, 제 목소리예요.",
+      de: "Hallo, so klinge ich.",
+      fr: "Bonjour, voici ma voix.",
+      tr: "Merhaba, sesim böyle.",
+      zh: "你好,这就是我的声音。",
+    };
+    const utter = new SpeechSynthesisUtterance(samples[lang]);
+    if (pickedVoice) utter.voice = pickedVoice;
+    utter.lang = pickedVoice?.lang || langInfo.bcp;
+    const params = VOICE_PARAMS[age][tone];
+    utter.pitch = gender === "male" ? Math.max(0.5, params.pitch - 0.4) : params.pitch;
+    utter.rate = params.rate;
+    window.speechSynthesis.speak(utter);
+  }, [pickedVoice, age, tone, gender, lang, langInfo, isActive]);
 
   // Pulse animation
   useEffect(() => {
