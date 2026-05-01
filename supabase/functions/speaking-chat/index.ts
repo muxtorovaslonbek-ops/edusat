@@ -14,6 +14,7 @@ const LANG_NAME: Record<string, string> = {
   fr: "French",
   tr: "Turkish",
   zh: "Mandarin Chinese",
+  uz: "Uzbek",
 };
 
 const buildSystemPrompt = (
