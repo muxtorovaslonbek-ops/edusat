@@ -361,15 +361,20 @@ export default function SpeakingTutor({ userName = "" }: Props) {
 
   const handleTranslateClick = useCallback(async () => {
     if (!translateText.trim()) return;
+    if (translateFrom === translateTo) {
+      setTranslateResult("Manba va maqsad til bir xil — boshqasini tanlang");
+      return;
+    }
     setTranslating(true);
     setTranslateResult("");
     try {
-      const t = await translate(translateText, "auto", lang === "en" ? "uz" : "uz");
-      setTranslateResult(t);
+      const t = await translate(translateText, translateFrom, translateTo);
+      setTranslateResult(t || "Tarjima topilmadi");
     } catch (e) {
-      setTranslateResult("Tarjima xatosi");
+      console.error(e);
+      setTranslateResult("Tarjima xatosi — qayta urinib ko'ring");
     } finally { setTranslating(false); }
-  }, [translateText, translate, lang]);
+  }, [translateText, translate, translateFrom, translateTo]);
 
   const handleWordClick = useCallback(async (word: string) => {
     const clean = word.replace(/[.,!?;:"()\[\]{}]/g, "").trim();
