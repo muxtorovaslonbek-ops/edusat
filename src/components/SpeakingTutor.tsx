@@ -183,7 +183,7 @@ export default function SpeakingTutor({ userName = "" }: Props) {
       if (pickedVoice) utter.voice = pickedVoice;
       utter.lang = pickedVoice?.lang || langInfo.bcp;
       const params = VOICE_PARAMS[age][tone];
-      utter.pitch = gender === "male" ? Math.max(0.6, params.pitch - 0.35) : params.pitch;
+      utter.pitch = gender === "male" ? Math.max(0.5, params.pitch - 0.4) : params.pitch;
       utter.rate = params.rate;
       utter.volume = 1;
       utter.onstart = () => setIsSpeaking(true);
