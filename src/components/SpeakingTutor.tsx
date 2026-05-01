@@ -9,12 +9,17 @@ import {
   Loader2,
   AlertCircle,
   X,
+  Languages,
+  RefreshCw,
 } from "lucide-react";
-import tutorImg from "@/assets/ai-tutor.jpg";
+import femaleImg from "@/assets/ai-tutor.jpg";
+import maleImg from "@/assets/ai-tutor-male.jpg";
 import { supabase } from "@/integrations/supabase/client";
 
 type VoiceTone = "warm" | "energetic" | "calm" | "playful";
 type AgeGroup = "young" | "adult" | "mature";
+type Gender = "female" | "male";
+type LangCode = "en" | "ru" | "ko" | "de" | "fr" | "tr" | "zh";
 type Msg = { role: "user" | "assistant"; content: string };
 
 const TONE_LABEL: Record<VoiceTone, string> = {
@@ -29,29 +34,38 @@ const AGE_LABEL: Record<AgeGroup, string> = {
   mature: "Yetuk (~45)",
 };
 
-// Browser TTS voice tuning — pitch & rate per (age, tone)
+const LANGS: { code: LangCode; label: string; flag: string; bcp: string; tutorF: string; tutorM: string }[] = [
+  { code: "en", label: "Ingliz tili",  flag: "🇬🇧", bcp: "en-US", tutorF: "Emma",   tutorM: "Adam"   },
+  { code: "ru", label: "Rus tili",     flag: "🇷🇺", bcp: "ru-RU", tutorF: "Anna",   tutorM: "Ivan"   },
+  { code: "ko", label: "Koreys tili",  flag: "🇰🇷", bcp: "ko-KR", tutorF: "Jiwoo",  tutorM: "Minho"  },
+  { code: "de", label: "Nemis tili",   flag: "🇩🇪", bcp: "de-DE", tutorF: "Lena",   tutorM: "Max"    },
+  { code: "fr", label: "Fransuz tili", flag: "🇫🇷", bcp: "fr-FR", tutorF: "Chloé",  tutorM: "Louis"  },
+  { code: "tr", label: "Turk tili",    flag: "🇹🇷", bcp: "tr-TR", tutorF: "Elif",   tutorM: "Mehmet" },
+  { code: "zh", label: "Xitoy tili",   flag: "🇨🇳", bcp: "zh-CN", tutorF: "Mei",    tutorM: "Wei"    },
+];
+
 const VOICE_PARAMS: Record<AgeGroup, Record<VoiceTone, { pitch: number; rate: number }>> = {
-  young:  { warm: { pitch: 1.25, rate: 1.02 }, energetic: { pitch: 1.35, rate: 1.15 }, calm: { pitch: 1.15, rate: 0.92 }, playful: { pitch: 1.4, rate: 1.1 } },
-  adult:  { warm: { pitch: 1.05, rate: 1.0 },  energetic: { pitch: 1.15, rate: 1.12 }, calm: { pitch: 0.98, rate: 0.92 }, playful: { pitch: 1.2, rate: 1.08 } },
-  mature: { warm: { pitch: 0.92, rate: 0.95 }, energetic: { pitch: 1.0,  rate: 1.05 }, calm: { pitch: 0.88, rate: 0.88 }, playful: { pitch: 1.05, rate: 1.0 } },
+  young:  { warm: { pitch: 1.2, rate: 1.0 },  energetic: { pitch: 1.3, rate: 1.12 }, calm: { pitch: 1.1, rate: 0.9 }, playful: { pitch: 1.35, rate: 1.08 } },
+  adult:  { warm: { pitch: 1.0, rate: 0.98 }, energetic: { pitch: 1.1, rate: 1.08 }, calm: { pitch: 0.95, rate: 0.9 }, playful: { pitch: 1.15, rate: 1.05 } },
+  mature: { warm: { pitch: 0.9, rate: 0.93 }, energetic: { pitch: 1.0, rate: 1.02 }, calm: { pitch: 0.85, rate: 0.88 }, playful: { pitch: 1.0, rate: 0.98 } },
 };
 
 const TONE_KEY = "edusat:speakingTone";
 const AGE_KEY  = "edusat:speakingAge";
+const GENDER_KEY = "edusat:speakingGender";
+const LANG_KEY = "edusat:speakingLang";
 
 interface Props { userName?: string; }
 
 export default function SpeakingTutor({ userName = "" }: Props) {
-  const [tone, setTone] = useState<VoiceTone>(() => {
-    try { return (localStorage.getItem(TONE_KEY) as VoiceTone) || "warm"; } catch { return "warm"; }
-  });
-  const [age, setAge] = useState<AgeGroup>(() => {
-    try { return (localStorage.getItem(AGE_KEY) as AgeGroup) || "adult"; } catch { return "adult"; }
-  });
+  const [tone, setTone] = useState<VoiceTone>(() => { try { return (localStorage.getItem(TONE_KEY) as VoiceTone) || "warm"; } catch { return "warm"; } });
+  const [age, setAge] = useState<AgeGroup>(() => { try { return (localStorage.getItem(AGE_KEY) as AgeGroup) || "adult"; } catch { return "adult"; } });
+  const [gender, setGender] = useState<Gender>(() => { try { return (localStorage.getItem(GENDER_KEY) as Gender) || "female"; } catch { return "female"; } });
+  const [lang, setLang] = useState<LangCode>(() => { try { return (localStorage.getItem(LANG_KEY) as LangCode) || "en"; } catch { return "en"; } });
 
   const [showSettings, setShowSettings] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isActive, setIsActive] = useState(false);     // session running
+  const [isActive, setIsActive] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
@@ -60,18 +74,32 @@ export default function SpeakingTutor({ userName = "" }: Props) {
   const [pulse, setPulse] = useState(0);
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
 
+  // Translator state
+  const [translateText, setTranslateText] = useState("");
+  const [translateResult, setTranslateResult] = useState("");
+  const [translating, setTranslating] = useState(false);
+  const [popoverWord, setPopoverWord] = useState<{ word: string; translation: string; loading: boolean } | null>(null);
+
   const recogRef = useRef<any>(null);
   const messagesRef = useRef<Msg[]>([]);
   const isActiveRef = useRef(false);
   const isSpeakingRef = useRef(false);
+  const lastAssistantRef = useRef<string>("");
+  const silenceCountRef = useRef(0);
+  const restartTimerRef = useRef<number | null>(null);
+
+  const langInfo = useMemo(() => LANGS.find(l => l.code === lang) || LANGS[0], [lang]);
+  const tutorName = gender === "female" ? langInfo.tutorF : langInfo.tutorM;
+  const tutorImg = gender === "female" ? femaleImg : maleImg;
 
   useEffect(() => { try { localStorage.setItem(TONE_KEY, tone); } catch {} }, [tone]);
   useEffect(() => { try { localStorage.setItem(AGE_KEY, age); } catch {} }, [age]);
+  useEffect(() => { try { localStorage.setItem(GENDER_KEY, gender); } catch {} }, [gender]);
+  useEffect(() => { try { localStorage.setItem(LANG_KEY, lang); } catch {} }, [lang]);
   useEffect(() => { messagesRef.current = transcript; }, [transcript]);
   useEffect(() => { isActiveRef.current = isActive; }, [isActive]);
   useEffect(() => { isSpeakingRef.current = isSpeaking; }, [isSpeaking]);
 
-  // Load TTS voices
   useEffect(() => {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
     const load = () => setVoices(window.speechSynthesis.getVoices());
@@ -80,20 +108,25 @@ export default function SpeakingTutor({ userName = "" }: Props) {
     return () => { window.speechSynthesis.onvoiceschanged = null; };
   }, []);
 
-  // Pick best English female voice
   const pickedVoice = useMemo(() => {
     if (!voices.length) return null;
-    const en = voices.filter(v => v.lang?.toLowerCase().startsWith("en"));
-    const list = en.length ? en : voices;
-    const femaleHints = ["female", "samantha", "victoria", "karen", "moira", "tessa", "fiona", "google uk english female", "google us english", "zira", "hazel", "aria", "jenny", "emma", "ava", "susan"];
-    for (const h of femaleHints) {
+    const prefix = langInfo.bcp.split("-")[0].toLowerCase();
+    const matching = voices.filter(v => v.lang?.toLowerCase().startsWith(prefix));
+    const list = matching.length ? matching : voices;
+
+    const femaleHints = ["female", "samantha", "victoria", "karen", "moira", "tessa", "fiona", "zira", "hazel", "aria", "jenny", "emma", "ava", "susan", "anna", "katja", "marie", "amélie", "amelie", "yelda", "tingting", "milena"];
+    const maleHints = ["male", "daniel", "alex", "fred", "tom", "david", "mark", "george", "ivan", "minho", "max", "louis", "mehmet", "wei", "yunyang"];
+
+    const hints = gender === "male" ? maleHints : femaleHints;
+    for (const h of hints) {
       const f = list.find(v => v.name.toLowerCase().includes(h));
       if (f) return f;
     }
+    // fallback: any matching language voice
     return list[0];
-  }, [voices]);
+  }, [voices, langInfo, gender]);
 
-  // Pulse animation while speaking
+  // Pulse animation
   useEffect(() => {
     if (!isActive) { setPulse(0); return; }
     let raf = 0;
@@ -112,9 +145,9 @@ export default function SpeakingTutor({ userName = "" }: Props) {
       window.speechSynthesis.cancel();
       const utter = new SpeechSynthesisUtterance(text);
       if (pickedVoice) utter.voice = pickedVoice;
-      utter.lang = pickedVoice?.lang || "en-US";
+      utter.lang = pickedVoice?.lang || langInfo.bcp;
       const params = VOICE_PARAMS[age][tone];
-      utter.pitch = params.pitch;
+      utter.pitch = gender === "male" ? Math.max(0.6, params.pitch - 0.35) : params.pitch;
       utter.rate = params.rate;
       utter.volume = 1;
       utter.onstart = () => setIsSpeaking(true);
@@ -122,7 +155,40 @@ export default function SpeakingTutor({ userName = "" }: Props) {
       utter.onerror = () => { setIsSpeaking(false); resolve(); };
       window.speechSynthesis.speak(utter);
     });
-  }, [pickedVoice, age, tone]);
+  }, [pickedVoice, age, tone, gender, langInfo]);
+
+  const stopRecog = useCallback(() => {
+    if (recogRef.current) {
+      try { recogRef.current.onend = null; recogRef.current.onerror = null; recogRef.current.stop(); } catch {}
+      recogRef.current = null;
+    }
+  }, []);
+
+  const sendToAI = useCallback(async (msgs: Msg[]) => {
+    setIsThinking(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("speaking-chat", {
+        body: { action: "chat", messages: msgs, tone, age, gender, lang, userName, tutorName },
+      });
+      setIsThinking(false);
+      if (error) throw error;
+      const reply: string = (data as any)?.reply || "";
+      if (!reply) {
+        if (isActiveRef.current) scheduleListen(300);
+        return;
+      }
+      lastAssistantRef.current = reply;
+      const updated = [...msgs, { role: "assistant" as const, content: reply }];
+      setTranscript(updated);
+      await speak(reply);
+      if (isActiveRef.current) scheduleListen(250);
+    } catch (e: any) {
+      setIsThinking(false);
+      console.error(e);
+      setError("AI bilan bogʻlanishda xatolik. Qayta urinib koʻring.");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tone, age, gender, lang, userName, tutorName, speak]);
 
   const startListening = useCallback(() => {
     const SpeechRecognition: any = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -130,11 +196,11 @@ export default function SpeakingTutor({ userName = "" }: Props) {
       setError("Brauzeringiz nutq tanishni qoʻllab-quvvatlamaydi. Chrome yoki Edge ishlating.");
       return;
     }
-    if (recogRef.current) {
-      try { recogRef.current.stop(); } catch {}
-    }
+    if (!isActiveRef.current || isSpeakingRef.current) return;
+    stopRecog();
+
     const recog = new SpeechRecognition();
-    recog.lang = "en-US";
+    recog.lang = langInfo.bcp;
     recog.continuous = false;
     recog.interimResults = true;
     recog.maxAlternatives = 1;
@@ -153,89 +219,148 @@ export default function SpeakingTutor({ userName = "" }: Props) {
     recog.onerror = (e: any) => {
       console.warn("SR error:", e.error);
       setIsListening(false);
-      if (e.error === "not-allowed") {
+      if (e.error === "not-allowed" || e.error === "service-not-allowed") {
         setError("Mikrofonga ruxsat berilmadi. Brauzer sozlamalarini tekshiring.");
         setIsActive(false);
         isActiveRef.current = false;
-      } else if (e.error === "no-speech") {
-        // restart silently if still active
-        if (isActiveRef.current && !isSpeakingRef.current) setTimeout(() => startListening(), 200);
       }
+      // other errors: let onend handle restart
     };
     recog.onend = async () => {
       setIsListening(false);
       const text = finalText.trim();
       setPartial("");
       if (!text) {
-        if (isActiveRef.current && !isSpeakingRef.current) setTimeout(() => startListening(), 300);
+        // user said nothing
+        silenceCountRef.current += 1;
+        if (!isActiveRef.current || isSpeakingRef.current) return;
+        // After 2 silent attempts, repeat the last question
+        if (silenceCountRef.current >= 2 && lastAssistantRef.current) {
+          silenceCountRef.current = 0;
+          await speak(lastAssistantRef.current);
+          if (isActiveRef.current) scheduleListen(300);
+        } else {
+          scheduleListen(400);
+        }
         return;
       }
+      silenceCountRef.current = 0;
       const userMsg: Msg = { role: "user", content: text };
       const newMessages = [...messagesRef.current, userMsg];
       setTranscript(newMessages);
       await sendToAI(newMessages);
     };
     recogRef.current = recog;
-    try { recog.start(); } catch (err) { console.warn(err); }
-  }, []);
+    try { recog.start(); } catch (err) { console.warn(err); scheduleListen(500); }
+  }, [langInfo, stopRecog, speak, sendToAI]);
 
-  const sendToAI = useCallback(async (msgs: Msg[]) => {
-    setIsThinking(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("speaking-chat", {
-        body: { messages: msgs, tone, age, userName },
-      });
-      setIsThinking(false);
-      if (error) throw error;
-      const reply: string = (data as any)?.reply || "";
-      if (!reply) {
-        if (isActiveRef.current) setTimeout(() => startListening(), 300);
-        return;
-      }
-      const updated = [...msgs, { role: "assistant" as const, content: reply }];
-      setTranscript(updated);
-      await speak(reply);
-      if (isActiveRef.current) setTimeout(() => startListening(), 250);
-    } catch (e: any) {
-      setIsThinking(false);
-      console.error(e);
-      setError("AI bilan bogʻlanishda xatolik. Qayta urinib koʻring.");
-    }
-  }, [tone, age, userName, speak, startListening]);
+  const scheduleListen = useCallback((delay: number) => {
+    if (restartTimerRef.current) window.clearTimeout(restartTimerRef.current);
+    restartTimerRef.current = window.setTimeout(() => {
+      if (isActiveRef.current && !isSpeakingRef.current) startListening();
+    }, delay);
+  }, [startListening]);
 
   const startSession = useCallback(async () => {
     setError(null);
-    try {
-      await navigator.mediaDevices.getUserMedia({ audio: true });
-    } catch {
-      setError("Mikrofonga ruxsat kerak.");
-      return;
-    }
+    try { await navigator.mediaDevices.getUserMedia({ audio: true }); }
+    catch { setError("Mikrofonga ruxsat kerak."); return; }
+
     setIsActive(true);
     isActiveRef.current = true;
     setTranscript([]);
     messagesRef.current = [];
-    // Greeting
-    const greeting = `Hi ${userName || "there"}! I'm Emma, your English speaking partner. How are you doing today?`;
+    silenceCountRef.current = 0;
+
+    // Localized greeting in target language
+    const greetings: Record<LangCode, string> = {
+      en: `Hi ${userName || "there"}! I'm ${tutorName}, your ${langInfo.label.toLowerCase()} speaking partner. How are you today?`,
+      ru: `Привет, ${userName || "друг"}! Меня зовут ${tutorName}, я твой собеседник по русскому языку. Как у тебя дела?`,
+      ko: `안녕하세요, ${userName || "친구"}! 저는 ${tutorName}이에요. 오늘 기분이 어떠세요?`,
+      de: `Hallo ${userName || "Freund"}! Ich bin ${tutorName}, dein Deutsch-Sprachpartner. Wie geht es dir heute?`,
+      fr: `Salut ${userName || "ami"} ! Je suis ${tutorName}, ton partenaire de français. Comment vas-tu aujourd'hui ?`,
+      tr: `Merhaba ${userName || "arkadaş"}! Ben ${tutorName}, Türkçe konuşma partnerinim. Bugün nasılsın?`,
+      zh: `你好 ${userName || "朋友"}!我是 ${tutorName},你的中文聊天伙伴。你今天好吗?`,
+    };
+    const greeting = greetings[lang];
+    lastAssistantRef.current = greeting;
     const initial: Msg[] = [{ role: "assistant", content: greeting }];
     setTranscript(initial);
     messagesRef.current = initial;
     await speak(greeting);
-    if (isActiveRef.current) startListening();
-  }, [userName, speak, startListening]);
+    if (isActiveRef.current) scheduleListen(300);
+  }, [userName, tutorName, langInfo, lang, speak, scheduleListen]);
 
   const stopSession = useCallback(() => {
     setIsActive(false);
     isActiveRef.current = false;
-    try { recogRef.current?.stop(); } catch {}
+    if (restartTimerRef.current) { window.clearTimeout(restartTimerRef.current); restartTimerRef.current = null; }
+    stopRecog();
     if ("speechSynthesis" in window) window.speechSynthesis.cancel();
     setIsListening(false);
     setIsSpeaking(false);
     setIsThinking(false);
     setPartial("");
-  }, []);
+  }, [stopRecog]);
+
+  const repeatLast = useCallback(async () => {
+    if (!lastAssistantRef.current) return;
+    stopRecog();
+    await speak(lastAssistantRef.current);
+    if (isActiveRef.current) scheduleListen(250);
+  }, [stopRecog, speak, scheduleListen]);
 
   useEffect(() => () => stopSession(), [stopSession]);
+
+  // Translator
+  const translate = useCallback(async (text: string, from: string = lang, to: string = "uz") => {
+    const t = text.trim();
+    if (!t) return "";
+    const { data, error } = await supabase.functions.invoke("speaking-chat", {
+      body: { action: "translate", text: t, from, to },
+    });
+    if (error) throw error;
+    return ((data as any)?.translation as string) || "";
+  }, [lang]);
+
+  const handleTranslateClick = useCallback(async () => {
+    if (!translateText.trim()) return;
+    setTranslating(true);
+    setTranslateResult("");
+    try {
+      const t = await translate(translateText, "auto", lang === "en" ? "uz" : "uz");
+      setTranslateResult(t);
+    } catch (e) {
+      setTranslateResult("Tarjima xatosi");
+    } finally { setTranslating(false); }
+  }, [translateText, translate, lang]);
+
+  const handleWordClick = useCallback(async (word: string) => {
+    const clean = word.replace(/[.,!?;:"()\[\]{}]/g, "").trim();
+    if (!clean) return;
+    setPopoverWord({ word: clean, translation: "", loading: true });
+    try {
+      const t = await translate(clean, lang, "uz");
+      setPopoverWord({ word: clean, translation: t, loading: false });
+    } catch {
+      setPopoverWord({ word: clean, translation: "Xatolik", loading: false });
+    }
+  }, [translate, lang]);
+
+  const renderClickable = (text: string) => {
+    const parts = text.split(/(\s+)/);
+    return parts.map((p, i) => {
+      if (/^\s+$/.test(p)) return <span key={i}>{p}</span>;
+      return (
+        <button
+          key={i}
+          onClick={() => handleWordClick(p)}
+          className="hover:underline decoration-dotted underline-offset-2 hover:text-primary transition-colors"
+          title="Tarjima qilish uchun bosing"
+        >{p}</button>
+      );
+    });
+  };
 
   const statusLabel = isThinking ? "Oʻylayapti…" : isSpeaking ? "Gapiryapti…" : isListening ? "Tinglayapti…" : isActive ? "Tayyor" : "Boshlash uchun bosing";
 
@@ -247,16 +372,29 @@ export default function SpeakingTutor({ userName = "" }: Props) {
             <Sparkles className="h-3.5 w-3.5" /> AI Speaking Practice
           </p>
           <h2 className="mt-3 text-3xl font-black text-foreground md:text-4xl">
-            Emma bilan ingliz tilida gaplash
+            {tutorName} bilan {langInfo.label.toLowerCase()}da gaplash
           </h2>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground md:text-base">
-            Haqiqiy odam bilan suhbatlashayotganday — Emma sizni eshitadi, savol beradi va javob qaytaradi. Hech qanday sozlash kerak emas, shunchaki "Suhbatni boshlash" tugmasini bosing va mikrofonga gapiring.
+            Haqiqiy odam bilan suhbatlashayotganday — {tutorName} sizni eshitadi, savol beradi va javob qaytaradi. Til, jins, ovoz, yoshni o'zingiz tanlang.
           </p>
         </div>
         <button onClick={() => setShowSettings(true)} className="inline-flex items-center gap-2 rounded-2xl border border-border bg-card px-4 py-2 text-sm font-bold text-foreground transition-all hover:bg-primary/10 hover:text-primary">
           <Settings2 className="h-4 w-4" /> Sozlamalar
         </button>
       </header>
+
+      {/* Quick language picker */}
+      <div className="flex flex-wrap gap-2">
+        {LANGS.map(l => (
+          <button
+            key={l.code}
+            onClick={() => { if (isActive) stopSession(); setLang(l.code); }}
+            className={`inline-flex items-center gap-2 rounded-2xl border px-3 py-2 text-sm font-bold transition-all ${lang === l.code ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-foreground hover:border-primary/60"}`}
+          >
+            <span className="text-base">{l.flag}</span> {l.label}
+          </button>
+        ))}
+      </div>
 
       <div className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-primary/5 via-card to-card p-6 shadow-premium md:p-10">
         <div className="pointer-events-none absolute inset-0 overflow-hidden opacity-40">
@@ -270,7 +408,7 @@ export default function SpeakingTutor({ userName = "" }: Props) {
             <div className="absolute inset-0 rounded-full bg-primary/30 blur-2xl transition-all duration-300" style={{ transform: `scale(${1 + pulse * 0.5})`, opacity: 0.4 + pulse * 0.6 }} />
             <div className={`absolute inset-0 rounded-full border-2 border-primary/40 transition-all duration-200 ${isActive ? "animate-pulse" : ""}`} style={{ transform: `scale(${1.1 + pulse * 0.15})` }} />
             <div className="relative h-56 w-56 overflow-hidden rounded-full border-4 border-primary/60 shadow-premium md:h-64 md:w-64">
-              <img src={tutorImg} alt="Emma — AI ingliz tili oʻqituvchisi" className="h-full w-full object-cover" width={512} height={512} />
+              <img src={tutorImg} alt={`${tutorName} — AI ${langInfo.label} oʻqituvchisi`} className="h-full w-full object-cover" width={512} height={512} />
               {isSpeaking && (
                 <div className="absolute inset-x-0 bottom-0 flex h-16 items-end justify-center gap-1 bg-gradient-to-t from-primary/40 to-transparent pb-3">
                   {[0, 1, 2, 3, 4].map((i) => (
@@ -291,8 +429,8 @@ export default function SpeakingTutor({ userName = "" }: Props) {
           <div className="flex flex-col gap-4">
             <div className="rounded-2xl border border-border bg-background/60 p-4 backdrop-blur">
               <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Hozirgi sozlama</p>
-              <p className="mt-1 text-sm font-bold text-foreground">{AGE_LABEL[age]} • {TONE_LABEL[tone]}</p>
-              <p className="mt-0.5 text-xs text-muted-foreground">Emma — ingliz tili suhbat sherigi</p>
+              <p className="mt-1 text-sm font-bold text-foreground">{langInfo.flag} {langInfo.label} • {gender === "female" ? "Ayol" : "Erkak"} • {AGE_LABEL[age]} • {TONE_LABEL[tone]}</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">{tutorName} — sizning shaxsiy suhbat sherigingiz</p>
             </div>
 
             {error && (
@@ -308,17 +446,22 @@ export default function SpeakingTutor({ userName = "" }: Props) {
                   <Phone className="h-5 w-5" /> Suhbatni boshlash
                 </button>
               ) : (
-                <button onClick={stopSession} className="inline-flex items-center gap-2 rounded-2xl bg-destructive px-6 py-3 text-base font-black text-destructive-foreground transition-all hover:opacity-90">
-                  <PhoneOff className="h-5 w-5" /> Tugatish
-                </button>
+                <>
+                  <button onClick={stopSession} className="inline-flex items-center gap-2 rounded-2xl bg-destructive px-6 py-3 text-base font-black text-destructive-foreground transition-all hover:opacity-90">
+                    <PhoneOff className="h-5 w-5" /> Tugatish
+                  </button>
+                  <button onClick={repeatLast} className="inline-flex items-center gap-2 rounded-2xl border border-border bg-card px-5 py-3 text-sm font-black text-foreground transition-all hover:bg-primary/10 hover:text-primary" title="Oxirgi savolni qayta eshiting">
+                    <RefreshCw className="h-4 w-4" /> Qaytarish
+                  </button>
+                </>
               )}
             </div>
 
             {(transcript.length > 0 || partial) && (
               <div className="max-h-72 space-y-2 overflow-y-auto rounded-2xl border border-border bg-background/40 p-3">
                 {transcript.map((m, i) => (
-                  <div key={i} className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm ${m.role === "user" ? "ml-auto bg-primary text-primary-foreground" : "bg-muted text-foreground"}`}>
-                    {m.content}
+                  <div key={i} className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm leading-relaxed ${m.role === "user" ? "ml-auto bg-primary text-primary-foreground" : "bg-muted text-foreground"}`}>
+                    {m.role === "assistant" ? renderClickable(m.content) : m.content}
                   </div>
                 ))}
                 {partial && (
@@ -328,19 +471,51 @@ export default function SpeakingTutor({ userName = "" }: Props) {
                 )}
                 {isThinking && (
                   <div className="flex items-center gap-2 rounded-2xl bg-muted px-3 py-2 text-sm text-foreground">
-                    <Loader2 className="h-4 w-4 animate-spin" /> Emma oʻylayapti…
+                    <Loader2 className="h-4 w-4 animate-spin" /> {tutorName} oʻylayapti…
                   </div>
                 )}
+                <p className="pt-1 text-center text-[10px] text-muted-foreground">💡 Bilmagan so'zingizni bosing — uzbekcha tarjima chiqadi</p>
               </div>
             )}
           </div>
         </div>
       </div>
 
+      {/* Translator */}
+      <div className="rounded-3xl border border-border bg-card p-5 shadow-premium">
+        <div className="mb-3 flex items-center gap-2">
+          <Languages className="h-5 w-5 text-primary" />
+          <h3 className="text-lg font-black text-foreground">Tarjimon</h3>
+          <span className="ml-auto text-xs text-muted-foreground">Istalgan til → O'zbek</span>
+        </div>
+        <div className="grid gap-3 md:grid-cols-2">
+          <div>
+            <textarea
+              value={translateText}
+              onChange={(e) => setTranslateText(e.target.value)}
+              placeholder="Tarjima qilmoqchi bo'lgan so'z yoki gapni yozing..."
+              rows={3}
+              className="w-full resize-none rounded-2xl border border-border bg-background p-3 text-sm text-foreground outline-none focus:border-primary"
+            />
+            <button
+              onClick={handleTranslateClick}
+              disabled={translating || !translateText.trim()}
+              className="premium-button mt-2 inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-sm font-black disabled:opacity-50"
+            >
+              {translating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Languages className="h-4 w-4" />}
+              Tarjima qilish
+            </button>
+          </div>
+          <div className="rounded-2xl border border-border bg-background/60 p-3 text-sm text-foreground min-h-[100px]">
+            {translating ? <span className="text-muted-foreground">Tarjima qilinmoqda…</span> : (translateResult || <span className="text-muted-foreground">Natija bu yerda chiqadi</span>)}
+          </div>
+        </div>
+      </div>
+
       <div className="grid gap-3 md:grid-cols-3">
         {[
-          { icon: Mic, title: "Bemalol gapiring", text: "Xato qilishdan qoʻrqmang — Emma sabrli." },
-          { icon: Volume2, title: "Tinglang", text: "Emmaning talaffuziga eʼtibor bering." },
+          { icon: Mic, title: "Bemalol gapiring", text: "Xato qilishdan qoʻrqmang — sabrli o'qituvchi." },
+          { icon: Volume2, title: "Tinglang", text: "Tabiiy talaffuzga eʼtibor bering." },
           { icon: Sparkles, title: "Mavzular", text: "Sayohat, kino, kelajak — istalgan mavzu." },
         ].map(({ icon: Icon, title, text }) => (
           <div key={title} className="rounded-2xl border border-border bg-card p-4">
@@ -351,17 +526,58 @@ export default function SpeakingTutor({ userName = "" }: Props) {
         ))}
       </div>
 
+      {/* Word translation popover */}
+      {popoverWord && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-background/80 p-4 backdrop-blur-xl" onClick={() => setPopoverWord(null)}>
+          <div className="w-full max-w-sm rounded-3xl border border-border bg-card p-6 shadow-premium" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{langInfo.flag} {langInfo.label}</p>
+              <button onClick={() => setPopoverWord(null)} className="rounded-xl p-1.5 text-muted-foreground hover:bg-primary/10 hover:text-primary"><X className="h-4 w-4" /></button>
+            </div>
+            <p className="mt-2 text-2xl font-black text-foreground">{popoverWord.word}</p>
+            <div className="mt-4 rounded-2xl bg-primary/10 p-4">
+              <p className="text-xs font-bold uppercase tracking-wider text-primary">🇺🇿 O'zbekcha</p>
+              <p className="mt-1 text-lg font-bold text-foreground">
+                {popoverWord.loading ? <Loader2 className="h-5 w-5 animate-spin" /> : popoverWord.translation}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showSettings && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-background/80 p-4 backdrop-blur-xl" onClick={() => setShowSettings(false)}>
-          <div className="w-full max-w-lg rounded-3xl border border-border bg-card p-6 shadow-premium" onClick={(e) => e.stopPropagation()}>
+          <div className="w-full max-w-lg rounded-3xl border border-border bg-card p-6 shadow-premium max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between">
-              <h3 className="text-2xl font-black text-foreground">Emma sozlamalari</h3>
+              <h3 className="text-2xl font-black text-foreground">{tutorName} sozlamalari</h3>
               <button onClick={() => setShowSettings(false)} className="rounded-2xl p-2 text-muted-foreground hover:bg-primary/10 hover:text-primary">
                 <X className="h-5 w-5" />
               </button>
             </div>
 
             <div className="mt-5 space-y-5">
+              <div>
+                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Til</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {LANGS.map(l => (
+                    <button key={l.code} onClick={() => { if (isActive) stopSession(); setLang(l.code); }} className={`inline-flex items-center gap-2 rounded-2xl border px-3 py-2 text-sm font-bold transition-all ${lang === l.code ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-foreground hover:border-primary/60"}`}>
+                      <span>{l.flag}</span> {l.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Jins</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {(["female", "male"] as Gender[]).map(g => (
+                    <button key={g} onClick={() => { if (isActive) stopSession(); setGender(g); }} className={`rounded-2xl border px-3 py-2 text-sm font-bold transition-all ${gender === g ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-foreground hover:border-primary/60"}`}>
+                      {g === "female" ? "👩 Ayol" : "👨 Erkak"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div>
                 <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Yosh</label>
                 <div className="grid grid-cols-3 gap-2">
@@ -385,7 +601,7 @@ export default function SpeakingTutor({ userName = "" }: Props) {
               </div>
 
               <p className="rounded-2xl bg-primary/10 p-3 text-xs text-foreground">
-                💡 Eng yaxshi natija uchun <b>Chrome</b> yoki <b>Edge</b> brauzerini ishlating. Mikrofonga ruxsat bering va aniq, sekin gapiring.
+                💡 Eng yaxshi natija uchun <b>Chrome</b> yoki <b>Edge</b> brauzerini ishlating. Mikrofonga ruxsat bering va aniq, sekin gapiring. Til o'zgarganda suhbat qaytadan boshlanadi.
               </p>
             </div>
 
