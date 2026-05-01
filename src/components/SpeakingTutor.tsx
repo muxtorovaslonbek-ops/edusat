@@ -78,6 +78,8 @@ export default function SpeakingTutor({ userName = "" }: Props) {
   const [translateText, setTranslateText] = useState("");
   const [translateResult, setTranslateResult] = useState("");
   const [translating, setTranslating] = useState(false);
+  const [translateFrom, setTranslateFrom] = useState<LangCode | "uz" | "auto">("auto");
+  const [translateTo, setTranslateTo] = useState<LangCode | "uz">("uz");
   const [popoverWord, setPopoverWord] = useState<{ word: string; translation: string; loading: boolean } | null>(null);
 
   const recogRef = useRef<any>(null);
