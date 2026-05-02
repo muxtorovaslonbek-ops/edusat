@@ -104,6 +104,7 @@ export default function SpeakingTutor({ userName = "" }: Props) {
   useEffect(() => { try { localStorage.setItem(AGE_KEY, age); } catch {} }, [age]);
   useEffect(() => { try { localStorage.setItem(GENDER_KEY, gender); } catch {} }, [gender]);
   useEffect(() => { try { localStorage.setItem(LANG_KEY, lang); } catch {} }, [lang]);
+  useEffect(() => { try { localStorage.setItem(SPEED_KEY, speed); } catch {} }, [speed]);
   useEffect(() => { messagesRef.current = transcript; }, [transcript]);
   useEffect(() => { isActiveRef.current = isActive; }, [isActive]);
   useEffect(() => { isSpeakingRef.current = isSpeaking; }, [isSpeaking]);
