@@ -686,8 +686,19 @@ export default function SpeakingTutor({ userName = "" }: Props) {
                 </div>
               </div>
 
+              <div>
+                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Gapirish tezligi</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {(Object.keys(SPEED_LABEL) as SpeedMode[]).map((s) => (
+                    <button key={s} onClick={() => { setSpeed(s); setTimeout(previewVoice, 50); }} className={`rounded-2xl border px-3 py-2 text-sm font-bold transition-all ${speed === s ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-foreground hover:border-primary/60"}`}>
+                      {SPEED_LABEL[s]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <p className="rounded-2xl bg-primary/10 p-3 text-xs text-foreground">
-                💡 Eng yaxshi natija uchun <b>Chrome</b> yoki <b>Edge</b> brauzerini ishlating. Mikrofonga ruxsat bering va aniq, sekin gapiring. Til o'zgarganda suhbat qaytadan boshlanadi. Erkak ovozi mavjud bo'lmasa, tizim ovoz balandligini pasaytirib taqlid qiladi.
+                💡 Eng yaxshi natija uchun <b>Chrome</b> yoki <b>Edge</b> brauzerini ishlating. Mikrofonga ruxsat bering va aniq, sekin gapiring. Til o'zgarganda suhbat qaytadan boshlanadi. Erkak ovozi mavjud bo'lmasa, tizim past pitch bilan taqlid qiladi.
               </p>
             </div>
 
