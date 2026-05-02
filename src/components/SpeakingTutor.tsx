@@ -164,10 +164,10 @@ export default function SpeakingTutor({ userName = "" }: Props) {
     if (pickedVoice) utter.voice = pickedVoice;
     utter.lang = pickedVoice?.lang || langInfo.bcp;
     const params = VOICE_PARAMS[age][tone];
-    utter.pitch = gender === "male" ? Math.max(0.5, params.pitch - 0.4) : params.pitch;
-    utter.rate = params.rate;
+    utter.pitch = gender === "male" ? Math.max(0.3, params.pitch - 0.7) : Math.min(2.0, params.pitch + 0.1);
+    utter.rate = params.rate * SPEED_MULT[speed];
     window.speechSynthesis.speak(utter);
-  }, [pickedVoice, age, tone, gender, lang, langInfo, isActive]);
+  }, [pickedVoice, age, tone, gender, lang, langInfo, isActive, speed]);
 
   // Pulse animation
   useEffect(() => {
