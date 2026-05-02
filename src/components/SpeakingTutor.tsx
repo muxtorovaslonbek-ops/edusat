@@ -20,7 +20,11 @@ type VoiceTone = "warm" | "energetic" | "calm" | "playful";
 type AgeGroup = "young" | "adult" | "mature";
 type Gender = "female" | "male";
 type LangCode = "en" | "ru" | "ko" | "de" | "fr" | "tr" | "zh";
+type SpeedMode = "slow" | "normal" | "fast";
 type Msg = { role: "user" | "assistant"; content: string };
+
+const SPEED_LABEL: Record<SpeedMode, string> = { slow: "🐢 Sekin", normal: "🚶 Normal", fast: "⚡ Tez" };
+const SPEED_MULT: Record<SpeedMode, number> = { slow: 0.75, normal: 1.0, fast: 1.25 };
 
 const TONE_LABEL: Record<VoiceTone, string> = {
   warm: "Iliq",
