@@ -274,20 +274,11 @@ export default function SpeakingTutor({ userName = "" }: Props) {
       const text = finalText.trim();
       setPartial("");
       if (!text) {
-        // user said nothing
-        silenceCountRef.current += 1;
+        // user said nothing — just keep listening silently, do NOT repeat the question
         if (!isActiveRef.current || isSpeakingRef.current) return;
-        // After 2 silent attempts, repeat the last question
-        if (silenceCountRef.current >= 2 && lastAssistantRef.current) {
-          silenceCountRef.current = 0;
-          await speak(lastAssistantRef.current);
-          if (isActiveRef.current) scheduleListen(300);
-        } else {
-          scheduleListen(400);
-        }
+        scheduleListen(400);
         return;
       }
-      silenceCountRef.current = 0;
       const userMsg: Msg = { role: "user", content: text };
       const newMessages = [...messagesRef.current, userMsg];
       setTranscript(newMessages);
