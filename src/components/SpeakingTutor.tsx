@@ -468,7 +468,7 @@ export default function SpeakingTutor({ userName = "" }: Props) {
           <div className="flex flex-col gap-4">
             <div className="rounded-2xl border border-border bg-background/60 p-4 backdrop-blur">
               <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Hozirgi sozlama</p>
-              <p className="mt-1 text-sm font-bold text-foreground">{langInfo.flag} {langInfo.label} • {gender === "female" ? "Ayol" : "Erkak"} • {AGE_LABEL[age]} • {TONE_LABEL[tone]}</p>
+              <p className="mt-1 text-sm font-bold text-foreground">{langInfo.flag} {langInfo.label} • {gender === "female" ? "👩 Ayol" : "👨 Erkak"} • {AGE_LABEL[age]} • {TONE_LABEL[tone]} • {SPEED_LABEL[speed]}</p>
               <p className="mt-0.5 text-xs text-muted-foreground">{tutorName} — sizning shaxsiy suhbat sherigingiz</p>
             </div>
 
