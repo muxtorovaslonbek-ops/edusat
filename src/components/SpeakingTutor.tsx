@@ -123,10 +123,10 @@ export default function SpeakingTutor({ userName = "" }: Props) {
     const matching = voices.filter(v => v.lang?.toLowerCase().startsWith(prefix));
     const list = matching.length ? matching : voices;
 
-    const femaleHints = ["female", "samantha", "victoria", "karen", "moira", "tessa", "fiona", "zira", "hazel", "aria", "jenny", "emma", "ava", "susan", "anna", "katja", "marie", "amélie", "amelie", "yelda", "tingting", "milena", "google ".concat(prefix), "woman", "girl"];
-    const maleHints = ["male", "daniel", "alex", "fred", "tom", "david", "mark", "george", "ivan", "minho", "max", "louis", "mehmet", "wei", "yunyang", "diego", "jorge", "paul", "james", "matthew", "guy", "man"];
-    const avoidForMale = ["female", "woman", "girl"];
-    const avoidForFemale = ["male ", " male", "man ", "boy"];
+    const femaleHints = ["female", "samantha", "victoria", "karen", "moira", "tessa", "fiona", "zira", "hazel", "aria", "jenny", "emma", "ava", "susan", "katja", "marie", "amélie", "amelie", "yelda", "tingting", "milena", "woman", "girl", "elena", "sofia", "isabella", "lisa", "nora", "siri female"];
+    const maleHints = ["male", "daniel", "alex", "fred", "tom", "david", "mark", "george", "ivan", "minho", "max", "louis", "mehmet", "wei", "yunyang", "diego", "jorge", "paul", "james", "matthew", "guy", "man", "boy", "yuri", "pavel", "boris", "siri male"];
+    const avoidForMale = ["female", "woman", "girl", "samantha", "victoria", "karen", "tessa", "fiona", "zira", "aria", "emma", "ava", "anna", "katja", "elena", "sofia", "isabella", "lisa", "amélie", "amelie", "tingting"];
+    const avoidForFemale = ["male ", " male", "_male", "man ", "boy", "daniel", "alex", "fred", "tom", "david", "mark", "george", "ivan", "minho", "max", "louis", "mehmet", "wei", "yuri", "pavel", "boris"];
 
     const isMale = gender === "male";
     const hints = isMale ? maleHints : femaleHints;
