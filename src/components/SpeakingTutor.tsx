@@ -58,6 +58,7 @@ const TONE_KEY = "edusat:speakingTone";
 const AGE_KEY  = "edusat:speakingAge";
 const GENDER_KEY = "edusat:speakingGender";
 const LANG_KEY = "edusat:speakingLang";
+const SPEED_KEY = "edusat:speakingSpeed";
 
 interface Props { userName?: string; }
 
