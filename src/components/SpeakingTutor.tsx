@@ -20,7 +20,11 @@ type VoiceTone = "warm" | "energetic" | "calm" | "playful";
 type AgeGroup = "young" | "adult" | "mature";
 type Gender = "female" | "male";
 type LangCode = "en" | "ru" | "ko" | "de" | "fr" | "tr" | "zh";
+type SpeedMode = "slow" | "normal" | "fast";
 type Msg = { role: "user" | "assistant"; content: string };
+
+const SPEED_LABEL: Record<SpeedMode, string> = { slow: "🐢 Sekin", normal: "🚶 Normal", fast: "⚡ Tez" };
+const SPEED_MULT: Record<SpeedMode, number> = { slow: 0.75, normal: 1.0, fast: 1.25 };
 
 const TONE_LABEL: Record<VoiceTone, string> = {
   warm: "Iliq",
@@ -54,6 +58,7 @@ const TONE_KEY = "edusat:speakingTone";
 const AGE_KEY  = "edusat:speakingAge";
 const GENDER_KEY = "edusat:speakingGender";
 const LANG_KEY = "edusat:speakingLang";
+const SPEED_KEY = "edusat:speakingSpeed";
 
 interface Props { userName?: string; }
 
@@ -62,6 +67,7 @@ export default function SpeakingTutor({ userName = "" }: Props) {
   const [age, setAge] = useState<AgeGroup>(() => { try { return (localStorage.getItem(AGE_KEY) as AgeGroup) || "adult"; } catch { return "adult"; } });
   const [gender, setGender] = useState<Gender>(() => { try { return (localStorage.getItem(GENDER_KEY) as Gender) || "female"; } catch { return "female"; } });
   const [lang, setLang] = useState<LangCode>(() => { try { return (localStorage.getItem(LANG_KEY) as LangCode) || "en"; } catch { return "en"; } });
+  const [speed, setSpeed] = useState<SpeedMode>(() => { try { return (localStorage.getItem(SPEED_KEY) as SpeedMode) || "normal"; } catch { return "normal"; } });
 
   const [showSettings, setShowSettings] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -98,6 +104,7 @@ export default function SpeakingTutor({ userName = "" }: Props) {
   useEffect(() => { try { localStorage.setItem(AGE_KEY, age); } catch {} }, [age]);
   useEffect(() => { try { localStorage.setItem(GENDER_KEY, gender); } catch {} }, [gender]);
   useEffect(() => { try { localStorage.setItem(LANG_KEY, lang); } catch {} }, [lang]);
+  useEffect(() => { try { localStorage.setItem(SPEED_KEY, speed); } catch {} }, [speed]);
   useEffect(() => { messagesRef.current = transcript; }, [transcript]);
   useEffect(() => { isActiveRef.current = isActive; }, [isActive]);
   useEffect(() => { isSpeakingRef.current = isSpeaking; }, [isSpeaking]);
@@ -116,10 +123,10 @@ export default function SpeakingTutor({ userName = "" }: Props) {
     const matching = voices.filter(v => v.lang?.toLowerCase().startsWith(prefix));
     const list = matching.length ? matching : voices;
 
-    const femaleHints = ["female", "samantha", "victoria", "karen", "moira", "tessa", "fiona", "zira", "hazel", "aria", "jenny", "emma", "ava", "susan", "anna", "katja", "marie", "amélie", "amelie", "yelda", "tingting", "milena", "google ".concat(prefix), "woman", "girl"];
-    const maleHints = ["male", "daniel", "alex", "fred", "tom", "david", "mark", "george", "ivan", "minho", "max", "louis", "mehmet", "wei", "yunyang", "diego", "jorge", "paul", "james", "matthew", "guy", "man"];
-    const avoidForMale = ["female", "woman", "girl"];
-    const avoidForFemale = ["male ", " male", "man ", "boy"];
+    const femaleHints = ["female", "samantha", "victoria", "karen", "moira", "tessa", "fiona", "zira", "hazel", "aria", "jenny", "emma", "ava", "susan", "katja", "marie", "amélie", "amelie", "yelda", "tingting", "milena", "woman", "girl", "elena", "sofia", "isabella", "lisa", "nora", "siri female"];
+    const maleHints = ["male", "daniel", "alex", "fred", "tom", "david", "mark", "george", "ivan", "minho", "max", "louis", "mehmet", "wei", "yunyang", "diego", "jorge", "paul", "james", "matthew", "guy", "man", "boy", "yuri", "pavel", "boris", "siri male"];
+    const avoidForMale = ["female", "woman", "girl", "samantha", "victoria", "karen", "tessa", "fiona", "zira", "aria", "emma", "ava", "anna", "katja", "elena", "sofia", "isabella", "lisa", "amélie", "amelie", "tingting"];
+    const avoidForFemale = ["male ", " male", "_male", "man ", "boy", "daniel", "alex", "fred", "tom", "david", "mark", "george", "ivan", "minho", "max", "louis", "mehmet", "wei", "yuri", "pavel", "boris"];
 
     const isMale = gender === "male";
     const hints = isMale ? maleHints : femaleHints;
@@ -157,10 +164,10 @@ export default function SpeakingTutor({ userName = "" }: Props) {
     if (pickedVoice) utter.voice = pickedVoice;
     utter.lang = pickedVoice?.lang || langInfo.bcp;
     const params = VOICE_PARAMS[age][tone];
-    utter.pitch = gender === "male" ? Math.max(0.5, params.pitch - 0.4) : params.pitch;
-    utter.rate = params.rate;
+    utter.pitch = gender === "male" ? Math.max(0.3, params.pitch - 0.7) : Math.min(2.0, params.pitch + 0.1);
+    utter.rate = params.rate * SPEED_MULT[speed];
     window.speechSynthesis.speak(utter);
-  }, [pickedVoice, age, tone, gender, lang, langInfo, isActive]);
+  }, [pickedVoice, age, tone, gender, lang, langInfo, isActive, speed]);
 
   // Pulse animation
   useEffect(() => {
@@ -183,15 +190,15 @@ export default function SpeakingTutor({ userName = "" }: Props) {
       if (pickedVoice) utter.voice = pickedVoice;
       utter.lang = pickedVoice?.lang || langInfo.bcp;
       const params = VOICE_PARAMS[age][tone];
-      utter.pitch = gender === "male" ? Math.max(0.5, params.pitch - 0.4) : params.pitch;
-      utter.rate = params.rate;
+      utter.pitch = gender === "male" ? Math.max(0.3, params.pitch - 0.7) : Math.min(2.0, params.pitch + 0.1);
+      utter.rate = params.rate * SPEED_MULT[speed];
       utter.volume = 1;
       utter.onstart = () => setIsSpeaking(true);
       utter.onend = () => { setIsSpeaking(false); resolve(); };
       utter.onerror = () => { setIsSpeaking(false); resolve(); };
       window.speechSynthesis.speak(utter);
     });
-  }, [pickedVoice, age, tone, gender, langInfo]);
+  }, [pickedVoice, age, tone, gender, langInfo, speed]);
 
   const stopRecog = useCallback(() => {
     if (recogRef.current) {
@@ -267,20 +274,11 @@ export default function SpeakingTutor({ userName = "" }: Props) {
       const text = finalText.trim();
       setPartial("");
       if (!text) {
-        // user said nothing
-        silenceCountRef.current += 1;
+        // user said nothing — just keep listening silently, do NOT repeat the question
         if (!isActiveRef.current || isSpeakingRef.current) return;
-        // After 2 silent attempts, repeat the last question
-        if (silenceCountRef.current >= 2 && lastAssistantRef.current) {
-          silenceCountRef.current = 0;
-          await speak(lastAssistantRef.current);
-          if (isActiveRef.current) scheduleListen(300);
-        } else {
-          scheduleListen(400);
-        }
+        scheduleListen(400);
         return;
       }
-      silenceCountRef.current = 0;
       const userMsg: Msg = { role: "user", content: text };
       const newMessages = [...messagesRef.current, userMsg];
       setTranscript(newMessages);
@@ -470,7 +468,7 @@ export default function SpeakingTutor({ userName = "" }: Props) {
           <div className="flex flex-col gap-4">
             <div className="rounded-2xl border border-border bg-background/60 p-4 backdrop-blur">
               <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Hozirgi sozlama</p>
-              <p className="mt-1 text-sm font-bold text-foreground">{langInfo.flag} {langInfo.label} • {gender === "female" ? "Ayol" : "Erkak"} • {AGE_LABEL[age]} • {TONE_LABEL[tone]}</p>
+              <p className="mt-1 text-sm font-bold text-foreground">{langInfo.flag} {langInfo.label} • {gender === "female" ? "👩 Ayol" : "👨 Erkak"} • {AGE_LABEL[age]} • {TONE_LABEL[tone]} • {SPEED_LABEL[speed]}</p>
               <p className="mt-0.5 text-xs text-muted-foreground">{tutorName} — sizning shaxsiy suhbat sherigingiz</p>
             </div>
 
@@ -688,8 +686,19 @@ export default function SpeakingTutor({ userName = "" }: Props) {
                 </div>
               </div>
 
+              <div>
+                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Gapirish tezligi</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {(Object.keys(SPEED_LABEL) as SpeedMode[]).map((s) => (
+                    <button key={s} onClick={() => { setSpeed(s); setTimeout(previewVoice, 50); }} className={`rounded-2xl border px-3 py-2 text-sm font-bold transition-all ${speed === s ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-foreground hover:border-primary/60"}`}>
+                      {SPEED_LABEL[s]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <p className="rounded-2xl bg-primary/10 p-3 text-xs text-foreground">
-                💡 Eng yaxshi natija uchun <b>Chrome</b> yoki <b>Edge</b> brauzerini ishlating. Mikrofonga ruxsat bering va aniq, sekin gapiring. Til o'zgarganda suhbat qaytadan boshlanadi. Erkak ovozi mavjud bo'lmasa, tizim ovoz balandligini pasaytirib taqlid qiladi.
+                💡 Eng yaxshi natija uchun <b>Chrome</b> yoki <b>Edge</b> brauzerini ishlating. Mikrofonga ruxsat bering va aniq, sekin gapiring. Til o'zgarganda suhbat qaytadan boshlanadi. Erkak ovozi mavjud bo'lmasa, tizim past pitch bilan taqlid qiladi.
               </p>
             </div>
 

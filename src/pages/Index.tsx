@@ -48,6 +48,7 @@ import bookKechaKunduzCover from "@/assets/books/kecha-va-kunduz.jpg";
 import bookShahzodaCover from "@/assets/books/kichkina-shahzoda.jpg";
 import bookBiologiyaCover from "@/assets/books/biologiya-super-qollanma.jpg";
 import SpeakingTutor from "@/components/SpeakingTutor";
+import ProctoredExam from "@/components/ProctoredExam";
 
 const sections = [
   { id: "home", label: "Bosh sahifa", icon: Home },
@@ -475,6 +476,8 @@ const Index = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [active3dSubject, setActive3dSubject] = useState("Hammasi");
   const [activeLevelTest, setActiveLevelTest] = useState<string | null>(null);
+  const [proctoredExam, setProctoredExam] = useState<string | null>(null);
+  const [proctoredResult, setProctoredResult] = useState<Record<string, { score: number; total: number; valid: boolean }>>({});
   const [activeQuiz, setActiveQuiz] = useState<{ subject: string; mode: string } | null>(null);
   const [feedbackName, setFeedbackName] = useState("");
   const [feedbackText, setFeedbackText] = useState("");
@@ -1494,51 +1497,54 @@ const Index = () => {
 
   const renderLevel = () => (
     <section>
-      <SectionTitle kicker="Daraja aniqlash" title="IELTS, Multi-level va Milliy sertifikat testlari" text="Birinchi sinab ko‘rish bepul. Keyingi foydalanish uchun premium xarid talab qilinadi." />
+      <SectionTitle kicker="Daraja aniqlash" title="IELTS, Multi-level va Milliy sertifikat testlari" text="Birinchi sinab ko'rish bepul. Test kamera nazorati ostida o'tkaziladi — halol ishtirok eting." />
       <div className="grid gap-5 lg:grid-cols-3">
-        {levelTests.map((test) => (
-          <GlassCard key={test.title} className={activeLevelTest === test.title ? "ring-2 ring-primary" : ""}>
-            <div className="flex items-center justify-between gap-3">
-              <h3 className="text-3xl font-black text-foreground">{test.title}</h3>
-              <Pill>1 marta bepul</Pill>
-            </div>
-            <p className="mt-2 text-2xl font-black text-primary">{test.price}</p>
-            <p className="mt-1 text-sm font-bold text-muted-foreground">{test.accent}</p>
-            <div className="my-5 flex flex-wrap gap-2">{test.items.map((item) => <Pill key={item}>{item}</Pill>)}</div>
-            <div className="grid grid-cols-6 gap-1">
-              {levels.map((level) => <span key={level} className="rounded-xl bg-secondary/70 py-2 text-center text-xs font-black text-secondary-foreground">{level}</span>)}
-            </div>
-            <button className="mt-5 premium-button w-full rounded-2xl px-4 py-3 font-black" onClick={() => { setActiveLevelTest(test.title); completeActivity(50); }}>{activeLevelTest === test.title ? "Test ochilgan" : "Testni boshlash +50 coin"}</button>
-          </GlassCard>
-        ))}
-      </div>
-      {activeLevelTest && levelTestQuestions[activeLevelTest] && (
-        <div className="mt-6">
-          <GlassCard>
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <Pill>Daraja testi</Pill>
-                <h3 className="mt-3 text-2xl font-black text-foreground">{activeLevelTest} — bepul sinov</h3>
-                <p className="mt-1 text-sm text-muted-foreground">Javoblarni yozing va tekshirish tugmasini bosing. Natijaga qarab darajangiz aniqlanadi.</p>
+        {levelTests.map((test) => {
+          const result = proctoredResult[test.title];
+          return (
+            <GlassCard key={test.title}>
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="text-3xl font-black text-foreground">{test.title}</h3>
+                <Pill>1 marta bepul</Pill>
               </div>
-              <button className="rounded-2xl border border-border px-4 py-2 text-sm font-black text-foreground hover:bg-accent" onClick={() => setActiveLevelTest(null)}>Yopish</button>
-            </div>
-            {(() => {
-              const questions = levelTestQuestions[activeLevelTest];
-              const testId = `level-${activeLevelTest}`;
-              const submitted = submittedTests[testId];
-              const score = getTestScore(testId, questions);
-              const ratio = score / questions.length;
-              const levelLabel = !submitted ? "" : ratio >= 0.9 ? "A+ • Mukammal" : ratio >= 0.7 ? "A • Yuqori" : ratio >= 0.5 ? "B • O‘rta" : ratio >= 0.3 ? "C • Boshlang‘ich" : "Boshlang‘ich darajadan past";
-              return (
-                <>
-                  <TestRunner testId={testId} questions={questions} />
-                  {submitted && <p className="mt-4 rounded-2xl border border-primary/30 bg-primary/10 px-4 py-3 text-center text-base font-black text-primary">Sizning darajangiz: {levelLabel} ({score}/{questions.length})</p>}
-                </>
-              );
-            })()}
-          </GlassCard>
-        </div>
+              <p className="mt-2 text-2xl font-black text-primary">{test.price}</p>
+              <p className="mt-1 text-sm font-bold text-muted-foreground">{test.accent}</p>
+              <div className="my-5 flex flex-wrap gap-2">{test.items.map((item) => <Pill key={item}>{item}</Pill>)}</div>
+              <div className="grid grid-cols-6 gap-1">
+                {levels.map((level) => <span key={level} className="rounded-xl bg-secondary/70 py-2 text-center text-xs font-black text-secondary-foreground">{level}</span>)}
+              </div>
+              <div className="mt-3 flex items-center gap-2 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-[11px] font-bold text-amber-700 dark:text-amber-300">
+                <ShieldCheck className="h-3.5 w-3.5" /> Kamera nazorati ostida o'tkaziladi
+              </div>
+              {result && (
+                <p className={`mt-3 rounded-2xl border px-3 py-2 text-center text-xs font-black ${result.valid ? "border-primary/40 bg-primary/10 text-primary" : "border-destructive/40 bg-destructive/10 text-destructive"}`}>
+                  {result.valid ? `Oxirgi natija: ${result.score}/${result.total}` : `Bekor qilingan urinish: ${result.score}/${result.total}`}
+                </p>
+              )}
+              <button
+                className="mt-5 premium-button w-full rounded-2xl px-4 py-3 font-black"
+                onClick={() => {
+                  if (!levelTestQuestions[test.title]) return;
+                  setProctoredExam(test.title);
+                  completeActivity(50);
+                }}
+              >
+                Imtihonni boshlash +50 coin
+              </button>
+            </GlassCard>
+          );
+        })}
+      </div>
+
+      {proctoredExam && levelTestQuestions[proctoredExam] && (
+        <ProctoredExam
+          testTitle={proctoredExam}
+          questions={levelTestQuestions[proctoredExam]}
+          onClose={() => setProctoredExam(null)}
+          onComplete={(score, total, valid) => {
+            setProctoredResult((prev) => ({ ...prev, [proctoredExam!]: { score, total, valid } }));
+          }}
+        />
       )}
     </section>
   );
