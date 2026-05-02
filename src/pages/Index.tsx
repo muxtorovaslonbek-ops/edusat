@@ -48,6 +48,7 @@ import bookKechaKunduzCover from "@/assets/books/kecha-va-kunduz.jpg";
 import bookShahzodaCover from "@/assets/books/kichkina-shahzoda.jpg";
 import bookBiologiyaCover from "@/assets/books/biologiya-super-qollanma.jpg";
 import SpeakingTutor from "@/components/SpeakingTutor";
+import ProctoredExam from "@/components/ProctoredExam";
 
 const sections = [
   { id: "home", label: "Bosh sahifa", icon: Home },
