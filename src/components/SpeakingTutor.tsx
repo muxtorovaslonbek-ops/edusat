@@ -67,6 +67,7 @@ export default function SpeakingTutor({ userName = "" }: Props) {
   const [age, setAge] = useState<AgeGroup>(() => { try { return (localStorage.getItem(AGE_KEY) as AgeGroup) || "adult"; } catch { return "adult"; } });
   const [gender, setGender] = useState<Gender>(() => { try { return (localStorage.getItem(GENDER_KEY) as Gender) || "female"; } catch { return "female"; } });
   const [lang, setLang] = useState<LangCode>(() => { try { return (localStorage.getItem(LANG_KEY) as LangCode) || "en"; } catch { return "en"; } });
+  const [speed, setSpeed] = useState<SpeedMode>(() => { try { return (localStorage.getItem(SPEED_KEY) as SpeedMode) || "normal"; } catch { return "normal"; } });
 
   const [showSettings, setShowSettings] = useState(false);
   const [error, setError] = useState<string | null>(null);
