@@ -576,7 +576,20 @@ const Index = () => {
   const [active3dSubject, setActive3dSubject] = useState("Hammasi");
   const [activeLevelTest, setActiveLevelTest] = useState<string | null>(null);
   const [proctoredExam, setProctoredExam] = useState<string | null>(null);
+  const [proctoredQuestions, setProctoredQuestions] = useState<LevelQ[] | null>(null);
+  const [proctoredDuration, setProctoredDuration] = useState<number | undefined>(undefined);
+  const [proctoredFlagSpam, setProctoredFlagSpam] = useState<boolean>(false);
   const [proctoredResult, setProctoredResult] = useState<Record<string, { score: number; total: number; valid: boolean }>>({});
+  const [milliyPaid, setMilliyPaid] = useState<Record<string, boolean>>(() => {
+    try { return JSON.parse(localStorage.getItem("edusat:milliyPaid") || "{}"); } catch { return {}; }
+  });
+  const payMilliySubject = (subject: string) => {
+    setMilliyPaid(prev => {
+      const next = { ...prev, [subject]: true };
+      try { localStorage.setItem("edusat:milliyPaid", JSON.stringify(next)); } catch {}
+      return next;
+    });
+  };
   const [activeQuiz, setActiveQuiz] = useState<{ subject: string; mode: string } | null>(null);
   const [feedbackName, setFeedbackName] = useState("");
   const [feedbackText, setFeedbackText] = useState("");
@@ -1595,10 +1608,11 @@ const Index = () => {
   );
 
   const renderLevel = () => (
-    <section>
-      <SectionTitle kicker="Daraja aniqlash" title="IELTS, Multi-level va Milliy sertifikat testlari" text="Birinchi sinab ko'rish bepul. Test kamera nazorati ostida o'tkaziladi — halol ishtirok eting." />
-      <div className="grid gap-5 lg:grid-cols-3">
-        {levelTests.map((test) => {
+    <section className="space-y-8">
+      <SectionTitle kicker="Daraja aniqlash" title="IELTS, Multi-level va Milliy sertifikat testlari" text="Test kamera nazorati ostida o'tkaziladi — halol ishtirok eting. Milliy sertifikat har fan uchun alohida tanlanadi va alohida to'lanadi." />
+
+      <div className="grid gap-5 lg:grid-cols-2">
+        {levelTests.filter(t => t.title !== "Milliy sertifikat").map((test) => {
           const result = proctoredResult[test.title];
           return (
             <GlassCard key={test.title}>
@@ -1613,7 +1627,7 @@ const Index = () => {
                 {levels.map((level) => <span key={level} className="rounded-xl bg-secondary/70 py-2 text-center text-xs font-black text-secondary-foreground">{level}</span>)}
               </div>
               <div className="mt-3 flex items-center gap-2 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-[11px] font-bold text-amber-700 dark:text-amber-300">
-                <ShieldCheck className="h-3.5 w-3.5" /> Kamera nazorati ostida o'tkaziladi
+                <ShieldCheck className="h-3.5 w-3.5" /> Kamera + audio qurilmalar nazorati ostida
               </div>
               {result && (
                 <p className={`mt-3 rounded-2xl border px-3 py-2 text-center text-xs font-black ${result.valid ? "border-primary/40 bg-primary/10 text-primary" : "border-destructive/40 bg-destructive/10 text-destructive"}`}>
@@ -1624,6 +1638,9 @@ const Index = () => {
                 className="mt-5 premium-button w-full rounded-2xl px-4 py-3 font-black"
                 onClick={() => {
                   if (!levelTestQuestions[test.title]) return;
+                  setProctoredQuestions(levelTestQuestions[test.title]);
+                  setProctoredDuration(undefined);
+                  setProctoredFlagSpam(false);
                   setProctoredExam(test.title);
                   completeActivity(50);
                 }}
@@ -1635,11 +1652,70 @@ const Index = () => {
         })}
       </div>
 
-      {proctoredExam && levelTestQuestions[proctoredExam] && (
+      {/* Milliy sertifikat — fan tanlash */}
+      <div className="rounded-3xl border border-primary/30 bg-gradient-to-br from-primary/10 via-card to-card p-6 shadow-premium md:p-8">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="inline-flex items-center gap-2 rounded-full bg-primary/15 px-3 py-1 text-xs font-black text-primary">
+              <ShieldCheck className="h-3.5 w-3.5" /> Milliy sertifikat — Rasmiy format
+            </p>
+            <h3 className="mt-2 text-3xl font-black text-foreground">Fanni tanlab to'lov qiling va imtihonga kiring</h3>
+            <p className="mt-1 text-sm font-bold text-muted-foreground">Har fan uchun alohida {MILLIY_PRICE.toLocaleString()} so'm • 3 soat vaqt • Halol nazorat ostida</p>
+          </div>
+          <span className="rounded-2xl bg-amber-500/15 px-3 py-2 text-xs font-black text-amber-700 dark:text-amber-300">⏱️ 3:00:00 limit</span>
+        </div>
+
+        <div className="mt-5 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+          {milliySubjects.map((subj) => {
+            const paid = milliyPaid[subj];
+            const result = proctoredResult[`Milliy: ${subj}`];
+            return (
+              <div key={subj} className="rounded-2xl border border-border bg-background/60 p-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-lg font-black text-foreground">{subj}</p>
+                  {paid ? <Pill>To'langan</Pill> : <Pill>Yopiq</Pill>}
+                </div>
+                <p className="mt-1 text-xs font-bold text-muted-foreground">{milliySubjectBank[subj].length} ta savol • Kalitlik (MCQ)</p>
+                <p className="mt-2 text-base font-black text-primary">{MILLIY_PRICE.toLocaleString()} so'm</p>
+                {result && (
+                  <p className={`mt-2 rounded-xl border px-2 py-1 text-center text-[11px] font-black ${result.valid ? "border-primary/40 bg-primary/10 text-primary" : "border-destructive/40 bg-destructive/10 text-destructive"}`}>
+                    {result.valid ? `Natija: ${result.score}/${result.total}` : `Bekor: ${result.score}/${result.total}`}
+                  </p>
+                )}
+                {!paid ? (
+                  <button
+                    onClick={() => payMilliySubject(subj)}
+                    className="mt-3 w-full rounded-2xl border border-primary/40 bg-primary/10 px-3 py-2 text-sm font-black text-primary hover:bg-primary/20"
+                  >
+                    To'lov qilish
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setProctoredQuestions(milliySubjectBank[subj]);
+                      setProctoredDuration(MILLIY_DURATION_SEC);
+                      setProctoredFlagSpam(true);
+                      setProctoredExam(`Milliy: ${subj}`);
+                      completeActivity(80);
+                    }}
+                    className="mt-3 premium-button w-full rounded-2xl px-3 py-2 text-sm font-black"
+                  >
+                    Imtihonni boshlash
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {proctoredExam && proctoredQuestions && (
         <ProctoredExam
           testTitle={proctoredExam}
-          questions={levelTestQuestions[proctoredExam]}
-          onClose={() => setProctoredExam(null)}
+          questions={proctoredQuestions}
+          durationSec={proctoredDuration}
+          flagSpamMistakes={proctoredFlagSpam}
+          onClose={() => { setProctoredExam(null); setProctoredQuestions(null); }}
           onComplete={(score, total, valid) => {
             setProctoredResult((prev) => ({ ...prev, [proctoredExam!]: { score, total, valid } }));
           }}
