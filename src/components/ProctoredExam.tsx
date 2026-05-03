@@ -370,6 +370,20 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
           </div>
         )}
 
+        {/* Finished — flagged as spam (too many wrong answers) */}
+        {status === "finished" && spamFlag && (
+          <div className="mt-6 rounded-3xl border border-amber-500/50 bg-amber-500/10 p-6 text-center">
+            <AlertTriangle className="mx-auto h-12 w-12 text-amber-500" />
+            <p className="mt-3 text-xl font-black text-amber-700 dark:text-amber-400">Bu sizning haqiqiy bahoyingiz emas</p>
+            <p className="mt-3 text-base font-bold text-foreground">
+              Test davomida juda ko'p o'xshash xatolar aniqlandi. Siz qurilmalardan foydalanib yoki javoblarni tasodifiy belgilab bu natijaga erishdingiz.
+              Haqiqiy milliy sertifikat imtihonida bu natijaga erisha olmaysiz.
+            </p>
+            <p className="mt-3 text-sm font-bold text-muted-foreground">Belgilangan ball: {score}/{questions.length} — <span className="text-amber-700 dark:text-amber-400">hisobga olinmaydi</span></p>
+            <button onClick={handleClose} className="mt-5 inline-flex rounded-2xl border border-border bg-card px-5 py-2 font-black text-foreground hover:bg-primary/10">Yopish</button>
+          </div>
+        )}
+
         {/* Disqualified */}
         {status === "disqualified" && (
           <div className="mt-6 rounded-3xl border border-destructive/50 bg-destructive/10 p-6 text-center">
@@ -377,7 +391,7 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
             <p className="mt-3 text-xl font-black text-destructive">Test bekor qilindi</p>
             <p className="mt-3 text-base font-bold text-foreground">
               Siz test jarayonida halol ishtirok etmadingiz va qurilmalardan foydalandingiz.
-              Bu sizning haqiqiy natijangiz emas.
+              Bu sizning haqiqiy natijangiz emas. Haqiqiy milliy sertifikat imtihonida bu natijaga erisha olmaysiz.
             </p>
             <p className="mt-2 text-sm text-muted-foreground italic">{disqualifyReason}</p>
             <p className="mt-3 text-sm font-bold text-muted-foreground">Belgilangan ball: {score}/{questions.length} — <span className="text-destructive">hisobga olinmaydi</span></p>
