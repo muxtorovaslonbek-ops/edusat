@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { AlertTriangle, Camera, ShieldCheck, X, CheckCircle2, XCircle } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { AlertTriangle, Camera, ShieldCheck, X, CheckCircle2, XCircle, Clock, Headphones } from "lucide-react";
 
-type Question = { subject: string; question: string; answer: string };
+type Question = { subject: string; question: string; answer: string; options?: string[] };
 type Status = "setup" | "running" | "finished" | "disqualified";
 
 interface Props {
@@ -9,6 +9,10 @@ interface Props {
   questions: Question[];
   onClose: () => void;
   onComplete?: (score: number, total: number, valid: boolean) => void;
+  /** total exam time in seconds. If omitted — no time limit. */
+  durationSec?: number;
+  /** if true, too-many-wrong-answers also marks the result invalid */
+  flagSpamMistakes?: boolean;
 }
 
 const MAX_WARNINGS = 3;
