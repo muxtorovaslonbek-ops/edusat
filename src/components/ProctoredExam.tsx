@@ -128,6 +128,44 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
     };
   }, [status, addDeviceWarning]);
 
+  // Enumerate audio devices on start, then watch for changes (headphones/phone/etc plugged in)
+  useEffect(() => {
+    if (!navigator.mediaDevices?.enumerateDevices) return;
+    const refresh = async () => {
+      try {
+        const all = await navigator.mediaDevices.enumerateDevices();
+        const audio = all.filter(d => d.kind === "audioinput" || d.kind === "audiooutput");
+        setAudioDevices(audio);
+        return audio;
+      } catch { return []; }
+    };
+    refresh().then(list => setInitialAudioCount(list.length));
+    const handler = async () => {
+      const list = await refresh();
+      if (statusRef.current !== "running") return;
+      if (list.length > initialAudioCount) {
+        addDeviceWarning("Yangi audio qurilma (naushnik / telefon / bluetooth) ulanishi aniqlandi.");
+      } else if (list.length < initialAudioCount) {
+        addDeviceWarning("Audio qurilma o'chirildi yoki uzildi.");
+      }
+    };
+    navigator.mediaDevices.addEventListener?.("devicechange", handler);
+    return () => navigator.mediaDevices.removeEventListener?.("devicechange", handler);
+  }, [initialAudioCount, addDeviceWarning]);
+
+  // Periodic check: warn if multiple audio outputs (e.g. headphones + speakers)
+  useEffect(() => {
+    if (status !== "running") return;
+    const i = window.setInterval(() => {
+      const outs = audioDevices.filter(d => d.kind === "audiooutput").length;
+      const ins = audioDevices.filter(d => d.kind === "audioinput").length;
+      if (outs > 1 || ins > 1) {
+        // we already warned via devicechange; this is a safety re-check, no double warning
+      }
+    }, 5000);
+    return () => clearInterval(i);
+  }, [status, audioDevices]);
+
   // Auto-clear warning toast
   useEffect(() => {
     if (!lastWarning) return;
@@ -145,13 +183,37 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
     setTabWarnings(0);
     setDeviceWarnings(0);
     setDisqualifyReason("");
-  }, [stream]);
+    setSpamFlag(false);
+    if (durationSec) setTimeLeft(durationSec);
+  }, [stream, durationSec]);
 
+  // Countdown timer
+  useEffect(() => {
+    if (status !== "running" || !durationSec) return;
+    const i = window.setInterval(() => {
+      setTimeLeft(t => {
+        if (t <= 1) {
+          clearInterval(i);
+          setTimeout(() => finishExamRef.current?.(), 0);
+          return 0;
+        }
+        return t - 1;
+      });
+    }, 1000);
+    return () => clearInterval(i);
+  }, [status, durationSec]);
+
+  const finishExamRef = useRef<() => void>();
   const finishExam = useCallback(() => {
     setStatus("finished");
-    onComplete?.(score, questions.length, true);
+    // Spam detection: too many wrong answers (>60% wrong of answered)
+    const answered = Object.values(answers).filter(v => (v || "").trim()).length;
+    const spam = flagSpamMistakes && answered >= 5 && wrongCount / Math.max(1, answered) >= 0.6;
+    setSpamFlag(spam);
+    onComplete?.(score, questions.length, !spam);
     stopCamera();
-  }, [score, questions.length, onComplete, stopCamera]);
+  }, [score, questions.length, onComplete, stopCamera, answers, wrongCount, flagSpamMistakes]);
+  useEffect(() => { finishExamRef.current = finishExam; }, [finishExam]);
 
   const handleClose = useCallback(() => {
     stopCamera();
@@ -160,6 +222,7 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
 
   const ratio = score / questions.length;
   const levelLabel = ratio >= 0.9 ? "A+ • Mukammal" : ratio >= 0.7 ? "A • Yuqori" : ratio >= 0.5 ? "B • O'rta" : ratio >= 0.3 ? "C • Boshlang'ich" : "Boshlang'ich darajadan past";
+  const fmtTime = (s: number) => `${String(Math.floor(s / 3600)).padStart(2, "0")}:${String(Math.floor((s % 3600) / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-background/90 p-2 backdrop-blur-xl md:p-4">
