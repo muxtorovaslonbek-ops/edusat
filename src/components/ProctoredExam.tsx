@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { AlertTriangle, Camera, ShieldCheck, X, CheckCircle2, XCircle } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { AlertTriangle, Camera, ShieldCheck, X, CheckCircle2, XCircle, Clock, Headphones } from "lucide-react";
 
-type Question = { subject: string; question: string; answer: string };
+type Question = { subject: string; question: string; answer: string; options?: string[] };
 type Status = "setup" | "running" | "finished" | "disqualified";
 
 interface Props {
@@ -9,11 +9,15 @@ interface Props {
   questions: Question[];
   onClose: () => void;
   onComplete?: (score: number, total: number, valid: boolean) => void;
+  /** total exam time in seconds. If omitted — no time limit. */
+  durationSec?: number;
+  /** if true, too-many-wrong-answers also marks the result invalid */
+  flagSpamMistakes?: boolean;
 }
 
 const MAX_WARNINGS = 3;
 
-export default function ProctoredExam({ testTitle, questions, onClose, onComplete }: Props) {
+export default function ProctoredExam({ testTitle, questions, onClose, onComplete, durationSec, flagSpamMistakes }: Props) {
   const [status, setStatus] = useState<Status>("setup");
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [cameraError, setCameraError] = useState<string>("");
@@ -22,12 +26,17 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
   const [deviceWarnings, setDeviceWarnings] = useState(0);
   const [lastWarning, setLastWarning] = useState<string>("");
   const [disqualifyReason, setDisqualifyReason] = useState<string>("");
+  const [audioDevices, setAudioDevices] = useState<MediaDeviceInfo[]>([]);
+  const [initialAudioCount, setInitialAudioCount] = useState<number>(0);
+  const [timeLeft, setTimeLeft] = useState<number>(durationSec || 0);
+  const [spamFlag, setSpamFlag] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const statusRef = useRef<Status>("setup");
 
   useEffect(() => { statusRef.current = status; }, [status]);
 
   const score = questions.filter((q, i) => (answers[i] || "").trim().toLowerCase() === q.answer.trim().toLowerCase()).length;
+  const wrongCount = questions.filter((q, i) => (answers[i] || "").trim() && (answers[i] || "").trim().toLowerCase() !== q.answer.trim().toLowerCase()).length;
 
   const stopCamera = useCallback(() => {
     if (stream) { stream.getTracks().forEach(t => t.stop()); setStream(null); }
@@ -119,6 +128,44 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
     };
   }, [status, addDeviceWarning]);
 
+  // Enumerate audio devices on start, then watch for changes (headphones/phone/etc plugged in)
+  useEffect(() => {
+    if (!navigator.mediaDevices?.enumerateDevices) return;
+    const refresh = async () => {
+      try {
+        const all = await navigator.mediaDevices.enumerateDevices();
+        const audio = all.filter(d => d.kind === "audioinput" || d.kind === "audiooutput");
+        setAudioDevices(audio);
+        return audio;
+      } catch { return []; }
+    };
+    refresh().then(list => setInitialAudioCount(list.length));
+    const handler = async () => {
+      const list = await refresh();
+      if (statusRef.current !== "running") return;
+      if (list.length > initialAudioCount) {
+        addDeviceWarning("Yangi audio qurilma (naushnik / telefon / bluetooth) ulanishi aniqlandi.");
+      } else if (list.length < initialAudioCount) {
+        addDeviceWarning("Audio qurilma o'chirildi yoki uzildi.");
+      }
+    };
+    navigator.mediaDevices.addEventListener?.("devicechange", handler);
+    return () => navigator.mediaDevices.removeEventListener?.("devicechange", handler);
+  }, [initialAudioCount, addDeviceWarning]);
+
+  // Periodic check: warn if multiple audio outputs (e.g. headphones + speakers)
+  useEffect(() => {
+    if (status !== "running") return;
+    const i = window.setInterval(() => {
+      const outs = audioDevices.filter(d => d.kind === "audiooutput").length;
+      const ins = audioDevices.filter(d => d.kind === "audioinput").length;
+      if (outs > 1 || ins > 1) {
+        // we already warned via devicechange; this is a safety re-check, no double warning
+      }
+    }, 5000);
+    return () => clearInterval(i);
+  }, [status, audioDevices]);
+
   // Auto-clear warning toast
   useEffect(() => {
     if (!lastWarning) return;
@@ -136,13 +183,37 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
     setTabWarnings(0);
     setDeviceWarnings(0);
     setDisqualifyReason("");
-  }, [stream]);
+    setSpamFlag(false);
+    if (durationSec) setTimeLeft(durationSec);
+  }, [stream, durationSec]);
 
+  // Countdown timer
+  useEffect(() => {
+    if (status !== "running" || !durationSec) return;
+    const i = window.setInterval(() => {
+      setTimeLeft(t => {
+        if (t <= 1) {
+          clearInterval(i);
+          setTimeout(() => finishExamRef.current?.(), 0);
+          return 0;
+        }
+        return t - 1;
+      });
+    }, 1000);
+    return () => clearInterval(i);
+  }, [status, durationSec]);
+
+  const finishExamRef = useRef<() => void>();
   const finishExam = useCallback(() => {
     setStatus("finished");
-    onComplete?.(score, questions.length, true);
+    // Spam detection: too many wrong answers (>60% wrong of answered)
+    const answered = Object.values(answers).filter(v => (v || "").trim()).length;
+    const spam = flagSpamMistakes && answered >= 5 && wrongCount / Math.max(1, answered) >= 0.6;
+    setSpamFlag(spam);
+    onComplete?.(score, questions.length, !spam);
     stopCamera();
-  }, [score, questions.length, onComplete, stopCamera]);
+  }, [score, questions.length, onComplete, stopCamera, answers, wrongCount, flagSpamMistakes]);
+  useEffect(() => { finishExamRef.current = finishExam; }, [finishExam]);
 
   const handleClose = useCallback(() => {
     stopCamera();
@@ -151,6 +222,7 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
 
   const ratio = score / questions.length;
   const levelLabel = ratio >= 0.9 ? "A+ • Mukammal" : ratio >= 0.7 ? "A • Yuqori" : ratio >= 0.5 ? "B • O'rta" : ratio >= 0.3 ? "C • Boshlang'ich" : "Boshlang'ich darajadan past";
+  const fmtTime = (s: number) => `${String(Math.floor(s / 3600)).padStart(2, "0")}:${String(Math.floor((s % 3600) / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-background/90 p-2 backdrop-blur-xl md:p-4">
@@ -163,9 +235,16 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
             <h2 className="mt-2 text-2xl font-black text-foreground md:text-3xl">{testTitle}</h2>
             <p className="mt-1 text-sm text-muted-foreground">Halol natija uchun kamera nazorati ostida o'tkaziladi.</p>
           </div>
-          <button onClick={handleClose} className="rounded-2xl border border-border bg-card p-2 text-foreground hover:bg-primary/10 hover:text-primary">
-            <X className="h-5 w-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            {durationSec && status === "running" && (
+              <span className={`inline-flex items-center gap-1 rounded-2xl border px-3 py-2 text-sm font-black ${timeLeft < 600 ? "border-destructive/60 bg-destructive/10 text-destructive" : "border-primary/40 bg-primary/10 text-primary"}`}>
+                <Clock className="h-4 w-4" /> {fmtTime(timeLeft)}
+              </span>
+            )}
+            <button onClick={handleClose} className="rounded-2xl border border-border bg-card p-2 text-foreground hover:bg-primary/10 hover:text-primary">
+              <X className="h-5 w-5" />
+            </button>
+          </div>
         </div>
 
         {/* Camera + warnings panel */}
@@ -189,6 +268,7 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
               <div className="mt-2 space-y-1 text-[11px] font-bold">
                 <p className="flex justify-between"><span>Oynadan chiqish:</span><span className={tabWarnings > 0 ? "text-destructive" : "text-muted-foreground"}>{tabWarnings}/{MAX_WARNINGS}</span></p>
                 <p className="flex justify-between"><span>Qurilma ishlatish:</span><span className={deviceWarnings > 0 ? "text-destructive" : "text-muted-foreground"}>{deviceWarnings}/{MAX_WARNINGS}</span></p>
+                <p className="flex justify-between"><span><Headphones className="inline h-3 w-3" /> Audio qurilmalar:</span><span className="text-muted-foreground">{audioDevices.length}</span></p>
               </div>
             )}
           </div>
@@ -245,14 +325,30 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
               <div key={i} className="rounded-2xl border border-border bg-background/60 p-4">
                 <p className="text-[10px] font-black uppercase tracking-wider text-primary">{q.subject}</p>
                 <p className="mt-1 font-bold text-foreground">{i + 1}. {q.question}</p>
-                <input
-                  type="text"
-                  value={answers[i] || ""}
-                  onChange={(e) => setAnswers({ ...answers, [i]: e.target.value })}
-                  placeholder="Javobingizni yozing..."
-                  onPaste={(e) => { e.preventDefault(); addDeviceWarning("Javobni nusxalab qo'yish urinishi aniqlandi."); }}
-                  className="mt-2 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm font-bold text-foreground outline-none focus:border-primary"
-                />
+                {q.options && q.options.length ? (
+                  <div className="mt-2 grid gap-2">
+                    {q.options.map((opt) => {
+                      const sel = answers[i] === opt;
+                      return (
+                        <button
+                          key={opt}
+                          type="button"
+                          onClick={() => setAnswers({ ...answers, [i]: opt })}
+                          className={`text-left rounded-xl border px-3 py-2 text-sm font-bold transition-all ${sel ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-foreground hover:border-primary/60"}`}
+                        >{opt}</button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <input
+                    type="text"
+                    value={answers[i] || ""}
+                    onChange={(e) => setAnswers({ ...answers, [i]: e.target.value })}
+                    placeholder="Javobingizni yozing..."
+                    onPaste={(e) => { e.preventDefault(); addDeviceWarning("Javobni nusxalab qo'yish urinishi aniqlandi."); }}
+                    className="mt-2 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm font-bold text-foreground outline-none focus:border-primary"
+                  />
+                )}
               </div>
             ))}
             <div className="md:col-span-2 flex justify-end">
@@ -264,12 +360,26 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
         )}
 
         {/* Finished — valid */}
-        {status === "finished" && (
+        {status === "finished" && !spamFlag && (
           <div className="mt-6 rounded-3xl border border-primary/40 bg-primary/10 p-6 text-center">
             <CheckCircle2 className="mx-auto h-12 w-12 text-primary" />
             <p className="mt-3 text-2xl font-black text-foreground">Tabriklaymiz! Test halol yakunlandi.</p>
             <p className="mt-2 text-lg font-black text-primary">Sizning natijangiz: {score}/{questions.length} ({Math.round(ratio * 100)}%)</p>
             <p className="mt-1 text-base font-bold text-foreground">Darajangiz: {levelLabel}</p>
+            <button onClick={handleClose} className="mt-5 inline-flex rounded-2xl border border-border bg-card px-5 py-2 font-black text-foreground hover:bg-primary/10">Yopish</button>
+          </div>
+        )}
+
+        {/* Finished — flagged as spam (too many wrong answers) */}
+        {status === "finished" && spamFlag && (
+          <div className="mt-6 rounded-3xl border border-amber-500/50 bg-amber-500/10 p-6 text-center">
+            <AlertTriangle className="mx-auto h-12 w-12 text-amber-500" />
+            <p className="mt-3 text-xl font-black text-amber-700 dark:text-amber-400">Bu sizning haqiqiy bahoyingiz emas</p>
+            <p className="mt-3 text-base font-bold text-foreground">
+              Test davomida juda ko'p o'xshash xatolar aniqlandi. Siz qurilmalardan foydalanib yoki javoblarni tasodifiy belgilab bu natijaga erishdingiz.
+              Haqiqiy milliy sertifikat imtihonida bu natijaga erisha olmaysiz.
+            </p>
+            <p className="mt-3 text-sm font-bold text-muted-foreground">Belgilangan ball: {score}/{questions.length} — <span className="text-amber-700 dark:text-amber-400">hisobga olinmaydi</span></p>
             <button onClick={handleClose} className="mt-5 inline-flex rounded-2xl border border-border bg-card px-5 py-2 font-black text-foreground hover:bg-primary/10">Yopish</button>
           </div>
         )}
@@ -281,7 +391,7 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
             <p className="mt-3 text-xl font-black text-destructive">Test bekor qilindi</p>
             <p className="mt-3 text-base font-bold text-foreground">
               Siz test jarayonida halol ishtirok etmadingiz va qurilmalardan foydalandingiz.
-              Bu sizning haqiqiy natijangiz emas.
+              Bu sizning haqiqiy natijangiz emas. Haqiqiy milliy sertifikat imtihonida bu natijaga erisha olmaysiz.
             </p>
             <p className="mt-2 text-sm text-muted-foreground italic">{disqualifyReason}</p>
             <p className="mt-3 text-sm font-bold text-muted-foreground">Belgilangan ball: {score}/{questions.length} — <span className="text-destructive">hisobga olinmaydi</span></p>

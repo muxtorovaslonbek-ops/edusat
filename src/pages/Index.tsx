@@ -189,29 +189,128 @@ const levelTests = [
   { title: "Milliy sertifikat", price: "59 000 so‘m", accent: "C → A+", items: subjects },
 ];
 
-const levelTestQuestions: Record<string, Array<{ subject: string; question: string; answer: string }>> = {
+type LevelQ = { subject: string; question: string; answer: string; options?: string[] };
+
+const levelTestQuestions: Record<string, LevelQ[]> = {
   IELTS: [
-    { subject: "Vocabulary", question: "Synonym of 'significant'?", answer: "important" },
-    { subject: "Grammar", question: "Fill: If I ___ rich, I would travel.", answer: "were" },
-    { subject: "Reading", question: "Antonym of 'ancient'?", answer: "modern" },
-    { subject: "Writing", question: "Plural of 'analysis'?", answer: "analyses" },
-    { subject: "Listening", question: "How many minutes in 1.5 hours?", answer: "90" },
+    { subject: "Vocabulary", question: "Synonym of 'significant'?", answer: "important", options: ["important", "small", "ancient", "rapid"] },
+    { subject: "Grammar", question: "Fill: If I ___ rich, I would travel.", answer: "were", options: ["was", "were", "am", "be"] },
+    { subject: "Reading", question: "Antonym of 'ancient'?", answer: "modern", options: ["old", "modern", "tiny", "ugly"] },
+    { subject: "Writing", question: "Plural of 'analysis'?", answer: "analyses", options: ["analysis", "analysises", "analyses", "analysis's"] },
+    { subject: "Listening", question: "How many minutes in 1.5 hours?", answer: "90", options: ["60", "75", "90", "120"] },
+    { subject: "Vocabulary", question: "Closest meaning of 'reluctant':", answer: "unwilling", options: ["eager", "unwilling", "tired", "honest"] },
+    { subject: "Grammar", question: "She has been working ___ 8 a.m.", answer: "since", options: ["for", "since", "from", "during"] },
+    { subject: "Reading", question: "'Crucial' is closest in meaning to:", answer: "essential", options: ["essential", "optional", "casual", "rare"] },
+    { subject: "Writing", question: "a piece of ___", answer: "advice", options: ["advise", "advice", "advices", "advicing"] },
+    { subject: "Listening", question: "Train leaves 14:45, 35 min trip — arrival?", answer: "15:20", options: ["15:10", "15:15", "15:20", "15:25"] },
   ],
   "Multi-level": [
-    { subject: "Grammar", question: "Choose: She ___ to school every day.", answer: "goes" },
-    { subject: "Vocabulary", question: "Past tense of 'go'?", answer: "went" },
-    { subject: "Reading", question: "Antonym of 'happy'?", answer: "sad" },
-    { subject: "Writing", question: "Article: ___ apple a day.", answer: "an" },
-    { subject: "Listening", question: "Capital of the UK?", answer: "London" },
-  ],
-  "Milliy sertifikat": [
-    { subject: "Matematika", question: "5! (faktorial) nechaga teng?", answer: "120" },
-    { subject: "Ona tili", question: "Gapning bosh bo‘laklari nechta?", answer: "2" },
-    { subject: "Tarix", question: "Mustaqillik yili?", answer: "1991" },
-    { subject: "Biologiya", question: "Inson tanasida nechta xromosoma bor?", answer: "46" },
-    { subject: "Kimyo", question: "Oltinning kimyoviy belgisi?", answer: "Au" },
+    { subject: "Grammar", question: "Choose: She ___ to school every day.", answer: "goes", options: ["go", "goes", "going", "gone"] },
+    { subject: "Vocabulary", question: "Past tense of 'go'?", answer: "went", options: ["goed", "gone", "went", "going"] },
+    { subject: "Reading", question: "Antonym of 'happy'?", answer: "sad", options: ["glad", "sad", "merry", "joyful"] },
+    { subject: "Writing", question: "Article: ___ apple a day.", answer: "an", options: ["a", "an", "the", "—"] },
+    { subject: "Listening", question: "Capital of the UK?", answer: "London", options: ["Paris", "London", "Berlin", "Rome"] },
+    { subject: "Grammar", question: "I ___ never been to Paris.", answer: "have", options: ["has", "have", "had", "having"] },
+    { subject: "Vocabulary", question: "Comparative of 'good'?", answer: "better", options: ["gooder", "better", "best", "more good"] },
+    { subject: "Reading", question: "Synonym of 'huge'?", answer: "enormous", options: ["tiny", "small", "enormous", "weak"] },
+    { subject: "Writing", question: "Plural of 'mouse' (animal)?", answer: "mice", options: ["mouses", "mice", "mises", "mousen"] },
+    { subject: "Listening", question: "Days in February (leap year)?", answer: "29", options: ["28", "29", "30", "31"] },
   ],
 };
+
+// Milliy sertifikat — fan kesimida katta MCQ bazasi (har fan alohida tanlanadi va alohida to'lanadi)
+const milliySubjectBank: Record<string, LevelQ[]> = {
+  Matematika: [
+    { subject: "Matematika", question: "5! (faktorial) = ?", answer: "120", options: ["20", "60", "100", "120"] },
+    { subject: "Matematika", question: "12 × 8 = ?", answer: "96", options: ["86", "92", "96", "104"] },
+    { subject: "Matematika", question: "144 ning kvadrat ildizi?", answer: "12", options: ["10", "11", "12", "14"] },
+    { subject: "Matematika", question: "3x = 27 bo'lsa, x = ?", answer: "9", options: ["3", "6", "9", "12"] },
+    { subject: "Matematika", question: "log10(1000) = ?", answer: "3", options: ["1", "2", "3", "10"] },
+    { subject: "Matematika", question: "sin(90°) = ?", answer: "1", options: ["0", "0.5", "1", "√2/2"] },
+    { subject: "Matematika", question: "2^10 = ?", answer: "1024", options: ["512", "1024", "2048", "256"] },
+    { subject: "Matematika", question: "Aylananing yuzi formulasi?", answer: "πr²", options: ["2πr", "πr²", "πd", "πr³"] },
+    { subject: "Matematika", question: "1 km nechta metr?", answer: "1000", options: ["100", "500", "1000", "10000"] },
+    { subject: "Matematika", question: "Eng kichik tub son?", answer: "2", options: ["1", "2", "3", "0"] },
+    { subject: "Matematika", question: "(a+b)² = ?", answer: "a²+2ab+b²", options: ["a²+b²", "a²+2ab+b²", "a²-2ab+b²", "a²+ab+b²"] },
+    { subject: "Matematika", question: "60° radianda?", answer: "π/3", options: ["π/2", "π/3", "π/4", "π/6"] },
+  ],
+  "Ona tili": [
+    { subject: "Ona tili", question: "Gapning bosh bo'laklari nechta?", answer: "2", options: ["1", "2", "3", "5"] },
+    { subject: "Ona tili", question: "Gap bo'laklari necha turga bo'linadi?", answer: "5", options: ["3", "4", "5", "6"] },
+    { subject: "Ona tili", question: "O'zbek alifbosida nechta harf bor?", answer: "29", options: ["26", "28", "29", "33"] },
+    { subject: "Ona tili", question: "Fe'l qaysi savolga javob beradi?", answer: "Nima qildi?", options: ["Kim?", "Qaysi?", "Nima qildi?", "Qancha?"] },
+    { subject: "Ona tili", question: "Ot turkumiga misol:", answer: "Daraxt", options: ["Yugur", "Daraxt", "Qizil", "Tez"] },
+    { subject: "Ona tili", question: "Sifat nimani bildiradi?", answer: "Belgi", options: ["Harakat", "Belgi", "Narsa", "Son"] },
+    { subject: "Ona tili", question: "Ko'p nuqta nechta nuqtadan iborat?", answer: "3", options: ["2", "3", "4", "5"] },
+    { subject: "Ona tili", question: "Unli tovushlar soni:", answer: "6", options: ["5", "6", "7", "10"] },
+    { subject: "Ona tili", question: "Tinish belgisi qaysi?", answer: "Nuqta", options: ["Nuqta", "Daraxt", "Bola", "Yugur"] },
+    { subject: "Ona tili", question: "Qo'shma gap nechta sodda gapdan tuziladi?", answer: "2 va undan ortiq", options: ["1", "2 va undan ortiq", "Faqat 2", "Faqat 3"] },
+  ],
+  Tarix: [
+    { subject: "Tarix", question: "Mustaqillik yili?", answer: "1991", options: ["1989", "1990", "1991", "1992"] },
+    { subject: "Tarix", question: "Amir Temur poytaxti?", answer: "Samarqand", options: ["Toshkent", "Samarqand", "Buxoro", "Xiva"] },
+    { subject: "Tarix", question: "Konstitutsiya qabul qilingan yil?", answer: "1992", options: ["1991", "1992", "1993", "1995"] },
+    { subject: "Tarix", question: "Mirzo Ulug'bek nima bilan mashhur?", answer: "Astronomiya", options: ["Tibbiyot", "Astronomiya", "Adabiyot", "Memorlik"] },
+    { subject: "Tarix", question: "Birinchi jahon urushi qachon boshlangan?", answer: "1914", options: ["1905", "1914", "1918", "1939"] },
+    { subject: "Tarix", question: "Ikkinchi jahon urushi tugagan yili?", answer: "1945", options: ["1939", "1941", "1945", "1950"] },
+    { subject: "Tarix", question: "Buxoro amirligi qachon tugatildi?", answer: "1920", options: ["1917", "1920", "1924", "1930"] },
+    { subject: "Tarix", question: "Alisher Navoiy tug'ilgan shahar?", answer: "Hirot", options: ["Samarqand", "Hirot", "Buxoro", "Toshkent"] },
+    { subject: "Tarix", question: "Amir Temur tug'ilgan yil?", answer: "1336", options: ["1320", "1336", "1370", "1405"] },
+    { subject: "Tarix", question: "Mustaqillik kuni (sana)?", answer: "1-sentyabr", options: ["1-sentyabr", "8-dekabr", "20-iyun", "31-avgust"] },
+  ],
+  Biologiya: [
+    { subject: "Biologiya", question: "Inson tanasida nechta xromosoma?", answer: "46", options: ["23", "44", "46", "48"] },
+    { subject: "Biologiya", question: "Fotosintezda ajraladigan gaz?", answer: "Kislorod", options: ["Karbonat angidrid", "Azot", "Kislorod", "Vodorod"] },
+    { subject: "Biologiya", question: "Hujayraning energiya stansiyasi?", answer: "Mitoxondriya", options: ["Yadro", "Ribosoma", "Mitoxondriya", "Lizosoma"] },
+    { subject: "Biologiya", question: "Eng katta organ?", answer: "Teri", options: ["Yurak", "Jigar", "Teri", "Miya"] },
+    { subject: "Biologiya", question: "Yurakda nechta bo'lma bor?", answer: "4", options: ["2", "3", "4", "6"] },
+    { subject: "Biologiya", question: "O'simliklarda yashil pigment?", answer: "Xlorofill", options: ["Karotin", "Xlorofill", "Ksantofill", "Lipid"] },
+    { subject: "Biologiya", question: "Inson skeletida nechta suyak?", answer: "206", options: ["180", "206", "212", "256"] },
+    { subject: "Biologiya", question: "Qon guruhlari nechta?", answer: "4", options: ["2", "3", "4", "5"] },
+    { subject: "Biologiya", question: "DNK to'liq nomi?", answer: "Dezoksiribonuklein kislota", options: ["Ribonuklein kislota", "Dezoksiribonuklein kislota", "Aminokislota", "Glyukoza"] },
+    { subject: "Biologiya", question: "Qonni tozalovchi organ?", answer: "Buyrak", options: ["Jigar", "Buyrak", "Yurak", "O'pka"] },
+  ],
+  Kimyo: [
+    { subject: "Kimyo", question: "Oltinning kimyoviy belgisi?", answer: "Au", options: ["Ag", "Au", "Al", "As"] },
+    { subject: "Kimyo", question: "Suvning formulasi?", answer: "H2O", options: ["H2O", "CO2", "O2", "HO"] },
+    { subject: "Kimyo", question: "NaCl nomi?", answer: "Natriy xlorid", options: ["Natriy xlorid", "Kalsiy xlorid", "Natriy gidroksid", "Kaliy xlorid"] },
+    { subject: "Kimyo", question: "pH 7 — qanday muhit?", answer: "Neytral", options: ["Kislotali", "Neytral", "Ishqoriy", "Kuchli kislota"] },
+    { subject: "Kimyo", question: "Eng yengil element?", answer: "Vodorod", options: ["Geliy", "Vodorod", "Kislorod", "Litiy"] },
+    { subject: "Kimyo", question: "CO2 nomi?", answer: "Karbonat angidrid", options: ["Karbonat angidrid", "Uglerod oksidi", "Metan", "Ozon"] },
+    { subject: "Kimyo", question: "Temirning belgisi?", answer: "Fe", options: ["Fe", "Te", "Tr", "Ti"] },
+    { subject: "Kimyo", question: "Davriy jadvalda nechta element?", answer: "118", options: ["100", "112", "118", "120"] },
+    { subject: "Kimyo", question: "Vodorod belgisi?", answer: "H", options: ["H", "He", "Hg", "Hi"] },
+    { subject: "Kimyo", question: "Suvning qaynash harorati (°C)?", answer: "100", options: ["90", "100", "110", "120"] },
+  ],
+  Fizika: [
+    { subject: "Fizika", question: "Tezlik formulasi?", answer: "v=s/t", options: ["v=s·t", "v=s/t", "v=t/s", "v=s+t"] },
+    { subject: "Fizika", question: "Tok kuchi birligi?", answer: "Amper", options: ["Volt", "Vatt", "Amper", "Om"] },
+    { subject: "Fizika", question: "Erkin tushish tezlanishi (g)?", answer: "9.8", options: ["8.8", "9.8", "10.8", "11.2"] },
+    { subject: "Fizika", question: "Quvvat birligi?", answer: "Vatt", options: ["Joul", "Vatt", "Amper", "Volt"] },
+    { subject: "Fizika", question: "Yorug'lik tezligi (km/s)?", answer: "300000", options: ["3000", "30000", "300000", "3000000"] },
+    { subject: "Fizika", question: "F = ma — kimning qonuni?", answer: "Nyuton", options: ["Eynshteyn", "Nyuton", "Galiley", "Arximed"] },
+    { subject: "Fizika", question: "Kuchlanish birligi?", answer: "Volt", options: ["Volt", "Amper", "Om", "Vatt"] },
+    { subject: "Fizika", question: "Energiya birligi?", answer: "Joul", options: ["Vatt", "Joul", "Nyuton", "Paskal"] },
+    { subject: "Fizika", question: "Temperatura birligi (SI)?", answer: "Kelvin", options: ["Selsiy", "Kelvin", "Faringeit", "Renkin"] },
+    { subject: "Fizika", question: "Massa birligi (SI)?", answer: "kg", options: ["g", "kg", "tonna", "mg"] },
+  ],
+  "Ingliz tili": [
+    { subject: "Ingliz tili", question: "Past tense of 'go'?", answer: "went", options: ["goed", "gone", "went", "going"] },
+    { subject: "Ingliz tili", question: "Antonym of 'happy'?", answer: "sad", options: ["glad", "sad", "merry", "kind"] },
+    { subject: "Ingliz tili", question: "Plural of 'child'?", answer: "children", options: ["childs", "childen", "children", "childes"] },
+    { subject: "Ingliz tili", question: "Article: ___ apple a day.", answer: "an", options: ["a", "an", "the", "—"] },
+    { subject: "Ingliz tili", question: "Choose: She ___ to school every day.", answer: "goes", options: ["go", "goes", "going", "gone"] },
+    { subject: "Ingliz tili", question: "Comparative of 'good'?", answer: "better", options: ["gooder", "better", "best", "well"] },
+    { subject: "Ingliz tili", question: "Past participle of 'write'?", answer: "written", options: ["wrote", "writed", "written", "writing"] },
+    { subject: "Ingliz tili", question: "Synonym of 'big'?", answer: "large", options: ["small", "large", "tiny", "weak"] },
+    { subject: "Ingliz tili", question: "Letters in the English alphabet?", answer: "26", options: ["24", "26", "28", "30"] },
+    { subject: "Ingliz tili", question: "Capital of England?", answer: "London", options: ["Paris", "London", "Madrid", "Berlin"] },
+  ],
+};
+
+const milliySubjects = Object.keys(milliySubjectBank);
+const MILLIY_PRICE = 39000;
+const MILLIY_DURATION_SEC = 3 * 60 * 60;
 
 const quizBank: Record<string, Array<{ question: string; answer: string }>> = {
   Matematika: [
@@ -477,7 +576,20 @@ const Index = () => {
   const [active3dSubject, setActive3dSubject] = useState("Hammasi");
   const [activeLevelTest, setActiveLevelTest] = useState<string | null>(null);
   const [proctoredExam, setProctoredExam] = useState<string | null>(null);
+  const [proctoredQuestions, setProctoredQuestions] = useState<LevelQ[] | null>(null);
+  const [proctoredDuration, setProctoredDuration] = useState<number | undefined>(undefined);
+  const [proctoredFlagSpam, setProctoredFlagSpam] = useState<boolean>(false);
   const [proctoredResult, setProctoredResult] = useState<Record<string, { score: number; total: number; valid: boolean }>>({});
+  const [milliyPaid, setMilliyPaid] = useState<Record<string, boolean>>(() => {
+    try { return JSON.parse(localStorage.getItem("edusat:milliyPaid") || "{}"); } catch { return {}; }
+  });
+  const payMilliySubject = (subject: string) => {
+    setMilliyPaid(prev => {
+      const next = { ...prev, [subject]: true };
+      try { localStorage.setItem("edusat:milliyPaid", JSON.stringify(next)); } catch {}
+      return next;
+    });
+  };
   const [activeQuiz, setActiveQuiz] = useState<{ subject: string; mode: string } | null>(null);
   const [feedbackName, setFeedbackName] = useState("");
   const [feedbackText, setFeedbackText] = useState("");
@@ -1496,10 +1608,11 @@ const Index = () => {
   );
 
   const renderLevel = () => (
-    <section>
-      <SectionTitle kicker="Daraja aniqlash" title="IELTS, Multi-level va Milliy sertifikat testlari" text="Birinchi sinab ko'rish bepul. Test kamera nazorati ostida o'tkaziladi — halol ishtirok eting." />
-      <div className="grid gap-5 lg:grid-cols-3">
-        {levelTests.map((test) => {
+    <section className="space-y-8">
+      <SectionTitle kicker="Daraja aniqlash" title="IELTS, Multi-level va Milliy sertifikat testlari" text="Test kamera nazorati ostida o'tkaziladi — halol ishtirok eting. Milliy sertifikat har fan uchun alohida tanlanadi va alohida to'lanadi." />
+
+      <div className="grid gap-5 lg:grid-cols-2">
+        {levelTests.filter(t => t.title !== "Milliy sertifikat").map((test) => {
           const result = proctoredResult[test.title];
           return (
             <GlassCard key={test.title}>
@@ -1514,7 +1627,7 @@ const Index = () => {
                 {levels.map((level) => <span key={level} className="rounded-xl bg-secondary/70 py-2 text-center text-xs font-black text-secondary-foreground">{level}</span>)}
               </div>
               <div className="mt-3 flex items-center gap-2 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-[11px] font-bold text-amber-700 dark:text-amber-300">
-                <ShieldCheck className="h-3.5 w-3.5" /> Kamera nazorati ostida o'tkaziladi
+                <ShieldCheck className="h-3.5 w-3.5" /> Kamera + audio qurilmalar nazorati ostida
               </div>
               {result && (
                 <p className={`mt-3 rounded-2xl border px-3 py-2 text-center text-xs font-black ${result.valid ? "border-primary/40 bg-primary/10 text-primary" : "border-destructive/40 bg-destructive/10 text-destructive"}`}>
@@ -1525,6 +1638,9 @@ const Index = () => {
                 className="mt-5 premium-button w-full rounded-2xl px-4 py-3 font-black"
                 onClick={() => {
                   if (!levelTestQuestions[test.title]) return;
+                  setProctoredQuestions(levelTestQuestions[test.title]);
+                  setProctoredDuration(undefined);
+                  setProctoredFlagSpam(false);
                   setProctoredExam(test.title);
                   completeActivity(50);
                 }}
@@ -1536,11 +1652,70 @@ const Index = () => {
         })}
       </div>
 
-      {proctoredExam && levelTestQuestions[proctoredExam] && (
+      {/* Milliy sertifikat — fan tanlash */}
+      <div className="rounded-3xl border border-primary/30 bg-gradient-to-br from-primary/10 via-card to-card p-6 shadow-premium md:p-8">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="inline-flex items-center gap-2 rounded-full bg-primary/15 px-3 py-1 text-xs font-black text-primary">
+              <ShieldCheck className="h-3.5 w-3.5" /> Milliy sertifikat — Rasmiy format
+            </p>
+            <h3 className="mt-2 text-3xl font-black text-foreground">Fanni tanlab to'lov qiling va imtihonga kiring</h3>
+            <p className="mt-1 text-sm font-bold text-muted-foreground">Har fan uchun alohida {MILLIY_PRICE.toLocaleString()} so'm • 3 soat vaqt • Halol nazorat ostida</p>
+          </div>
+          <span className="rounded-2xl bg-amber-500/15 px-3 py-2 text-xs font-black text-amber-700 dark:text-amber-300">⏱️ 3:00:00 limit</span>
+        </div>
+
+        <div className="mt-5 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+          {milliySubjects.map((subj) => {
+            const paid = milliyPaid[subj];
+            const result = proctoredResult[`Milliy: ${subj}`];
+            return (
+              <div key={subj} className="rounded-2xl border border-border bg-background/60 p-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-lg font-black text-foreground">{subj}</p>
+                  {paid ? <Pill>To'langan</Pill> : <Pill>Yopiq</Pill>}
+                </div>
+                <p className="mt-1 text-xs font-bold text-muted-foreground">{milliySubjectBank[subj].length} ta savol • Kalitlik (MCQ)</p>
+                <p className="mt-2 text-base font-black text-primary">{MILLIY_PRICE.toLocaleString()} so'm</p>
+                {result && (
+                  <p className={`mt-2 rounded-xl border px-2 py-1 text-center text-[11px] font-black ${result.valid ? "border-primary/40 bg-primary/10 text-primary" : "border-destructive/40 bg-destructive/10 text-destructive"}`}>
+                    {result.valid ? `Natija: ${result.score}/${result.total}` : `Bekor: ${result.score}/${result.total}`}
+                  </p>
+                )}
+                {!paid ? (
+                  <button
+                    onClick={() => payMilliySubject(subj)}
+                    className="mt-3 w-full rounded-2xl border border-primary/40 bg-primary/10 px-3 py-2 text-sm font-black text-primary hover:bg-primary/20"
+                  >
+                    To'lov qilish
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setProctoredQuestions(milliySubjectBank[subj]);
+                      setProctoredDuration(MILLIY_DURATION_SEC);
+                      setProctoredFlagSpam(true);
+                      setProctoredExam(`Milliy: ${subj}`);
+                      completeActivity(80);
+                    }}
+                    className="mt-3 premium-button w-full rounded-2xl px-3 py-2 text-sm font-black"
+                  >
+                    Imtihonni boshlash
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {proctoredExam && proctoredQuestions && (
         <ProctoredExam
           testTitle={proctoredExam}
-          questions={levelTestQuestions[proctoredExam]}
-          onClose={() => setProctoredExam(null)}
+          questions={proctoredQuestions}
+          durationSec={proctoredDuration}
+          flagSpamMistakes={proctoredFlagSpam}
+          onClose={() => { setProctoredExam(null); setProctoredQuestions(null); }}
           onComplete={(score, total, valid) => {
             setProctoredResult((prev) => ({ ...prev, [proctoredExam!]: { score, total, valid } }));
           }}
