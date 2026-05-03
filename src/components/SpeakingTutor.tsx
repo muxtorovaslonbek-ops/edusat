@@ -67,7 +67,7 @@ export default function SpeakingTutor({ userName = "" }: Props) {
   const [age, setAge] = useState<AgeGroup>(() => { try { return (localStorage.getItem(AGE_KEY) as AgeGroup) || "adult"; } catch { return "adult"; } });
   const [gender, setGender] = useState<Gender>(() => { try { return (localStorage.getItem(GENDER_KEY) as Gender) || "female"; } catch { return "female"; } });
   const [lang, setLang] = useState<LangCode>(() => { try { return (localStorage.getItem(LANG_KEY) as LangCode) || "en"; } catch { return "en"; } });
-  const [speed, setSpeed] = useState<SpeedMode>(() => { try { return (localStorage.getItem(SPEED_KEY) as SpeedMode) || "normal"; } catch { return "normal"; } });
+  const [speed, setSpeed] = useState<number>(() => { try { const v = parseFloat(localStorage.getItem(SPEED_KEY) || ""); return isFinite(v) && v >= SPEED_MIN && v <= SPEED_MAX ? v : 1.0; } catch { return 1.0; } });
 
   const [showSettings, setShowSettings] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -104,7 +104,7 @@ export default function SpeakingTutor({ userName = "" }: Props) {
   useEffect(() => { try { localStorage.setItem(AGE_KEY, age); } catch {} }, [age]);
   useEffect(() => { try { localStorage.setItem(GENDER_KEY, gender); } catch {} }, [gender]);
   useEffect(() => { try { localStorage.setItem(LANG_KEY, lang); } catch {} }, [lang]);
-  useEffect(() => { try { localStorage.setItem(SPEED_KEY, speed); } catch {} }, [speed]);
+  useEffect(() => { try { localStorage.setItem(SPEED_KEY, String(speed)); } catch {} }, [speed]);
   useEffect(() => { messagesRef.current = transcript; }, [transcript]);
   useEffect(() => { isActiveRef.current = isActive; }, [isActive]);
   useEffect(() => { isSpeakingRef.current = isSpeaking; }, [isSpeaking]);
@@ -165,7 +165,7 @@ export default function SpeakingTutor({ userName = "" }: Props) {
     utter.lang = pickedVoice?.lang || langInfo.bcp;
     const params = VOICE_PARAMS[age][tone];
     utter.pitch = gender === "male" ? Math.max(0.3, params.pitch - 0.7) : Math.min(2.0, params.pitch + 0.1);
-    utter.rate = params.rate * SPEED_MULT[speed];
+    utter.rate = Math.min(10, Math.max(0.1, params.rate * speed));
     window.speechSynthesis.speak(utter);
   }, [pickedVoice, age, tone, gender, lang, langInfo, isActive, speed]);
 
@@ -191,7 +191,7 @@ export default function SpeakingTutor({ userName = "" }: Props) {
       utter.lang = pickedVoice?.lang || langInfo.bcp;
       const params = VOICE_PARAMS[age][tone];
       utter.pitch = gender === "male" ? Math.max(0.3, params.pitch - 0.7) : Math.min(2.0, params.pitch + 0.1);
-      utter.rate = params.rate * SPEED_MULT[speed];
+      utter.rate = Math.min(10, Math.max(0.1, params.rate * speed));
       utter.volume = 1;
       utter.onstart = () => setIsSpeaking(true);
       utter.onend = () => { setIsSpeaking(false); resolve(); };
@@ -468,7 +468,7 @@ export default function SpeakingTutor({ userName = "" }: Props) {
           <div className="flex flex-col gap-4">
             <div className="rounded-2xl border border-border bg-background/60 p-4 backdrop-blur">
               <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Hozirgi sozlama</p>
-              <p className="mt-1 text-sm font-bold text-foreground">{langInfo.flag} {langInfo.label} • {gender === "female" ? "👩 Ayol" : "👨 Erkak"} • {AGE_LABEL[age]} • {TONE_LABEL[tone]} • {SPEED_LABEL[speed]}</p>
+              <p className="mt-1 text-sm font-bold text-foreground">{langInfo.flag} {langInfo.label} • {gender === "female" ? "👩 Ayol" : "👨 Erkak"} • {AGE_LABEL[age]} • {TONE_LABEL[tone]} • {speedLabel(speed)}</p>
               <p className="mt-0.5 text-xs text-muted-foreground">{tutorName} — sizning shaxsiy suhbat sherigingiz</p>
             </div>
 
@@ -687,13 +687,23 @@ export default function SpeakingTutor({ userName = "" }: Props) {
               </div>
 
               <div>
-                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Gapirish tezligi</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {(Object.keys(SPEED_LABEL) as SpeedMode[]).map((s) => (
-                    <button key={s} onClick={() => { setSpeed(s); setTimeout(previewVoice, 50); }} className={`rounded-2xl border px-3 py-2 text-sm font-bold transition-all ${speed === s ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-foreground hover:border-primary/60"}`}>
-                      {SPEED_LABEL[s]}
-                    </button>
-                  ))}
+                <label className="mb-2 flex items-center justify-between text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  <span>Gapirish tezligi</span>
+                  <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-black text-primary">{speedLabel(speed)}</span>
+                </label>
+                <input
+                  type="range"
+                  min={SPEED_MIN}
+                  max={SPEED_MAX}
+                  step={0.1}
+                  value={speed}
+                  onChange={(e) => setSpeed(parseFloat(e.target.value))}
+                  onMouseUp={() => setTimeout(previewVoice, 30)}
+                  onTouchEnd={() => setTimeout(previewVoice, 30)}
+                  className="w-full accent-primary"
+                />
+                <div className="mt-1 flex justify-between text-[10px] font-bold text-muted-foreground">
+                  <span>0.1x 🐢</span><span>1.0x</span><span>2.0x 🚀</span>
                 </div>
               </div>
 
