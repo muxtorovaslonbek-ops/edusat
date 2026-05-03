@@ -17,7 +17,7 @@ interface Props {
 
 const MAX_WARNINGS = 3;
 
-export default function ProctoredExam({ testTitle, questions, onClose, onComplete }: Props) {
+export default function ProctoredExam({ testTitle, questions, onClose, onComplete, durationSec, flagSpamMistakes }: Props) {
   const [status, setStatus] = useState<Status>("setup");
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [cameraError, setCameraError] = useState<string>("");
@@ -26,12 +26,17 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
   const [deviceWarnings, setDeviceWarnings] = useState(0);
   const [lastWarning, setLastWarning] = useState<string>("");
   const [disqualifyReason, setDisqualifyReason] = useState<string>("");
+  const [audioDevices, setAudioDevices] = useState<MediaDeviceInfo[]>([]);
+  const [initialAudioCount, setInitialAudioCount] = useState<number>(0);
+  const [timeLeft, setTimeLeft] = useState<number>(durationSec || 0);
+  const [spamFlag, setSpamFlag] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const statusRef = useRef<Status>("setup");
 
   useEffect(() => { statusRef.current = status; }, [status]);
 
   const score = questions.filter((q, i) => (answers[i] || "").trim().toLowerCase() === q.answer.trim().toLowerCase()).length;
+  const wrongCount = questions.filter((q, i) => (answers[i] || "").trim() && (answers[i] || "").trim().toLowerCase() !== q.answer.trim().toLowerCase()).length;
 
   const stopCamera = useCallback(() => {
     if (stream) { stream.getTracks().forEach(t => t.stop()); setStream(null); }
