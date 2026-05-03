@@ -245,6 +245,7 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
               <X className="h-5 w-5" />
             </button>
           </div>
+        </div>
 
         {/* Camera + warnings panel */}
         <div className="mt-4 grid gap-4 md:grid-cols-[240px,1fr]">
