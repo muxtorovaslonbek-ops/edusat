@@ -235,10 +235,16 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
             <h2 className="mt-2 text-2xl font-black text-foreground md:text-3xl">{testTitle}</h2>
             <p className="mt-1 text-sm text-muted-foreground">Halol natija uchun kamera nazorati ostida o'tkaziladi.</p>
           </div>
-          <button onClick={handleClose} className="rounded-2xl border border-border bg-card p-2 text-foreground hover:bg-primary/10 hover:text-primary">
-            <X className="h-5 w-5" />
-          </button>
-        </div>
+          <div className="flex items-center gap-2">
+            {durationSec && status === "running" && (
+              <span className={`inline-flex items-center gap-1 rounded-2xl border px-3 py-2 text-sm font-black ${timeLeft < 600 ? "border-destructive/60 bg-destructive/10 text-destructive" : "border-primary/40 bg-primary/10 text-primary"}`}>
+                <Clock className="h-4 w-4" /> {fmtTime(timeLeft)}
+              </span>
+            )}
+            <button onClick={handleClose} className="rounded-2xl border border-border bg-card p-2 text-foreground hover:bg-primary/10 hover:text-primary">
+              <X className="h-5 w-5" />
+            </button>
+          </div>
 
         {/* Camera + warnings panel */}
         <div className="mt-4 grid gap-4 md:grid-cols-[240px,1fr]">
@@ -261,6 +267,7 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
               <div className="mt-2 space-y-1 text-[11px] font-bold">
                 <p className="flex justify-between"><span>Oynadan chiqish:</span><span className={tabWarnings > 0 ? "text-destructive" : "text-muted-foreground"}>{tabWarnings}/{MAX_WARNINGS}</span></p>
                 <p className="flex justify-between"><span>Qurilma ishlatish:</span><span className={deviceWarnings > 0 ? "text-destructive" : "text-muted-foreground"}>{deviceWarnings}/{MAX_WARNINGS}</span></p>
+                <p className="flex justify-between"><span><Headphones className="inline h-3 w-3" /> Audio qurilmalar:</span><span className="text-muted-foreground">{audioDevices.length}</span></p>
               </div>
             )}
           </div>
@@ -317,14 +324,30 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
               <div key={i} className="rounded-2xl border border-border bg-background/60 p-4">
                 <p className="text-[10px] font-black uppercase tracking-wider text-primary">{q.subject}</p>
                 <p className="mt-1 font-bold text-foreground">{i + 1}. {q.question}</p>
-                <input
-                  type="text"
-                  value={answers[i] || ""}
-                  onChange={(e) => setAnswers({ ...answers, [i]: e.target.value })}
-                  placeholder="Javobingizni yozing..."
-                  onPaste={(e) => { e.preventDefault(); addDeviceWarning("Javobni nusxalab qo'yish urinishi aniqlandi."); }}
-                  className="mt-2 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm font-bold text-foreground outline-none focus:border-primary"
-                />
+                {q.options && q.options.length ? (
+                  <div className="mt-2 grid gap-2">
+                    {q.options.map((opt) => {
+                      const sel = answers[i] === opt;
+                      return (
+                        <button
+                          key={opt}
+                          type="button"
+                          onClick={() => setAnswers({ ...answers, [i]: opt })}
+                          className={`text-left rounded-xl border px-3 py-2 text-sm font-bold transition-all ${sel ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-foreground hover:border-primary/60"}`}
+                        >{opt}</button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <input
+                    type="text"
+                    value={answers[i] || ""}
+                    onChange={(e) => setAnswers({ ...answers, [i]: e.target.value })}
+                    placeholder="Javobingizni yozing..."
+                    onPaste={(e) => { e.preventDefault(); addDeviceWarning("Javobni nusxalab qo'yish urinishi aniqlandi."); }}
+                    className="mt-2 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm font-bold text-foreground outline-none focus:border-primary"
+                  />
+                )}
               </div>
             ))}
             <div className="md:col-span-2 flex justify-end">
@@ -336,7 +359,7 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
         )}
 
         {/* Finished — valid */}
-        {status === "finished" && (
+        {status === "finished" && !spamFlag && (
           <div className="mt-6 rounded-3xl border border-primary/40 bg-primary/10 p-6 text-center">
             <CheckCircle2 className="mx-auto h-12 w-12 text-primary" />
             <p className="mt-3 text-2xl font-black text-foreground">Tabriklaymiz! Test halol yakunlandi.</p>
