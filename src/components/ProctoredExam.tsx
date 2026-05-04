@@ -361,6 +361,8 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
                 <p className="flex justify-between"><span>Oynadan chiqish:</span><span className={tabWarnings > 0 ? "text-destructive" : "text-muted-foreground"}>{tabWarnings}/{MAX_WARNINGS}</span></p>
                 <p className="flex justify-between"><span>Qurilma ishlatish:</span><span className={deviceWarnings > 0 ? "text-destructive" : "text-muted-foreground"}>{deviceWarnings}/{MAX_WARNINGS}</span></p>
                 <p className="flex justify-between"><span><Headphones className="inline h-3 w-3" /> Audio qurilmalar:</span><span className="text-muted-foreground">{audioDevices.length}</span></p>
+                <p className="flex justify-between"><span>🤖 AI nazorat:</span><span className={aiStatus === "ready" ? "text-primary" : aiStatus === "error" ? "text-destructive" : "text-muted-foreground"}>{aiStatus === "ready" ? "Faol" : aiStatus === "loading" ? "Yuklanmoqda…" : aiStatus === "error" ? "Xato" : "—"}</span></p>
+                {detectedObject && <p className="rounded-lg bg-destructive/10 px-2 py-1 text-center text-destructive">⚠️ {detectedObject}</p>}
               </div>
             )}
           </div>
