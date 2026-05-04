@@ -283,7 +283,7 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
         const v = videoRef.current;
         if (v && v.readyState >= 2 && v.videoWidth > 0) {
           try {
-            const preds = await model.detect(v, 6, 0.55);
+            const preds = await model.detect(v, 12, 0.35);
             const now = Date.now();
             // Multiple people
             const persons = preds.filter((p: any) => p.class === "person");
@@ -295,15 +295,15 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
               addDeviceWarning("Foydalanuvchi kameradan ko'rinmayapti!");
             }
             // Forbidden objects
-            for (const p of preds) {
-              if (FORBIDDEN_CLASSES[p.class]) {
+            const phoneByShape = looksLikePhoneInFrame(v);
+            const forbidden = preds.find((p: any) => FORBIDDEN_CLASSES[p.class] || (p.class === "cell phone" && p.score > 0.2));
+            if (phoneByShape || forbidden) {
                 if (now - lastObjectWarnRef.current > 5000) {
                   lastObjectWarnRef.current = now;
-                  setDetectedObject(p.class);
-                  addDeviceWarning(FORBIDDEN_CLASSES[p.class]);
+                const objectName = phoneByShape ? "telefon" : forbidden.class;
+                setDetectedObject(objectName);
+                addDeviceWarning(phoneByShape ? "Telefon kamerada ko'rindi!" : FORBIDDEN_CLASSES[forbidden.class]);
                 }
-                break;
-              }
             }
           } catch { /* ignore frame errors */ }
         }
