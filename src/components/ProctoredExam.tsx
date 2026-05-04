@@ -194,6 +194,70 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
     return () => clearInterval(i);
   }, [status, audioDevices]);
 
+  // === AI camera surveillance: detect phones/headphones/extra people in webcam frame ===
+  useEffect(() => {
+    if (status !== "running" || !stream || !videoRef.current) return;
+    let cancelled = false;
+    let timer: number | null = null;
+    let model: any = null;
+
+    const FORBIDDEN_CLASSES: Record<string, string> = {
+      "cell phone": "Telefon kamerada aniqlandi!",
+      "remote": "Masofaviy boshqaruv qurilmasi aniqlandi!",
+      "laptop": "Boshqa kompyuter/laptop kamerada aniqlandi!",
+      "tv": "Ekran/TV kamerada aniqlandi!",
+      "book": "Kitob/qo'lyozma kamerada aniqlandi!",
+      "keyboard": "Qo'shimcha klaviatura aniqlandi!",
+      "mouse": "Qo'shimcha sichqoncha aniqlandi!",
+    };
+    // coco-ssd doesn't have "headphones" class; we still detect phones, extra people, books, screens.
+
+    setAiStatus("loading");
+    loadDetector().then((m) => {
+      if (cancelled) return;
+      model = m;
+      setAiStatus("ready");
+      const tick = async () => {
+        if (cancelled || statusRef.current !== "running") return;
+        const v = videoRef.current;
+        if (v && v.readyState >= 2 && v.videoWidth > 0) {
+          try {
+            const preds = await model.detect(v, 6, 0.55);
+            const now = Date.now();
+            // Multiple people
+            const persons = preds.filter((p: any) => p.class === "person");
+            if (persons.length > 1 && now - lastFaceWarnRef.current > 6000) {
+              lastFaceWarnRef.current = now;
+              addDeviceWarning("Kadrda bir nechta odam aniqlandi!");
+            } else if (persons.length === 0 && now - lastFaceWarnRef.current > 8000) {
+              lastFaceWarnRef.current = now;
+              addDeviceWarning("Foydalanuvchi kameradan ko'rinmayapti!");
+            }
+            // Forbidden objects
+            for (const p of preds) {
+              if (FORBIDDEN_CLASSES[p.class]) {
+                if (now - lastObjectWarnRef.current > 5000) {
+                  lastObjectWarnRef.current = now;
+                  setDetectedObject(p.class);
+                  addDeviceWarning(FORBIDDEN_CLASSES[p.class]);
+                }
+                break;
+              }
+            }
+          } catch { /* ignore frame errors */ }
+        }
+        timer = window.setTimeout(tick, 1500);
+      };
+      tick();
+    }).catch(() => { if (!cancelled) setAiStatus("error"); });
+
+    return () => {
+      cancelled = true;
+      if (timer) window.clearTimeout(timer);
+    };
+  }, [status, stream, addDeviceWarning]);
+
+
   // Auto-clear warning toast
   useEffect(() => {
     if (!lastWarning) return;
