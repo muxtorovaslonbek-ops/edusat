@@ -16,6 +16,8 @@ interface Props {
 }
 
 const MAX_WARNINGS = 3;
+const PHONE_RECT_MIN_AREA = 0.018;
+const PHONE_RECT_MAX_AREA = 0.28;
 
 // Load TF + coco-ssd from CDN once
 let detectorPromise: Promise<any> | null = null;
@@ -39,6 +41,65 @@ function loadDetector(): Promise<any> {
     })();
   });
   return detectorPromise;
+}
+
+function looksLikePhoneInFrame(video: HTMLVideoElement): boolean {
+  const canvas = document.createElement("canvas");
+  const width = 160;
+  const height = 120;
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  if (!ctx) return false;
+  ctx.drawImage(video, 0, 0, width, height);
+  const { data } = ctx.getImageData(0, 0, width, height);
+  const visited = new Uint8Array(width * height);
+  const isStrongEdge = (x: number, y: number) => {
+    const i = (y * width + x) * 4;
+    const r = data[i], g = data[i + 1], b = data[i + 2];
+    const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+    const rn = r / Math.max(1, r + g + b);
+    const gn = g / Math.max(1, r + g + b);
+    const skinLike = r > 85 && g > 45 && b > 25 && rn > 0.34 && gn > 0.22 && rn - gn > 0.04;
+    if (skinLike) return false;
+    const right = Math.min(width - 1, x + 2);
+    const down = Math.min(height - 1, y + 2);
+    const ri = (y * width + right) * 4;
+    const di = (down * width + x) * 4;
+    const lumRight = 0.299 * data[ri] + 0.587 * data[ri + 1] + 0.114 * data[ri + 2];
+    const lumDown = 0.299 * data[di] + 0.587 * data[di + 1] + 0.114 * data[di + 2];
+    return Math.abs(lum - lumRight) + Math.abs(lum - lumDown) > 95;
+  };
+
+  for (let y = 8; y < height - 8; y += 2) {
+    for (let x = 8; x < width - 8; x += 2) {
+      const start = y * width + x;
+      if (visited[start] || !isStrongEdge(x, y)) continue;
+      let minX = x, maxX = x, minY = y, maxY = y, count = 0;
+      const stack = [[x, y]];
+      visited[start] = 1;
+      while (stack.length && count < 2600) {
+        const [cx, cy] = stack.pop()!;
+        count++;
+        minX = Math.min(minX, cx); maxX = Math.max(maxX, cx);
+        minY = Math.min(minY, cy); maxY = Math.max(maxY, cy);
+        for (const [nx, ny] of [[cx + 2, cy], [cx - 2, cy], [cx, cy + 2], [cx, cy - 2]]) {
+          if (nx < 4 || ny < 4 || nx >= width - 4 || ny >= height - 4) continue;
+          const n = ny * width + nx;
+          if (!visited[n] && isStrongEdge(nx, ny)) { visited[n] = 1; stack.push([nx, ny]); }
+        }
+      }
+      const boxW = maxX - minX + 1;
+      const boxH = maxY - minY + 1;
+      const areaRatio = (boxW * boxH) / (width * height);
+      const aspect = Math.max(boxW / Math.max(1, boxH), boxH / Math.max(1, boxW));
+      const density = count / Math.max(1, boxW * boxH);
+      if (areaRatio >= PHONE_RECT_MIN_AREA && areaRatio <= PHONE_RECT_MAX_AREA && aspect >= 1.35 && aspect <= 3.4 && density >= 0.08) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 export default function ProctoredExam({ testTitle, questions, onClose, onComplete, durationSec, flagSpamMistakes }: Props) {
@@ -199,6 +260,7 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
     if (status !== "running" || !stream || !videoRef.current) return;
     let cancelled = false;
     let timer: number | null = null;
+    let shapeTimer: number | null = null;
     let model: any = null;
 
     const FORBIDDEN_CLASSES: Record<string, string> = {
@@ -212,7 +274,23 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
     };
     // coco-ssd doesn't have "headphones" class; we still detect phones, extra people, books, screens.
 
+    const warnPhone = (source: "shape" | "model") => {
+      const now = Date.now();
+      if (now - lastObjectWarnRef.current <= 5000) return;
+      lastObjectWarnRef.current = now;
+      setDetectedObject("telefon");
+      addDeviceWarning(source === "shape" ? "Telefon kamerada ko'rindi!" : "Telefon kamerada aniqlandi!");
+    };
+
+    const shapeTick = () => {
+      if (cancelled || statusRef.current !== "running") return;
+      const v = videoRef.current;
+      if (v && v.readyState >= 2 && v.videoWidth > 0 && looksLikePhoneInFrame(v)) warnPhone("shape");
+      shapeTimer = window.setTimeout(shapeTick, 1200);
+    };
+
     setAiStatus("loading");
+    shapeTick();
     loadDetector().then((m) => {
       if (cancelled) return;
       model = m;
@@ -222,7 +300,7 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
         const v = videoRef.current;
         if (v && v.readyState >= 2 && v.videoWidth > 0) {
           try {
-            const preds = await model.detect(v, 6, 0.55);
+            const preds = await model.detect(v, 12, 0.35);
             const now = Date.now();
             // Multiple people
             const persons = preds.filter((p: any) => p.class === "person");
@@ -234,15 +312,15 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
               addDeviceWarning("Foydalanuvchi kameradan ko'rinmayapti!");
             }
             // Forbidden objects
-            for (const p of preds) {
-              if (FORBIDDEN_CLASSES[p.class]) {
-                if (now - lastObjectWarnRef.current > 5000) {
-                  lastObjectWarnRef.current = now;
-                  setDetectedObject(p.class);
-                  addDeviceWarning(FORBIDDEN_CLASSES[p.class]);
+            const forbidden = preds.find((p: any) => FORBIDDEN_CLASSES[p.class]);
+            if (forbidden) {
+              if (forbidden.class === "cell phone") {
+                warnPhone("model");
+              } else if (now - lastObjectWarnRef.current > 5000) {
+                lastObjectWarnRef.current = now;
+                setDetectedObject(forbidden.class);
+                addDeviceWarning(FORBIDDEN_CLASSES[forbidden.class]);
                 }
-                break;
-              }
             }
           } catch { /* ignore frame errors */ }
         }
@@ -254,6 +332,7 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
     return () => {
       cancelled = true;
       if (timer) window.clearTimeout(timer);
+      if (shapeTimer) window.clearTimeout(shapeTimer);
     };
   }, [status, stream, addDeviceWarning]);
 
