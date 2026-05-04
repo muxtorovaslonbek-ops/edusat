@@ -17,6 +17,30 @@ interface Props {
 
 const MAX_WARNINGS = 3;
 
+// Load TF + coco-ssd from CDN once
+let detectorPromise: Promise<any> | null = null;
+function loadDetector(): Promise<any> {
+  if (detectorPromise) return detectorPromise;
+  detectorPromise = new Promise((resolve, reject) => {
+    const loadScript = (src: string) => new Promise<void>((res, rej) => {
+      if (document.querySelector(`script[src="${src}"]`)) { res(); return; }
+      const s = document.createElement("script");
+      s.src = src; s.async = true; s.onload = () => res(); s.onerror = () => rej(new Error("script "+src));
+      document.head.appendChild(s);
+    });
+    (async () => {
+      try {
+        await loadScript("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js");
+        await loadScript("https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js");
+        const cocoSsd = (window as any).cocoSsd;
+        const model = await cocoSsd.load({ base: "lite_mobilenet_v2" });
+        resolve(model);
+      } catch (e) { detectorPromise = null; reject(e); }
+    })();
+  });
+  return detectorPromise;
+}
+
 export default function ProctoredExam({ testTitle, questions, onClose, onComplete, durationSec, flagSpamMistakes }: Props) {
   const [status, setStatus] = useState<Status>("setup");
   const [stream, setStream] = useState<MediaStream | null>(null);
