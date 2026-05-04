@@ -117,39 +117,56 @@ export default function SpeakingTutor({ userName = "" }: Props) {
     return () => { window.speechSynthesis.onvoiceschanged = null; };
   }, []);
 
-  const pickedVoice = useMemo(() => {
-    if (!voices.length) return null;
+  const voicePick = useMemo(() => {
+    if (!voices.length) return { voice: null as SpeechSynthesisVoice | null, confident: false };
     const prefix = langInfo.bcp.split("-")[0].toLowerCase();
     const matching = voices.filter(v => v.lang?.toLowerCase().startsWith(prefix));
     const list = matching.length ? matching : voices;
 
-    const femaleHints = ["female", "samantha", "victoria", "karen", "moira", "tessa", "fiona", "zira", "hazel", "aria", "jenny", "emma", "ava", "susan", "katja", "marie", "amélie", "amelie", "yelda", "tingting", "milena", "woman", "girl", "elena", "sofia", "isabella", "lisa", "nora", "siri female"];
-    const maleHints = ["male", "daniel", "alex", "fred", "tom", "david", "mark", "george", "ivan", "minho", "max", "louis", "mehmet", "wei", "yunyang", "diego", "jorge", "paul", "james", "matthew", "guy", "man", "boy", "yuri", "pavel", "boris", "siri male"];
-    const avoidForMale = ["female", "woman", "girl", "samantha", "victoria", "karen", "tessa", "fiona", "zira", "aria", "emma", "ava", "anna", "katja", "elena", "sofia", "isabella", "lisa", "amélie", "amelie", "tingting"];
-    const avoidForFemale = ["male ", " male", "_male", "man ", "boy", "daniel", "alex", "fred", "tom", "david", "mark", "george", "ivan", "minho", "max", "louis", "mehmet", "wei", "yuri", "pavel", "boris"];
+    const femaleHints = ["female", "samantha", "victoria", "karen", "moira", "tessa", "fiona", "zira", "hazel", "aria", "jenny", "emma", "ava", "susan", "katja", "marie", "amélie", "amelie", "yelda", "tingting", "milena", "woman", "girl", "elena", "sofia", "isabella", "lisa", "nora", "anna", "chloé", "chloe", "lena", "elif", "mei", "jiwoo", "yuna"];
+    const maleHints = ["male", "daniel", "alex", "fred", "tom", "david", "mark", "george", "ivan", "minho", "max", "louis", "mehmet", "wei", "yunyang", "diego", "jorge", "paul", "james", "matthew", "guy", "man", "boy", "yuri", "pavel", "boris", "adam", "ethan"];
+    const avoidForMale = femaleHints;
+    const avoidForFemale = maleHints;
 
     const isMale = gender === "male";
     const hints = isMale ? maleHints : femaleHints;
     const avoid = isMale ? avoidForMale : avoidForFemale;
 
-    // Strict: prefer voices whose name matches the gender hint AND doesn't match opposite hint
     for (const h of hints) {
       const f = list.find(v => {
         const n = v.name.toLowerCase();
         return n.includes(h) && !avoid.some(a => n.includes(a));
       });
-      if (f) return f;
+      if (f) return { voice: f, confident: true };
     }
-    // Relaxed: any voice that doesn't match the opposite gender
-    const safe = list.find(v => !avoid.some(a => v.name.toLowerCase().includes(a)));
-    if (safe) return safe;
-    return list[0];
+    // No gender-confident voice — fall back, will rely on pitch shift
+    return { voice: list[0] || voices[0], confident: false };
   }, [voices, langInfo, gender]);
+
+  const pickedVoice = voicePick.voice;
+  const voiceConfident = voicePick.confident;
+
+  const buildUtter = useCallback((text: string) => {
+    const utter = new SpeechSynthesisUtterance(text);
+    if (pickedVoice) utter.voice = pickedVoice;
+    utter.lang = pickedVoice?.lang || langInfo.bcp;
+    const params = VOICE_PARAMS[age][tone];
+    let pitch = params.pitch;
+    if (gender === "male") {
+      pitch = voiceConfident ? Math.max(0.3, params.pitch - 0.3) : Math.max(0.3, params.pitch - 0.7);
+    } else {
+      pitch = voiceConfident ? Math.min(2.0, params.pitch + 0.05) : Math.min(2.0, params.pitch + 0.5);
+    }
+    utter.pitch = pitch;
+    utter.rate = Math.min(10, Math.max(0.1, params.rate * speed));
+    utter.volume = 1;
+    return utter;
+  }, [pickedVoice, voiceConfident, age, tone, gender, langInfo, speed]);
 
   // Preview voice when settings change
   const previewVoice = useCallback(() => {
     if (!("speechSynthesis" in window)) return;
-    if (isActive) return; // don't interrupt session
+    if (isActive) return;
     window.speechSynthesis.cancel();
     const samples: Record<LangCode, string> = {
       en: "Hello, this is how I sound.",
@@ -160,14 +177,8 @@ export default function SpeakingTutor({ userName = "" }: Props) {
       tr: "Merhaba, sesim böyle.",
       zh: "你好,这就是我的声音。",
     };
-    const utter = new SpeechSynthesisUtterance(samples[lang]);
-    if (pickedVoice) utter.voice = pickedVoice;
-    utter.lang = pickedVoice?.lang || langInfo.bcp;
-    const params = VOICE_PARAMS[age][tone];
-    utter.pitch = gender === "male" ? Math.max(0.3, params.pitch - 0.7) : Math.min(2.0, params.pitch + 0.1);
-    utter.rate = Math.min(10, Math.max(0.1, params.rate * speed));
-    window.speechSynthesis.speak(utter);
-  }, [pickedVoice, age, tone, gender, lang, langInfo, isActive, speed]);
+    window.speechSynthesis.speak(buildUtter(samples[lang]));
+  }, [buildUtter, lang, isActive]);
 
   // Pulse animation
   useEffect(() => {
@@ -186,19 +197,13 @@ export default function SpeakingTutor({ userName = "" }: Props) {
     return new Promise((resolve) => {
       if (!("speechSynthesis" in window)) { resolve(); return; }
       window.speechSynthesis.cancel();
-      const utter = new SpeechSynthesisUtterance(text);
-      if (pickedVoice) utter.voice = pickedVoice;
-      utter.lang = pickedVoice?.lang || langInfo.bcp;
-      const params = VOICE_PARAMS[age][tone];
-      utter.pitch = gender === "male" ? Math.max(0.3, params.pitch - 0.7) : Math.min(2.0, params.pitch + 0.1);
-      utter.rate = Math.min(10, Math.max(0.1, params.rate * speed));
-      utter.volume = 1;
+      const utter = buildUtter(text);
       utter.onstart = () => setIsSpeaking(true);
       utter.onend = () => { setIsSpeaking(false); resolve(); };
       utter.onerror = () => { setIsSpeaking(false); resolve(); };
       window.speechSynthesis.speak(utter);
     });
-  }, [pickedVoice, age, tone, gender, langInfo, speed]);
+  }, [buildUtter]);
 
   const stopRecog = useCallback(() => {
     if (recogRef.current) {
