@@ -260,6 +260,7 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
     if (status !== "running" || !stream || !videoRef.current) return;
     let cancelled = false;
     let timer: number | null = null;
+    let shapeTimer: number | null = null;
     let model: any = null;
 
     const FORBIDDEN_CLASSES: Record<string, string> = {
@@ -273,7 +274,23 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
     };
     // coco-ssd doesn't have "headphones" class; we still detect phones, extra people, books, screens.
 
+    const warnPhone = (source: "shape" | "model") => {
+      const now = Date.now();
+      if (now - lastObjectWarnRef.current <= 5000) return;
+      lastObjectWarnRef.current = now;
+      setDetectedObject("telefon");
+      addDeviceWarning(source === "shape" ? "Telefon kamerada ko'rindi!" : "Telefon kamerada aniqlandi!");
+    };
+
+    const shapeTick = () => {
+      if (cancelled || statusRef.current !== "running") return;
+      const v = videoRef.current;
+      if (v && v.readyState >= 2 && v.videoWidth > 0 && looksLikePhoneInFrame(v)) warnPhone("shape");
+      shapeTimer = window.setTimeout(shapeTick, 1200);
+    };
+
     setAiStatus("loading");
+    shapeTick();
     loadDetector().then((m) => {
       if (cancelled) return;
       model = m;
@@ -295,14 +312,14 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
               addDeviceWarning("Foydalanuvchi kameradan ko'rinmayapti!");
             }
             // Forbidden objects
-            const phoneByShape = looksLikePhoneInFrame(v);
-            const forbidden = preds.find((p: any) => FORBIDDEN_CLASSES[p.class] || (p.class === "cell phone" && p.score > 0.2));
-            if (phoneByShape || forbidden) {
-                if (now - lastObjectWarnRef.current > 5000) {
-                  lastObjectWarnRef.current = now;
-                const objectName = phoneByShape ? "telefon" : forbidden.class;
-                setDetectedObject(objectName);
-                addDeviceWarning(phoneByShape ? "Telefon kamerada ko'rindi!" : FORBIDDEN_CLASSES[forbidden.class]);
+            const forbidden = preds.find((p: any) => FORBIDDEN_CLASSES[p.class]);
+            if (forbidden) {
+              if (forbidden.class === "cell phone") {
+                warnPhone("model");
+              } else if (now - lastObjectWarnRef.current > 5000) {
+                lastObjectWarnRef.current = now;
+                setDetectedObject(forbidden.class);
+                addDeviceWarning(FORBIDDEN_CLASSES[forbidden.class]);
                 }
             }
           } catch { /* ignore frame errors */ }
@@ -315,6 +332,7 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
     return () => {
       cancelled = true;
       if (timer) window.clearTimeout(timer);
+      if (shapeTimer) window.clearTimeout(shapeTimer);
     };
   }, [status, stream, addDeviceWarning]);
 
