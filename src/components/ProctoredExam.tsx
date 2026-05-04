@@ -54,8 +54,12 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
   const [initialAudioCount, setInitialAudioCount] = useState<number>(0);
   const [timeLeft, setTimeLeft] = useState<number>(durationSec || 0);
   const [spamFlag, setSpamFlag] = useState(false);
+  const [aiStatus, setAiStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
+  const [detectedObject, setDetectedObject] = useState<string>("");
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const statusRef = useRef<Status>("setup");
+  const lastObjectWarnRef = useRef<number>(0);
+  const lastFaceWarnRef = useRef<number>(0);
 
   useEffect(() => { statusRef.current = status; }, [status]);
 
