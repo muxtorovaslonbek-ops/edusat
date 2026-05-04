@@ -309,7 +309,7 @@ const milliySubjectBank: Record<string, LevelQ[]> = {
 };
 
 const milliySubjects = Object.keys(milliySubjectBank);
-const MILLIY_PRICE = 39000;
+const MILLIY_PRICE = 59000;
 const MILLIY_DURATION_SEC = 3 * 60 * 60;
 
 const quizBank: Record<string, Array<{ question: string; answer: string }>> = {
@@ -1106,6 +1106,7 @@ const Index = () => {
                 setActive(item.section);
                 setSearchQuery("");
                 setSidebarOpen(false);
+                setSidebarHidden(true);
               }}
             >
               <span className="block text-sm font-black text-foreground">{item.title}</span>
@@ -1128,6 +1129,7 @@ const Index = () => {
                 }
                 setActive(id);
                 setSidebarOpen(false);
+                setSidebarHidden(true);
               }}
               className={`flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left text-sm font-bold ${isActive ? "nav-item-active" : "nav-item"}`}
             >

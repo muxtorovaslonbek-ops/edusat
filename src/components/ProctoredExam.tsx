@@ -17,6 +17,30 @@ interface Props {
 
 const MAX_WARNINGS = 3;
 
+// Load TF + coco-ssd from CDN once
+let detectorPromise: Promise<any> | null = null;
+function loadDetector(): Promise<any> {
+  if (detectorPromise) return detectorPromise;
+  detectorPromise = new Promise((resolve, reject) => {
+    const loadScript = (src: string) => new Promise<void>((res, rej) => {
+      if (document.querySelector(`script[src="${src}"]`)) { res(); return; }
+      const s = document.createElement("script");
+      s.src = src; s.async = true; s.onload = () => res(); s.onerror = () => rej(new Error("script "+src));
+      document.head.appendChild(s);
+    });
+    (async () => {
+      try {
+        await loadScript("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js");
+        await loadScript("https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js");
+        const cocoSsd = (window as any).cocoSsd;
+        const model = await cocoSsd.load({ base: "lite_mobilenet_v2" });
+        resolve(model);
+      } catch (e) { detectorPromise = null; reject(e); }
+    })();
+  });
+  return detectorPromise;
+}
+
 export default function ProctoredExam({ testTitle, questions, onClose, onComplete, durationSec, flagSpamMistakes }: Props) {
   const [status, setStatus] = useState<Status>("setup");
   const [stream, setStream] = useState<MediaStream | null>(null);
@@ -30,8 +54,12 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
   const [initialAudioCount, setInitialAudioCount] = useState<number>(0);
   const [timeLeft, setTimeLeft] = useState<number>(durationSec || 0);
   const [spamFlag, setSpamFlag] = useState(false);
+  const [aiStatus, setAiStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
+  const [detectedObject, setDetectedObject] = useState<string>("");
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const statusRef = useRef<Status>("setup");
+  const lastObjectWarnRef = useRef<number>(0);
+  const lastFaceWarnRef = useRef<number>(0);
 
   useEffect(() => { statusRef.current = status; }, [status]);
 
@@ -166,6 +194,70 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
     return () => clearInterval(i);
   }, [status, audioDevices]);
 
+  // === AI camera surveillance: detect phones/headphones/extra people in webcam frame ===
+  useEffect(() => {
+    if (status !== "running" || !stream || !videoRef.current) return;
+    let cancelled = false;
+    let timer: number | null = null;
+    let model: any = null;
+
+    const FORBIDDEN_CLASSES: Record<string, string> = {
+      "cell phone": "Telefon kamerada aniqlandi!",
+      "remote": "Masofaviy boshqaruv qurilmasi aniqlandi!",
+      "laptop": "Boshqa kompyuter/laptop kamerada aniqlandi!",
+      "tv": "Ekran/TV kamerada aniqlandi!",
+      "book": "Kitob/qo'lyozma kamerada aniqlandi!",
+      "keyboard": "Qo'shimcha klaviatura aniqlandi!",
+      "mouse": "Qo'shimcha sichqoncha aniqlandi!",
+    };
+    // coco-ssd doesn't have "headphones" class; we still detect phones, extra people, books, screens.
+
+    setAiStatus("loading");
+    loadDetector().then((m) => {
+      if (cancelled) return;
+      model = m;
+      setAiStatus("ready");
+      const tick = async () => {
+        if (cancelled || statusRef.current !== "running") return;
+        const v = videoRef.current;
+        if (v && v.readyState >= 2 && v.videoWidth > 0) {
+          try {
+            const preds = await model.detect(v, 6, 0.55);
+            const now = Date.now();
+            // Multiple people
+            const persons = preds.filter((p: any) => p.class === "person");
+            if (persons.length > 1 && now - lastFaceWarnRef.current > 6000) {
+              lastFaceWarnRef.current = now;
+              addDeviceWarning("Kadrda bir nechta odam aniqlandi!");
+            } else if (persons.length === 0 && now - lastFaceWarnRef.current > 8000) {
+              lastFaceWarnRef.current = now;
+              addDeviceWarning("Foydalanuvchi kameradan ko'rinmayapti!");
+            }
+            // Forbidden objects
+            for (const p of preds) {
+              if (FORBIDDEN_CLASSES[p.class]) {
+                if (now - lastObjectWarnRef.current > 5000) {
+                  lastObjectWarnRef.current = now;
+                  setDetectedObject(p.class);
+                  addDeviceWarning(FORBIDDEN_CLASSES[p.class]);
+                }
+                break;
+              }
+            }
+          } catch { /* ignore frame errors */ }
+        }
+        timer = window.setTimeout(tick, 1500);
+      };
+      tick();
+    }).catch(() => { if (!cancelled) setAiStatus("error"); });
+
+    return () => {
+      cancelled = true;
+      if (timer) window.clearTimeout(timer);
+    };
+  }, [status, stream, addDeviceWarning]);
+
+
   // Auto-clear warning toast
   useEffect(() => {
     if (!lastWarning) return;
@@ -269,6 +361,8 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
                 <p className="flex justify-between"><span>Oynadan chiqish:</span><span className={tabWarnings > 0 ? "text-destructive" : "text-muted-foreground"}>{tabWarnings}/{MAX_WARNINGS}</span></p>
                 <p className="flex justify-between"><span>Qurilma ishlatish:</span><span className={deviceWarnings > 0 ? "text-destructive" : "text-muted-foreground"}>{deviceWarnings}/{MAX_WARNINGS}</span></p>
                 <p className="flex justify-between"><span><Headphones className="inline h-3 w-3" /> Audio qurilmalar:</span><span className="text-muted-foreground">{audioDevices.length}</span></p>
+                <p className="flex justify-between"><span>🤖 AI nazorat:</span><span className={aiStatus === "ready" ? "text-primary" : aiStatus === "error" ? "text-destructive" : "text-muted-foreground"}>{aiStatus === "ready" ? "Faol" : aiStatus === "loading" ? "Yuklanmoqda…" : aiStatus === "error" ? "Xato" : "—"}</span></p>
+                {detectedObject && <p className="rounded-lg bg-destructive/10 px-2 py-1 text-center text-destructive">⚠️ {detectedObject}</p>}
               </div>
             )}
           </div>
