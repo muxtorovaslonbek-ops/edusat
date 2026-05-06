@@ -158,9 +158,11 @@ export default function SpeakingTutor({ userName = "" }: Props) {
     const params = VOICE_PARAMS[age][tone];
     let pitch = params.pitch;
     if (gender === "male") {
-      pitch = voiceConfident ? Math.max(0.3, params.pitch - 0.3) : Math.max(0.3, params.pitch - 0.7);
+      // Strong downward shift for male, even stronger if voice is not gender-confident
+      pitch = voiceConfident ? Math.max(0.1, params.pitch - 0.45) : Math.max(0.1, params.pitch - 0.85);
     } else {
-      pitch = voiceConfident ? Math.min(2.0, params.pitch + 0.05) : Math.min(2.0, params.pitch + 0.5);
+      // Upward shift for female
+      pitch = voiceConfident ? Math.min(2.0, params.pitch + 0.15) : Math.min(2.0, params.pitch + 0.7);
     }
     utter.pitch = pitch;
     utter.rate = Math.min(10, Math.max(0.1, params.rate * speed));
