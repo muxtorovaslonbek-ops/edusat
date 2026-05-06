@@ -529,9 +529,11 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
                 <div className="rounded-2xl border border-border bg-background/60 p-4 text-sm text-foreground">
                   <p className="font-black mb-2">📋 Imtihon qoidalari:</p>
                   <ul className="list-disc pl-5 space-y-1 text-xs">
-                    <li>Test davomida <b>kamera yoqilgan</b> bo'lishi shart.</li>
+                    <li>Test davomida <b>kamera va mikrofon yoqilgan</b> bo'lishi shart.</li>
+                    <li><b>Naushnik / headset</b> taqilgan bo'lsa, test boshlanmaydi.</li>
                     <li>Brauzer oynasidan <b>chiqish taqiqlanadi</b> (3 ogohlantirishdan keyin diskvalifikatsiya).</li>
                     <li>Telefon, kalkulyator yoki boshqa <b>qurilmalardan foydalanish taqiqlanadi</b>.</li>
+                    <li><b>Gaplashish, birovdan so'rash</b> — mikrofon orqali aniqlanadi.</li>
                     <li>Ko'chirib olish (copy/paste), yangi tab ochish — taqiqlanadi.</li>
                     <li>Qoida buzgan foydalanuvchining natijasi <b>bekor qilinadi</b>.</li>
                   </ul>
@@ -544,11 +546,16 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
                 <div className="flex flex-wrap gap-2">
                   {!stream ? (
                     <button onClick={requestCamera} className="premium-button inline-flex items-center gap-2 rounded-2xl px-5 py-3 font-black">
-                      <Camera className="h-4 w-4" /> Kamerani yoqish
+                      <Camera className="h-4 w-4" /> Kamera va mikrofonni yoqish
                     </button>
                   ) : (
-                    <button onClick={startExam} className="premium-button inline-flex items-center gap-2 rounded-2xl px-5 py-3 font-black">
-                      <ShieldCheck className="h-4 w-4" /> Imtihonni boshlash
+                    <button
+                      onClick={startExam}
+                      disabled={aiStatus !== "ready" || headphonesDetected}
+                      className="premium-button inline-flex items-center gap-2 rounded-2xl px-5 py-3 font-black disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <ShieldCheck className="h-4 w-4" />
+                      {aiStatus !== "ready" ? "AI nazorat tayyorlanmoqda…" : headphonesDetected ? "Naushnikni uzing" : "Imtihonni boshlash"}
                     </button>
                   )}
                 </div>
