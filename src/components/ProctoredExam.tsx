@@ -252,7 +252,7 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
     };
   }, [status, addDeviceWarning]);
 
-  // Enumerate audio devices on start, then watch for changes (headphones/phone/etc plugged in)
+  // Watch for new audio devices being plugged in (headphones/phone/etc)
   useEffect(() => {
     if (!navigator.mediaDevices?.enumerateDevices) return;
     const refresh = async () => {
@@ -263,32 +263,64 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
         return audio;
       } catch { return []; }
     };
-    refresh().then(list => setInitialAudioCount(list.length));
     const handler = async () => {
       const list = await refresh();
+      const hp = checkHeadphones(list);
       if (statusRef.current !== "running") return;
-      if (list.length > initialAudioCount) {
-        addDeviceWarning("Yangi audio qurilma (naushnik / telefon / bluetooth) ulanishi aniqlandi.");
+      if (hp) {
+        addDeviceWarning("Naushnik / headset aniqlandi! Ularni darhol uzing.");
+      } else if (list.length > initialAudioCount) {
+        addDeviceWarning("Yangi audio qurilma (telefon / bluetooth) ulanishi aniqlandi.");
       } else if (list.length < initialAudioCount) {
         addDeviceWarning("Audio qurilma o'chirildi yoki uzildi.");
       }
     };
     navigator.mediaDevices.addEventListener?.("devicechange", handler);
     return () => navigator.mediaDevices.removeEventListener?.("devicechange", handler);
-  }, [initialAudioCount, addDeviceWarning]);
+  }, [initialAudioCount, addDeviceWarning, checkHeadphones]);
 
-  // Periodic check: warn if multiple audio outputs (e.g. headphones + speakers)
+  // === Voice / ambient-sound monitoring via mic: detect talking or asking for hints ===
   useEffect(() => {
-    if (status !== "running") return;
-    const i = window.setInterval(() => {
-      const outs = audioDevices.filter(d => d.kind === "audiooutput").length;
-      const ins = audioDevices.filter(d => d.kind === "audioinput").length;
-      if (outs > 1 || ins > 1) {
-        // we already warned via devicechange; this is a safety re-check, no double warning
-      }
-    }, 5000);
-    return () => clearInterval(i);
-  }, [status, audioDevices]);
+    if (status !== "running" || !micStream) return;
+    let cancelled = false;
+    let raf = 0;
+    let audioCtx: AudioContext | null = null;
+    try {
+      audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const src = audioCtx.createMediaStreamSource(micStream);
+      const analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 1024;
+      src.connect(analyser);
+      const buf = new Uint8Array(analyser.frequencyBinCount);
+      let loudFrames = 0;
+      const tick = () => {
+        if (cancelled) return;
+        analyser.getByteTimeDomainData(buf);
+        let sum = 0;
+        for (let i = 0; i < buf.length; i++) {
+          const v = (buf[i] - 128) / 128;
+          sum += v * v;
+        }
+        const rms = Math.sqrt(sum / buf.length);
+        setVoiceLevel(rms);
+        if (rms > 0.12) loudFrames++;
+        else loudFrames = Math.max(0, loudFrames - 1);
+        const now = Date.now();
+        if (loudFrames > 25 && now - lastVoiceWarnRef.current > 6000) {
+          lastVoiceWarnRef.current = now;
+          loudFrames = 0;
+          addDeviceWarning("Ovoz aniqlandi! Test paytida gaplashish yoki birovdan so'rash taqiqlanadi.");
+        }
+        raf = requestAnimationFrame(tick);
+      };
+      tick();
+    } catch {}
+    return () => {
+      cancelled = true;
+      if (raf) cancelAnimationFrame(raf);
+      if (audioCtx) audioCtx.close().catch(() => {});
+    };
+  }, [status, micStream, addDeviceWarning]);
 
   // === AI camera surveillance: detect phones/headphones/extra people in webcam frame ===
   useEffect(() => {
