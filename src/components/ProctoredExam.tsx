@@ -105,6 +105,7 @@ function looksLikePhoneInFrame(video: HTMLVideoElement): boolean {
 export default function ProctoredExam({ testTitle, questions, onClose, onComplete, durationSec, flagSpamMistakes }: Props) {
   const [status, setStatus] = useState<Status>("setup");
   const [stream, setStream] = useState<MediaStream | null>(null);
+  const [micStream, setMicStream] = useState<MediaStream | null>(null);
   const [cameraError, setCameraError] = useState<string>("");
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [tabWarnings, setTabWarnings] = useState(0);
@@ -113,14 +114,17 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
   const [disqualifyReason, setDisqualifyReason] = useState<string>("");
   const [audioDevices, setAudioDevices] = useState<MediaDeviceInfo[]>([]);
   const [initialAudioCount, setInitialAudioCount] = useState<number>(0);
+  const [headphonesDetected, setHeadphonesDetected] = useState<boolean>(false);
   const [timeLeft, setTimeLeft] = useState<number>(durationSec || 0);
   const [spamFlag, setSpamFlag] = useState(false);
   const [aiStatus, setAiStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [detectedObject, setDetectedObject] = useState<string>("");
+  const [voiceLevel, setVoiceLevel] = useState<number>(0);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const statusRef = useRef<Status>("setup");
   const lastObjectWarnRef = useRef<number>(0);
   const lastFaceWarnRef = useRef<number>(0);
+  const lastVoiceWarnRef = useRef<number>(0);
 
   useEffect(() => { statusRef.current = status; }, [status]);
 
