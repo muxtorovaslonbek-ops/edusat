@@ -415,7 +415,10 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
   useEffect(() => () => { stopCamera(); }, [stopCamera]);
 
   const startExam = useCallback(() => {
-    if (!stream) { setCameraError("Avval kamerani yoqing."); return; }
+    if (!stream) { setCameraError("Avval kamera va mikrofonni yoqing."); return; }
+    if (aiStatus !== "ready") { setCameraError("AI nazorat tizimi hali tayyor emas. Iltimos, kuting…"); return; }
+    if (headphonesDetected) { setCameraError("Naushnik aniqlandi. Iltimos, ularni uzib qaytadan urinib ko'ring."); return; }
+    setCameraError("");
     setStatus("running");
     setAnswers({});
     setTabWarnings(0);
@@ -423,7 +426,7 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
     setDisqualifyReason("");
     setSpamFlag(false);
     if (durationSec) setTimeLeft(durationSec);
-  }, [stream, durationSec]);
+  }, [stream, durationSec, aiStatus, headphonesDetected]);
 
   // Countdown timer
   useEffect(() => {
