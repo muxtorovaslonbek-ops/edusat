@@ -509,9 +509,16 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
               <div className="mt-2 space-y-1 text-[11px] font-bold">
                 <p className="flex justify-between"><span>Oynadan chiqish:</span><span className={tabWarnings > 0 ? "text-destructive" : "text-muted-foreground"}>{tabWarnings}/{MAX_WARNINGS}</span></p>
                 <p className="flex justify-between"><span>Qurilma ishlatish:</span><span className={deviceWarnings > 0 ? "text-destructive" : "text-muted-foreground"}>{deviceWarnings}/{MAX_WARNINGS}</span></p>
-                <p className="flex justify-between"><span><Headphones className="inline h-3 w-3" /> Audio qurilmalar:</span><span className="text-muted-foreground">{audioDevices.length}</span></p>
+                <p className="flex justify-between"><span><Headphones className="inline h-3 w-3" /> Audio qurilmalar:</span><span className={headphonesDetected ? "text-destructive" : "text-muted-foreground"}>{audioDevices.length}{headphonesDetected ? " ⚠️" : ""}</span></p>
+                <p className="flex justify-between"><span>🎤 Ovoz darajasi:</span><span className={voiceLevel > 0.12 ? "text-destructive" : "text-muted-foreground"}>{Math.round(voiceLevel * 100)}%</span></p>
                 <p className="flex justify-between"><span>🤖 AI nazorat:</span><span className={aiStatus === "ready" ? "text-primary" : aiStatus === "error" ? "text-destructive" : "text-muted-foreground"}>{aiStatus === "ready" ? "Faol" : aiStatus === "loading" ? "Yuklanmoqda…" : aiStatus === "error" ? "Xato" : "—"}</span></p>
                 {detectedObject && <p className="rounded-lg bg-destructive/10 px-2 py-1 text-center text-destructive">⚠️ {detectedObject}</p>}
+              </div>
+            )}
+            {status === "setup" && stream && (
+              <div className="mt-2 space-y-1 text-[11px] font-bold">
+                <p className="flex justify-between"><span>🤖 AI nazorat:</span><span className={aiStatus === "ready" ? "text-primary" : aiStatus === "error" ? "text-destructive" : "text-muted-foreground"}>{aiStatus === "ready" ? "Tayyor ✓" : aiStatus === "loading" ? "Yuklanmoqda…" : aiStatus === "error" ? "Xato" : "—"}</span></p>
+                <p className="flex justify-between"><span><Headphones className="inline h-3 w-3" /> Naushnik:</span><span className={headphonesDetected ? "text-destructive" : "text-primary"}>{headphonesDetected ? "Aniqlandi ⚠️" : "Yo'q ✓"}</span></p>
               </div>
             )}
           </div>
