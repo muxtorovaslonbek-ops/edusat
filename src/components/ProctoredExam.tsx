@@ -105,6 +105,7 @@ function looksLikePhoneInFrame(video: HTMLVideoElement): boolean {
 export default function ProctoredExam({ testTitle, questions, onClose, onComplete, durationSec, flagSpamMistakes }: Props) {
   const [status, setStatus] = useState<Status>("setup");
   const [stream, setStream] = useState<MediaStream | null>(null);
+  const [micStream, setMicStream] = useState<MediaStream | null>(null);
   const [cameraError, setCameraError] = useState<string>("");
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [tabWarnings, setTabWarnings] = useState(0);
@@ -113,14 +114,17 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
   const [disqualifyReason, setDisqualifyReason] = useState<string>("");
   const [audioDevices, setAudioDevices] = useState<MediaDeviceInfo[]>([]);
   const [initialAudioCount, setInitialAudioCount] = useState<number>(0);
+  const [headphonesDetected, setHeadphonesDetected] = useState<boolean>(false);
   const [timeLeft, setTimeLeft] = useState<number>(durationSec || 0);
   const [spamFlag, setSpamFlag] = useState(false);
   const [aiStatus, setAiStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [detectedObject, setDetectedObject] = useState<string>("");
+  const [voiceLevel, setVoiceLevel] = useState<number>(0);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const statusRef = useRef<Status>("setup");
   const lastObjectWarnRef = useRef<number>(0);
   const lastFaceWarnRef = useRef<number>(0);
+  const lastVoiceWarnRef = useRef<number>(0);
 
   useEffect(() => { statusRef.current = status; }, [status]);
 
@@ -129,18 +133,49 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
 
   const stopCamera = useCallback(() => {
     if (stream) { stream.getTracks().forEach(t => t.stop()); setStream(null); }
-  }, [stream]);
+    if (micStream) { micStream.getTracks().forEach(t => t.stop()); setMicStream(null); }
+  }, [stream, micStream]);
+
+  const checkHeadphones = useCallback((devs: MediaDeviceInfo[]) => {
+    const kw = ["headphone", "headset", "earphone", "earbud", "airpod", "bluetooth", "наушник", "гарнитур", "kulaklık", "이어폰", "헤드폰", "耳机", "naushnik"];
+    const found = devs.some(d => {
+      const n = (d.label || "").toLowerCase();
+      return kw.some(k => n.includes(k));
+    });
+    setHeadphonesDetected(found);
+    return found;
+  }, []);
 
   const requestCamera = useCallback(async () => {
     setCameraError("");
     try {
-      const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: 320, height: 240 }, audio: false });
-      setStream(s);
-      if (videoRef.current) { videoRef.current.srcObject = s; }
+      // Ask for BOTH camera and mic so device labels become available (for headphone detection)
+      const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: 320, height: 240 }, audio: true });
+      // Split tracks: keep video for surveillance, keep audio separately for voice monitoring
+      const videoOnly = new MediaStream(s.getVideoTracks());
+      const audioOnly = new MediaStream(s.getAudioTracks());
+      setStream(videoOnly);
+      setMicStream(audioOnly);
+      if (videoRef.current) { videoRef.current.srcObject = videoOnly; }
+
+      // Pre-load AI model so the test cannot start before surveillance is ready
+      setAiStatus("loading");
+      loadDetector().then(() => setAiStatus("ready")).catch(() => setAiStatus("error"));
+
+      // Check device labels for headphones immediately
+      try {
+        const all = await navigator.mediaDevices.enumerateDevices();
+        const audio = all.filter(d => d.kind === "audioinput" || d.kind === "audiooutput");
+        setAudioDevices(audio);
+        setInitialAudioCount(audio.length);
+        if (checkHeadphones(audio)) {
+          setCameraError("⚠️ Naushnik / headset aniqlandi. Iltimos, ularni uzing va qaytadan kameraga ruxsat bering.");
+        }
+      } catch {}
     } catch (e: any) {
-      setCameraError("Kameraga ruxsat berilmadi. Test boshlash uchun kamerani yoqing.");
+      setCameraError("Kamera va mikrofonga ruxsat berilmadi. Test boshlash uchun ikkalasini ham yoqing.");
     }
-  }, []);
+  }, [checkHeadphones]);
 
   const disqualify = useCallback((reason: string) => {
     setDisqualifyReason(reason);
@@ -217,7 +252,7 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
     };
   }, [status, addDeviceWarning]);
 
-  // Enumerate audio devices on start, then watch for changes (headphones/phone/etc plugged in)
+  // Watch for new audio devices being plugged in (headphones/phone/etc)
   useEffect(() => {
     if (!navigator.mediaDevices?.enumerateDevices) return;
     const refresh = async () => {
@@ -228,32 +263,64 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
         return audio;
       } catch { return []; }
     };
-    refresh().then(list => setInitialAudioCount(list.length));
     const handler = async () => {
       const list = await refresh();
+      const hp = checkHeadphones(list);
       if (statusRef.current !== "running") return;
-      if (list.length > initialAudioCount) {
-        addDeviceWarning("Yangi audio qurilma (naushnik / telefon / bluetooth) ulanishi aniqlandi.");
+      if (hp) {
+        addDeviceWarning("Naushnik / headset aniqlandi! Ularni darhol uzing.");
+      } else if (list.length > initialAudioCount) {
+        addDeviceWarning("Yangi audio qurilma (telefon / bluetooth) ulanishi aniqlandi.");
       } else if (list.length < initialAudioCount) {
         addDeviceWarning("Audio qurilma o'chirildi yoki uzildi.");
       }
     };
     navigator.mediaDevices.addEventListener?.("devicechange", handler);
     return () => navigator.mediaDevices.removeEventListener?.("devicechange", handler);
-  }, [initialAudioCount, addDeviceWarning]);
+  }, [initialAudioCount, addDeviceWarning, checkHeadphones]);
 
-  // Periodic check: warn if multiple audio outputs (e.g. headphones + speakers)
+  // === Voice / ambient-sound monitoring via mic: detect talking or asking for hints ===
   useEffect(() => {
-    if (status !== "running") return;
-    const i = window.setInterval(() => {
-      const outs = audioDevices.filter(d => d.kind === "audiooutput").length;
-      const ins = audioDevices.filter(d => d.kind === "audioinput").length;
-      if (outs > 1 || ins > 1) {
-        // we already warned via devicechange; this is a safety re-check, no double warning
-      }
-    }, 5000);
-    return () => clearInterval(i);
-  }, [status, audioDevices]);
+    if (status !== "running" || !micStream) return;
+    let cancelled = false;
+    let raf = 0;
+    let audioCtx: AudioContext | null = null;
+    try {
+      audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const src = audioCtx.createMediaStreamSource(micStream);
+      const analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 1024;
+      src.connect(analyser);
+      const buf = new Uint8Array(analyser.frequencyBinCount);
+      let loudFrames = 0;
+      const tick = () => {
+        if (cancelled) return;
+        analyser.getByteTimeDomainData(buf);
+        let sum = 0;
+        for (let i = 0; i < buf.length; i++) {
+          const v = (buf[i] - 128) / 128;
+          sum += v * v;
+        }
+        const rms = Math.sqrt(sum / buf.length);
+        setVoiceLevel(rms);
+        if (rms > 0.12) loudFrames++;
+        else loudFrames = Math.max(0, loudFrames - 1);
+        const now = Date.now();
+        if (loudFrames > 25 && now - lastVoiceWarnRef.current > 6000) {
+          lastVoiceWarnRef.current = now;
+          loudFrames = 0;
+          addDeviceWarning("Ovoz aniqlandi! Test paytida gaplashish yoki birovdan so'rash taqiqlanadi.");
+        }
+        raf = requestAnimationFrame(tick);
+      };
+      tick();
+    } catch {}
+    return () => {
+      cancelled = true;
+      if (raf) cancelAnimationFrame(raf);
+      if (audioCtx) audioCtx.close().catch(() => {});
+    };
+  }, [status, micStream, addDeviceWarning]);
 
   // === AI camera surveillance: detect phones/headphones/extra people in webcam frame ===
   useEffect(() => {
@@ -348,7 +415,10 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
   useEffect(() => () => { stopCamera(); }, [stopCamera]);
 
   const startExam = useCallback(() => {
-    if (!stream) { setCameraError("Avval kamerani yoqing."); return; }
+    if (!stream) { setCameraError("Avval kamera va mikrofonni yoqing."); return; }
+    if (aiStatus !== "ready") { setCameraError("AI nazorat tizimi hali tayyor emas. Iltimos, kuting…"); return; }
+    if (headphonesDetected) { setCameraError("Naushnik aniqlandi. Iltimos, ularni uzib qaytadan urinib ko'ring."); return; }
+    setCameraError("");
     setStatus("running");
     setAnswers({});
     setTabWarnings(0);
@@ -356,7 +426,7 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
     setDisqualifyReason("");
     setSpamFlag(false);
     if (durationSec) setTimeLeft(durationSec);
-  }, [stream, durationSec]);
+  }, [stream, durationSec, aiStatus, headphonesDetected]);
 
   // Countdown timer
   useEffect(() => {
@@ -439,9 +509,16 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
               <div className="mt-2 space-y-1 text-[11px] font-bold">
                 <p className="flex justify-between"><span>Oynadan chiqish:</span><span className={tabWarnings > 0 ? "text-destructive" : "text-muted-foreground"}>{tabWarnings}/{MAX_WARNINGS}</span></p>
                 <p className="flex justify-between"><span>Qurilma ishlatish:</span><span className={deviceWarnings > 0 ? "text-destructive" : "text-muted-foreground"}>{deviceWarnings}/{MAX_WARNINGS}</span></p>
-                <p className="flex justify-between"><span><Headphones className="inline h-3 w-3" /> Audio qurilmalar:</span><span className="text-muted-foreground">{audioDevices.length}</span></p>
+                <p className="flex justify-between"><span><Headphones className="inline h-3 w-3" /> Audio qurilmalar:</span><span className={headphonesDetected ? "text-destructive" : "text-muted-foreground"}>{audioDevices.length}{headphonesDetected ? " ⚠️" : ""}</span></p>
+                <p className="flex justify-between"><span>🎤 Ovoz darajasi:</span><span className={voiceLevel > 0.12 ? "text-destructive" : "text-muted-foreground"}>{Math.round(voiceLevel * 100)}%</span></p>
                 <p className="flex justify-between"><span>🤖 AI nazorat:</span><span className={aiStatus === "ready" ? "text-primary" : aiStatus === "error" ? "text-destructive" : "text-muted-foreground"}>{aiStatus === "ready" ? "Faol" : aiStatus === "loading" ? "Yuklanmoqda…" : aiStatus === "error" ? "Xato" : "—"}</span></p>
                 {detectedObject && <p className="rounded-lg bg-destructive/10 px-2 py-1 text-center text-destructive">⚠️ {detectedObject}</p>}
+              </div>
+            )}
+            {status === "setup" && stream && (
+              <div className="mt-2 space-y-1 text-[11px] font-bold">
+                <p className="flex justify-between"><span>🤖 AI nazorat:</span><span className={aiStatus === "ready" ? "text-primary" : aiStatus === "error" ? "text-destructive" : "text-muted-foreground"}>{aiStatus === "ready" ? "Tayyor ✓" : aiStatus === "loading" ? "Yuklanmoqda…" : aiStatus === "error" ? "Xato" : "—"}</span></p>
+                <p className="flex justify-between"><span><Headphones className="inline h-3 w-3" /> Naushnik:</span><span className={headphonesDetected ? "text-destructive" : "text-primary"}>{headphonesDetected ? "Aniqlandi ⚠️" : "Yo'q ✓"}</span></p>
               </div>
             )}
           </div>
@@ -452,9 +529,11 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
                 <div className="rounded-2xl border border-border bg-background/60 p-4 text-sm text-foreground">
                   <p className="font-black mb-2">📋 Imtihon qoidalari:</p>
                   <ul className="list-disc pl-5 space-y-1 text-xs">
-                    <li>Test davomida <b>kamera yoqilgan</b> bo'lishi shart.</li>
+                    <li>Test davomida <b>kamera va mikrofon yoqilgan</b> bo'lishi shart.</li>
+                    <li><b>Naushnik / headset</b> taqilgan bo'lsa, test boshlanmaydi.</li>
                     <li>Brauzer oynasidan <b>chiqish taqiqlanadi</b> (3 ogohlantirishdan keyin diskvalifikatsiya).</li>
                     <li>Telefon, kalkulyator yoki boshqa <b>qurilmalardan foydalanish taqiqlanadi</b>.</li>
+                    <li><b>Gaplashish, birovdan so'rash</b> — mikrofon orqali aniqlanadi.</li>
                     <li>Ko'chirib olish (copy/paste), yangi tab ochish — taqiqlanadi.</li>
                     <li>Qoida buzgan foydalanuvchining natijasi <b>bekor qilinadi</b>.</li>
                   </ul>
@@ -467,11 +546,16 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
                 <div className="flex flex-wrap gap-2">
                   {!stream ? (
                     <button onClick={requestCamera} className="premium-button inline-flex items-center gap-2 rounded-2xl px-5 py-3 font-black">
-                      <Camera className="h-4 w-4" /> Kamerani yoqish
+                      <Camera className="h-4 w-4" /> Kamera va mikrofonni yoqish
                     </button>
                   ) : (
-                    <button onClick={startExam} className="premium-button inline-flex items-center gap-2 rounded-2xl px-5 py-3 font-black">
-                      <ShieldCheck className="h-4 w-4" /> Imtihonni boshlash
+                    <button
+                      onClick={startExam}
+                      disabled={aiStatus !== "ready" || headphonesDetected}
+                      className="premium-button inline-flex items-center gap-2 rounded-2xl px-5 py-3 font-black disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <ShieldCheck className="h-4 w-4" />
+                      {aiStatus !== "ready" ? "AI nazorat tayyorlanmoqda…" : headphonesDetected ? "Naushnikni uzing" : "Imtihonni boshlash"}
                     </button>
                   )}
                 </div>
