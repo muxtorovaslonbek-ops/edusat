@@ -123,24 +123,29 @@ export default function SpeakingTutor({ userName = "" }: Props) {
     const matching = voices.filter(v => v.lang?.toLowerCase().startsWith(prefix));
     const list = matching.length ? matching : voices;
 
-    const femaleHints = ["female", "samantha", "victoria", "karen", "moira", "tessa", "fiona", "zira", "hazel", "aria", "jenny", "emma", "ava", "susan", "katja", "marie", "amélie", "amelie", "yelda", "tingting", "milena", "woman", "girl", "elena", "sofia", "isabella", "lisa", "nora", "anna", "chloé", "chloe", "lena", "elif", "mei", "jiwoo", "yuna"];
-    const maleHints = ["male", "daniel", "alex", "fred", "tom", "david", "mark", "george", "ivan", "minho", "max", "louis", "mehmet", "wei", "yunyang", "diego", "jorge", "paul", "james", "matthew", "guy", "man", "boy", "yuri", "pavel", "boris", "adam", "ethan"];
-    const avoidForMale = femaleHints;
-    const avoidForFemale = maleHints;
+    // Strict gender hints (lowercased name fragments)
+    const femaleHints = ["female", "woman", "girl", "samantha", "victoria", "karen", "moira", "tessa", "fiona", "zira", "hazel", "aria", "jenny", "emma", "ava", "susan", "katja", "marie", "amélie", "amelie", "yelda", "tingting", "milena", "elena", "sofia", "isabella", "lisa", "nora", "anna", "chloé", "chloe", "lena", "elif", "mei", "jiwoo", "yuna", "natasha", "irina", "google русский"];
+    const maleHints = ["male", " man", "boy", "daniel", "alex", "fred", "tom", "david", "mark", "george", "ivan", "minho", "max ", "louis", "mehmet", "wei", "yunyang", "diego", "jorge", "paul", "james", "matthew", "guy", "yuri", "pavel", "boris", "adam", "ethan", "arthur", "oleg"];
+
+    const hasAny = (name: string, hints: string[]) => hints.some(h => name.includes(h));
 
     const isMale = gender === "male";
-    const hints = isMale ? maleHints : femaleHints;
-    const avoid = isMale ? avoidForMale : avoidForFemale;
+    const wanted = isMale ? maleHints : femaleHints;
+    const opposite = isMale ? femaleHints : maleHints;
 
-    for (const h of hints) {
-      const f = list.find(v => {
-        const n = v.name.toLowerCase();
-        return n.includes(h) && !avoid.some(a => n.includes(a));
-      });
-      if (f) return { voice: f, confident: true };
+    // 1) STRICT: in target lang AND matches wanted gender AND NOT opposite gender
+    for (const v of list) {
+      const n = (v.name || "").toLowerCase();
+      if (hasAny(n, wanted) && !hasAny(n, opposite)) {
+        return { voice: v, confident: true };
+      }
     }
-    // No gender-confident voice — fall back, will rely on pitch shift
-    return { voice: list[0] || voices[0], confident: false };
+    // 2) Any voice in target lang that is NOT opposite gender (avoid wrong gender)
+    const safe = list.find(v => !hasAny((v.name || "").toLowerCase(), opposite));
+    if (safe) return { voice: safe, confident: false };
+
+    // 3) Last resort: do not pick an opposite-gender voice — return null and rely fully on pitch shift
+    return { voice: null as SpeechSynthesisVoice | null, confident: false };
   }, [voices, langInfo, gender]);
 
   const pickedVoice = voicePick.voice;
