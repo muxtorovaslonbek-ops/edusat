@@ -133,18 +133,49 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
 
   const stopCamera = useCallback(() => {
     if (stream) { stream.getTracks().forEach(t => t.stop()); setStream(null); }
-  }, [stream]);
+    if (micStream) { micStream.getTracks().forEach(t => t.stop()); setMicStream(null); }
+  }, [stream, micStream]);
+
+  const checkHeadphones = useCallback((devs: MediaDeviceInfo[]) => {
+    const kw = ["headphone", "headset", "earphone", "earbud", "airpod", "bluetooth", "наушник", "гарнитур", "kulaklık", "이어폰", "헤드폰", "耳机", "naushnik"];
+    const found = devs.some(d => {
+      const n = (d.label || "").toLowerCase();
+      return kw.some(k => n.includes(k));
+    });
+    setHeadphonesDetected(found);
+    return found;
+  }, []);
 
   const requestCamera = useCallback(async () => {
     setCameraError("");
     try {
-      const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: 320, height: 240 }, audio: false });
-      setStream(s);
-      if (videoRef.current) { videoRef.current.srcObject = s; }
+      // Ask for BOTH camera and mic so device labels become available (for headphone detection)
+      const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: 320, height: 240 }, audio: true });
+      // Split tracks: keep video for surveillance, keep audio separately for voice monitoring
+      const videoOnly = new MediaStream(s.getVideoTracks());
+      const audioOnly = new MediaStream(s.getAudioTracks());
+      setStream(videoOnly);
+      setMicStream(audioOnly);
+      if (videoRef.current) { videoRef.current.srcObject = videoOnly; }
+
+      // Pre-load AI model so the test cannot start before surveillance is ready
+      setAiStatus("loading");
+      loadDetector().then(() => setAiStatus("ready")).catch(() => setAiStatus("error"));
+
+      // Check device labels for headphones immediately
+      try {
+        const all = await navigator.mediaDevices.enumerateDevices();
+        const audio = all.filter(d => d.kind === "audioinput" || d.kind === "audiooutput");
+        setAudioDevices(audio);
+        setInitialAudioCount(audio.length);
+        if (checkHeadphones(audio)) {
+          setCameraError("⚠️ Naushnik / headset aniqlandi. Iltimos, ularni uzing va qaytadan kameraga ruxsat bering.");
+        }
+      } catch {}
     } catch (e: any) {
-      setCameraError("Kameraga ruxsat berilmadi. Test boshlash uchun kamerani yoqing.");
+      setCameraError("Kamera va mikrofonga ruxsat berilmadi. Test boshlash uchun ikkalasini ham yoqing.");
     }
-  }, []);
+  }, [checkHeadphones]);
 
   const disqualify = useCallback((reason: string) => {
     setDisqualifyReason(reason);
