@@ -104,7 +104,7 @@ function looksLikePhoneInFrame(video: HTMLVideoElement): boolean {
   return false;
 }
 
-export default function ProctoredExam({ testTitle, questions, onClose, onComplete, durationSec, flagSpamMistakes }: Props) {
+export default function ProctoredExam({ testTitle, questions, onClose, onComplete, durationSec, flagSpamMistakes, allowHeadphones }: Props) {
   const [status, setStatus] = useState<Status>("setup");
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [micStream, setMicStream] = useState<MediaStream | null>(null);
