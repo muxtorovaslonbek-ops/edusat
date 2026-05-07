@@ -269,9 +269,9 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
       const list = await refresh();
       const hp = checkHeadphones(list);
       if (statusRef.current !== "running") return;
-      if (hp) {
+      if (hp && !allowHeadphones) {
         addDeviceWarning("Naushnik / headset aniqlandi! Ularni darhol uzing.");
-      } else if (list.length > initialAudioCount) {
+      } else if (list.length > initialAudioCount && !allowHeadphones) {
         addDeviceWarning("Yangi audio qurilma (telefon / bluetooth) ulanishi aniqlandi.");
       } else if (list.length < initialAudioCount) {
         addDeviceWarning("Audio qurilma o'chirildi yoki uzildi.");
@@ -279,7 +279,7 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
     };
     navigator.mediaDevices.addEventListener?.("devicechange", handler);
     return () => navigator.mediaDevices.removeEventListener?.("devicechange", handler);
-  }, [initialAudioCount, addDeviceWarning, checkHeadphones]);
+  }, [initialAudioCount, addDeviceWarning, checkHeadphones, allowHeadphones]);
 
   // === Voice / ambient-sound monitoring via mic: detect talking or asking for hints ===
   useEffect(() => {
