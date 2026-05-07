@@ -1643,6 +1643,7 @@ const Index = () => {
                   setProctoredQuestions(levelTestQuestions[test.title]);
                   setProctoredDuration(undefined);
                   setProctoredFlagSpam(false);
+                  setProctoredAllowHeadphones(true);
                   setProctoredExam(test.title);
                   completeActivity(50);
                 }}
