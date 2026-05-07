@@ -579,6 +579,7 @@ const Index = () => {
   const [proctoredQuestions, setProctoredQuestions] = useState<LevelQ[] | null>(null);
   const [proctoredDuration, setProctoredDuration] = useState<number | undefined>(undefined);
   const [proctoredFlagSpam, setProctoredFlagSpam] = useState<boolean>(false);
+  const [proctoredAllowHeadphones, setProctoredAllowHeadphones] = useState<boolean>(false);
   const [proctoredResult, setProctoredResult] = useState<Record<string, { score: number; total: number; valid: boolean }>>({});
   const [milliyPaid, setMilliyPaid] = useState<Record<string, boolean>>(() => {
     try { return JSON.parse(localStorage.getItem("edusat:milliyPaid") || "{}"); } catch { return {}; }
