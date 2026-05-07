@@ -553,11 +553,11 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
                   ) : (
                     <button
                       onClick={startExam}
-                      disabled={aiStatus !== "ready" || headphonesDetected}
+                      disabled={aiStatus !== "ready" || (headphonesDetected && !allowHeadphones)}
                       className="premium-button inline-flex items-center gap-2 rounded-2xl px-5 py-3 font-black disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <ShieldCheck className="h-4 w-4" />
-                      {aiStatus !== "ready" ? "AI nazorat tayyorlanmoqda…" : headphonesDetected ? "Naushnikni uzing" : "Imtihonni boshlash"}
+                      {aiStatus !== "ready" ? "AI nazorat tayyorlanmoqda…" : (headphonesDetected && !allowHeadphones) ? "Naushnikni uzing" : "Imtihonni boshlash"}
                     </button>
                   )}
                 </div>
