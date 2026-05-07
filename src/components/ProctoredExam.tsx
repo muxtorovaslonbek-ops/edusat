@@ -13,6 +13,8 @@ interface Props {
   durationSec?: number;
   /** if true, too-many-wrong-answers also marks the result invalid */
   flagSpamMistakes?: boolean;
+  /** if true, headphones are allowed (e.g. IELTS / Multi-level listening) */
+  allowHeadphones?: boolean;
 }
 
 const MAX_WARNINGS = 3;
