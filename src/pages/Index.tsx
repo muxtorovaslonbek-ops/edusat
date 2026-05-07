@@ -1699,6 +1699,7 @@ const Index = () => {
                       setProctoredQuestions(milliySubjectBank[subj]);
                       setProctoredDuration(MILLIY_DURATION_SEC);
                       setProctoredFlagSpam(true);
+                      setProctoredAllowHeadphones(false);
                       setProctoredExam(`Milliy: ${subj}`);
                       completeActivity(80);
                     }}
