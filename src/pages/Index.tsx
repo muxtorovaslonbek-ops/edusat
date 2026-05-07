@@ -1720,6 +1720,7 @@ const Index = () => {
           questions={proctoredQuestions}
           durationSec={proctoredDuration}
           flagSpamMistakes={proctoredFlagSpam}
+          allowHeadphones={proctoredAllowHeadphones}
           onClose={() => { setProctoredExam(null); setProctoredQuestions(null); }}
           onComplete={(score, total, valid) => {
             setProctoredResult((prev) => ({ ...prev, [proctoredExam!]: { score, total, valid } }));
