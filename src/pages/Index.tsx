@@ -70,6 +70,7 @@ const sections = [
   { id: "premium", label: "Premium xizmatlar", icon: Crown },
   { id: "reviews", label: "Xizmatlarni baholash", icon: Star },
   { id: "jobs", label: "Ish o‘rinlari", icon: Briefcase },
+  { id: "career", label: "Kasbga yo‘naltirish", icon: Compass },
   { id: "about", label: "Ilova haqida", icon: Award },
 ] as const;
 
