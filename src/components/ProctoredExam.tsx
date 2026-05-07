@@ -13,6 +13,8 @@ interface Props {
   durationSec?: number;
   /** if true, too-many-wrong-answers also marks the result invalid */
   flagSpamMistakes?: boolean;
+  /** if true, headphones are allowed (e.g. IELTS / Multi-level listening) */
+  allowHeadphones?: boolean;
 }
 
 const MAX_WARNINGS = 3;
@@ -102,7 +104,7 @@ function looksLikePhoneInFrame(video: HTMLVideoElement): boolean {
   return false;
 }
 
-export default function ProctoredExam({ testTitle, questions, onClose, onComplete, durationSec, flagSpamMistakes }: Props) {
+export default function ProctoredExam({ testTitle, questions, onClose, onComplete, durationSec, flagSpamMistakes, allowHeadphones }: Props) {
   const [status, setStatus] = useState<Status>("setup");
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [micStream, setMicStream] = useState<MediaStream | null>(null);
@@ -168,7 +170,7 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
         const audio = all.filter(d => d.kind === "audioinput" || d.kind === "audiooutput");
         setAudioDevices(audio);
         setInitialAudioCount(audio.length);
-        if (checkHeadphones(audio)) {
+        if (checkHeadphones(audio) && !allowHeadphones) {
           setCameraError("⚠️ Naushnik / headset aniqlandi. Iltimos, ularni uzing va qaytadan kameraga ruxsat bering.");
         }
       } catch {}
@@ -267,9 +269,9 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
       const list = await refresh();
       const hp = checkHeadphones(list);
       if (statusRef.current !== "running") return;
-      if (hp) {
+      if (hp && !allowHeadphones) {
         addDeviceWarning("Naushnik / headset aniqlandi! Ularni darhol uzing.");
-      } else if (list.length > initialAudioCount) {
+      } else if (list.length > initialAudioCount && !allowHeadphones) {
         addDeviceWarning("Yangi audio qurilma (telefon / bluetooth) ulanishi aniqlandi.");
       } else if (list.length < initialAudioCount) {
         addDeviceWarning("Audio qurilma o'chirildi yoki uzildi.");
@@ -277,7 +279,7 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
     };
     navigator.mediaDevices.addEventListener?.("devicechange", handler);
     return () => navigator.mediaDevices.removeEventListener?.("devicechange", handler);
-  }, [initialAudioCount, addDeviceWarning, checkHeadphones]);
+  }, [initialAudioCount, addDeviceWarning, checkHeadphones, allowHeadphones]);
 
   // === Voice / ambient-sound monitoring via mic: detect talking or asking for hints ===
   useEffect(() => {
@@ -417,7 +419,7 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
   const startExam = useCallback(() => {
     if (!stream) { setCameraError("Avval kamera va mikrofonni yoqing."); return; }
     if (aiStatus !== "ready") { setCameraError("AI nazorat tizimi hali tayyor emas. Iltimos, kuting…"); return; }
-    if (headphonesDetected) { setCameraError("Naushnik aniqlandi. Iltimos, ularni uzib qaytadan urinib ko'ring."); return; }
+    if (headphonesDetected && !allowHeadphones) { setCameraError("Naushnik aniqlandi. Iltimos, ularni uzib qaytadan urinib ko'ring."); return; }
     setCameraError("");
     setStatus("running");
     setAnswers({});
@@ -426,7 +428,7 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
     setDisqualifyReason("");
     setSpamFlag(false);
     if (durationSec) setTimeLeft(durationSec);
-  }, [stream, durationSec, aiStatus, headphonesDetected]);
+  }, [stream, durationSec, aiStatus, headphonesDetected, allowHeadphones]);
 
   // Countdown timer
   useEffect(() => {
@@ -551,11 +553,11 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
                   ) : (
                     <button
                       onClick={startExam}
-                      disabled={aiStatus !== "ready" || headphonesDetected}
+                      disabled={aiStatus !== "ready" || (headphonesDetected && !allowHeadphones)}
                       className="premium-button inline-flex items-center gap-2 rounded-2xl px-5 py-3 font-black disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <ShieldCheck className="h-4 w-4" />
-                      {aiStatus !== "ready" ? "AI nazorat tayyorlanmoqda…" : headphonesDetected ? "Naushnikni uzing" : "Imtihonni boshlash"}
+                      {aiStatus !== "ready" ? "AI nazorat tayyorlanmoqda…" : (headphonesDetected && !allowHeadphones) ? "Naushnikni uzing" : "Imtihonni boshlash"}
                     </button>
                   )}
                 </div>
