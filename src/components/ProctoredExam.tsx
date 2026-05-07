@@ -170,7 +170,7 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
         const audio = all.filter(d => d.kind === "audioinput" || d.kind === "audiooutput");
         setAudioDevices(audio);
         setInitialAudioCount(audio.length);
-        if (checkHeadphones(audio)) {
+        if (checkHeadphones(audio) && !allowHeadphones) {
           setCameraError("⚠️ Naushnik / headset aniqlandi. Iltimos, ularni uzing va qaytadan kameraga ruxsat bering.");
         }
       } catch {}
