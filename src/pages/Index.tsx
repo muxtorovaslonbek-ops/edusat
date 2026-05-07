@@ -2173,6 +2173,115 @@ const Index = () => {
     </section>
   );
 
+  const renderCareer = () => {
+    const driving = {
+      title: "Haydovchilik",
+      icon: "🚗",
+      desc: "B, C, D toifa haydovchilik guvohnomasi olish — doimiy daromad va keng imkoniyatlar.",
+      items: [
+        "B toifa — yengil avtomobil",
+        "C toifa — yuk mashinasi",
+        "D toifa — avtobus / marshrut",
+        "Xalqaro yo'nalishlar uchun tajriba",
+      ],
+    };
+    const girls = [
+      { t: "Hamshiralik va birinchi yordam", d: "Tibbiyot markazlari yoki xususiy klinikalarda ishlash uchun." },
+      { t: "Tikuvchilik va modelyerlik", d: "Liboslar dizayni, parda tikish yoki trikotaj sexlarida ishlash." },
+      { t: "Konditerlik (Shirinliklar ustasi)", d: "Uyda buyurtma asosida yoki qandolat sexlarida ishlash." },
+      { t: "Pazandachilik", d: "Milliy va Yevropa taomlari bo'yicha mutaxassis." },
+      { t: "Gid-ekskursiyachilik", d: "Turistlar bilan ishlash va chet tillarini amalda qo'llash." },
+      { t: "Go'zallik sohasi (Beauty industry)", d: "Vizajist, kosmetolog yoki sartaroshlik." },
+    ];
+    const boys = [
+      { t: "Payvandlovchi (Svarchik)", d: "Elektr, gaz va argon payvandlash (argon payvandchilarga talab juda yuqori)." },
+      { t: "Avtoelektrik va avtochilangar", d: "Zamonaviy avtomobillarni kompyuter diagnostika qilish va ta'mirlash." },
+      { t: "Santexnik va montajchi", d: "Isitish tizimlari va suv quvurlarini o'rnatish." },
+      { t: "Elektrik", d: "Binolarga elektr tarmoqlarini tortish va xizmat ko'rsatish." },
+      { t: "Mebel ustasi", d: "Stol, stul va oshxona mebellarini yasash hamda yig'ish." },
+      { t: "Sovutish tizimlari ustasi", d: "Konditsioner va muzlatgichlarni o'rnatish va ta'mirlash." },
+    ];
+    return (
+      <section className="space-y-6">
+        <SectionTitle
+          kicker="Kasbga yo'naltirish"
+          title="Haydovchilik va hunarmandchilik kasblari"
+          text="Doimiy daromad keltiradigan, oilaviy hayotda ham asqatadigan kasblar va ularni qayerda o'rganish mumkinligi haqida qo'llanma."
+        />
+
+        <GlassCard>
+          <div className="flex items-start gap-4">
+            <div className="grid h-14 w-14 place-items-center rounded-2xl bg-primary text-primary-foreground text-2xl shadow-glow">{driving.icon}</div>
+            <div className="flex-1">
+              <Pill>Universal yo'nalish</Pill>
+              <h3 className="mt-2 text-2xl font-black text-foreground">{driving.title}</h3>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">{driving.desc}</p>
+              <ul className="mt-4 grid gap-2 md:grid-cols-2">
+                {driving.items.map((it) => (
+                  <li key={it} className="flex items-center gap-2 rounded-2xl border border-border/60 bg-secondary/40 px-3 py-2 text-sm font-bold text-foreground">
+                    <ShieldCheck className="h-4 w-4 text-primary" /> {it}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </GlassCard>
+
+        <div className="grid gap-5 lg:grid-cols-2">
+          <GlassCard>
+            <Pill>Qizlar uchun</Pill>
+            <h3 className="mt-2 text-2xl font-black text-foreground">Qizlar uchun hunarlar</h3>
+            <p className="mt-1 text-xs font-bold text-muted-foreground">Doimiy daromad + oilaviy hayotda asqatadi.</p>
+            <div className="mt-4 grid gap-3">
+              {girls.map((g) => (
+                <div key={g.t} className="rounded-2xl border border-border/60 bg-background/60 p-4">
+                  <p className="font-black text-foreground">💗 {g.t}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">{g.d}</p>
+                </div>
+              ))}
+            </div>
+          </GlassCard>
+
+          <GlassCard>
+            <Pill>O'g'il bolalar uchun</Pill>
+            <h3 className="mt-2 text-2xl font-black text-foreground">O'g'il bolalar uchun hunarlar</h3>
+            <p className="mt-1 text-xs font-bold text-muted-foreground">Texnika va qurilish — O'zbekistonda maosh juda baland.</p>
+            <div className="mt-4 grid gap-3">
+              {boys.map((b) => (
+                <div key={b.t} className="rounded-2xl border border-border/60 bg-background/60 p-4">
+                  <p className="font-black text-foreground">🛠️ {b.t}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">{b.d}</p>
+                </div>
+              ))}
+            </div>
+          </GlassCard>
+        </div>
+
+        <GlassCard>
+          <Pill>Qayerda o'rganish mumkin?</Pill>
+          <h3 className="mt-2 text-2xl font-black text-foreground">"Monomarkazlar" — Ishga marhamat markazlari</h3>
+          <p className="mt-3 text-sm leading-7 text-muted-foreground">
+            Maktab bitiruvchilari va o'quvchilari uchun eng yaxshi yo'l — <b>Monomarkazlar</b>. Bu markazlarda hunar bepul yoki imtiyozli asosda o'rgatiladi va kasb sertifikati beriladi.
+          </p>
+          <div className="mt-4 grid gap-3 md:grid-cols-3">
+            <div className="rounded-2xl border border-border/60 bg-secondary/40 p-4">
+              <p className="font-black text-foreground">⏱️ Muddat</p>
+              <p className="mt-1 text-sm text-muted-foreground">Odatda 3 oydan 6 oygacha.</p>
+            </div>
+            <div className="rounded-2xl border border-border/60 bg-secondary/40 p-4">
+              <p className="font-black text-foreground">📜 Natija</p>
+              <p className="mt-1 text-sm text-muted-foreground">Davlat tan oladigan kasb sertifikati.</p>
+            </div>
+            <div className="rounded-2xl border border-border/60 bg-secondary/40 p-4">
+              <p className="font-black text-foreground">💼 Ish bilan ta'minlash</p>
+              <p className="mt-1 text-sm text-muted-foreground">Markazlar ish topishda yordam beradi.</p>
+            </div>
+          </div>
+        </GlassCard>
+      </section>
+    );
+  };
+
   const renderAbout = () => (
     <section>
       <SectionTitle kicker="Ilova haqida" title="EduSAT Academy — ishonchli ta’lim hamrohingiz" text="SAT, OTM va xalqaro imtihonlarga tayyorgarlik uchun yaratilgan zamonaviy ta’lim ilovasi." />
