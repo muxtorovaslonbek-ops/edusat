@@ -5,6 +5,7 @@ import {
   Boxes,
   Brain,
   Briefcase,
+  Compass,
   ChevronRight,
   Coins,
   Crown,
