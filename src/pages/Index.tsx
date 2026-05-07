@@ -2264,6 +2264,7 @@ const Index = () => {
     premium: renderPremium,
     reviews: renderReviews,
     jobs: renderJobs,
+    career: renderCareer,
     about: renderAbout,
   }[active];
 
