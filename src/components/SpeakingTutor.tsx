@@ -111,11 +111,21 @@ export default function SpeakingTutor({ userName = "" }: Props) {
 
   useEffect(() => {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-    const load = () => setVoices(window.speechSynthesis.getVoices());
+    const load = () => {
+      const v = window.speechSynthesis.getVoices();
+      if (v.length) setVoices(v);
+    };
     load();
     window.speechSynthesis.onvoiceschanged = load;
-    return () => { window.speechSynthesis.onvoiceschanged = null; };
+    // Some browsers need polling before voices are exposed
+    const id = window.setInterval(() => {
+      const v = window.speechSynthesis.getVoices();
+      if (v.length) { setVoices(v); window.clearInterval(id); }
+    }, 250);
+    window.setTimeout(() => window.clearInterval(id), 5000);
+    return () => { window.speechSynthesis.onvoiceschanged = null; window.clearInterval(id); };
   }, []);
+
 
   const voicePick = useMemo(() => {
     if (!voices.length) return { voice: null as SpeechSynthesisVoice | null, confident: false };
