@@ -153,18 +153,19 @@ export default function SpeakingTutor({ userName = "" }: Props) {
     utter.lang = pickedVoice?.lang || langInfo.bcp;
     const params = VOICE_PARAMS[age][tone];
     let pitch = params.pitch;
+    // Only nudge pitch when the picked voice doesn't clearly match the requested gender —
+    // heavy shifts make TTS sound robotic/distorted.
     if (gender === "male") {
-      // Strong downward shift for male, even stronger if voice is not gender-confident
-      pitch = voiceConfident ? Math.max(0.1, params.pitch - 0.45) : Math.max(0.1, params.pitch - 0.85);
+      pitch = voiceConfident ? params.pitch : Math.max(0.4, params.pitch - 0.5);
     } else {
-      // Upward shift for female
-      pitch = voiceConfident ? Math.min(2.0, params.pitch + 0.15) : Math.min(2.0, params.pitch + 0.7);
+      pitch = voiceConfident ? params.pitch : Math.min(1.8, params.pitch + 0.4);
     }
-    utter.pitch = pitch;
-    utter.rate = Math.min(10, Math.max(0.1, params.rate * speed));
+    utter.pitch = Math.max(0.1, Math.min(2, pitch));
+    utter.rate = Math.min(2, Math.max(0.1, params.rate * speed));
     utter.volume = 1;
     return utter;
   }, [pickedVoice, voiceConfident, age, tone, gender, langInfo, speed]);
+
 
   // Preview voice when settings change
   const previewVoice = useCallback(() => {
