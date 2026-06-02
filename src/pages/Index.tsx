@@ -554,6 +554,9 @@ const Index = () => {
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
   const [authError, setAuthError] = useState("");
+  const [authMessage, setAuthMessage] = useState("");
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authMode2, setAuthMode2] = useState<"login" | "register" | "forgot">("login");
   const [registeredUsers, setRegisteredUsers] = useState<Record<string, { name: string; password: string }>>(() => {
     if (typeof window === "undefined") return {};
     try { return JSON.parse(localStorage.getItem("edusat:users") || "{}"); } catch { return {}; }
