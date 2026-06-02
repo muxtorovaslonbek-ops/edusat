@@ -1400,8 +1400,8 @@ const Index = () => {
                 {avatar ? "Rasmni o‘zgartirish" : "Rasm yuklash"}
                 <input type="file" accept="image/*" className="hidden" onChange={handleAvatar} />
               </label>
-              {avatar && <button className="rounded-2xl border border-border px-5 py-3 text-sm font-black text-foreground hover:bg-accent" onClick={() => { setAvatar(null); if (profileEmail) setUserAvatars((prev) => { const next = { ...prev }; delete next[profileEmail]; return next; }); }}>Rasmni olib tashlash</button>}
-              <button className="rounded-2xl border border-border px-5 py-3 text-sm font-black text-foreground transition-all hover:bg-accent hover:text-accent-foreground" onClick={() => { setIsAuthenticated(false); setUserName("Mehmon"); setProfileName("Mehmon"); setAvatar(null); setAuthEmail(""); setAuthPassword(""); setActive("home"); try { localStorage.removeItem("edusat:session"); } catch { /* ignore */ } }}>Profildan chiqish</button>
+              {avatar && <button className="rounded-2xl border border-border px-5 py-3 text-sm font-black text-foreground hover:bg-accent" onClick={async () => { setAvatar(null); const { data: sess } = await supabase.auth.getSession(); const uid = sess.session?.user.id; if (uid) await supabase.from("profiles").update({ avatar_url: null }).eq("id", uid); }}>Rasmni olib tashlash</button>}
+              <button className="rounded-2xl border border-border px-5 py-3 text-sm font-black text-foreground transition-all hover:bg-accent hover:text-accent-foreground" onClick={async () => { await supabase.auth.signOut(); setUserName("Mehmon"); setProfileName("Mehmon"); setAvatar(null); setAuthEmail(""); setAuthPassword(""); setActive("home"); }}>Profildan chiqish</button>
             </div>
           </div>
         </GlassCard>
@@ -1410,11 +1410,11 @@ const Index = () => {
           <div className="mb-5 grid gap-3 md:grid-cols-2">
             <label className="space-y-2 text-sm font-black text-foreground">
               Ism familiya
-              <input className="h-12 w-full rounded-2xl border border-input bg-card px-4 font-bold text-foreground outline-none focus:ring-2 focus:ring-ring" value={profileName} onChange={(event) => { setProfileName(event.target.value); setUserName(event.target.value || "Mehmon"); }} />
+              <input className="h-12 w-full rounded-2xl border border-input bg-card px-4 font-bold text-foreground outline-none focus:ring-2 focus:ring-ring" value={profileName} onChange={(event) => { setProfileName(event.target.value); setUserName(event.target.value || "Mehmon"); }} onBlur={async (event) => { const v = event.target.value.trim(); if (!v) return; const { data: sess } = await supabase.auth.getSession(); const uid = sess.session?.user.id; if (uid) await supabase.from("profiles").update({ display_name: v }).eq("id", uid); }} />
             </label>
             <label className="space-y-2 text-sm font-black text-foreground">
               Email
-              <input className="h-12 w-full rounded-2xl border border-input bg-card px-4 font-bold text-foreground outline-none focus:ring-2 focus:ring-ring" type="email" value={profileEmail} onChange={(event) => setProfileEmail(event.target.value)} />
+              <input className="h-12 w-full rounded-2xl border border-input bg-card px-4 font-bold text-foreground outline-none focus:ring-2 focus:ring-ring" type="email" value={profileEmail} readOnly />
             </label>
             <label className="space-y-2 text-sm font-black text-foreground md:col-span-2">
               Maqsad
