@@ -809,19 +809,27 @@ const Index = () => {
 
   const completeActivity = (reward = 25) => setCoins((current) => current + reward);
 
-  const handleAvatar = (event: ChangeEvent<HTMLInputElement>) => {
+  const handleAvatar = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
+    // Optimistic local preview
     const reader = new FileReader();
-    reader.onload = () => {
-      const dataUrl = String(reader.result || "");
-      setAvatar(dataUrl);
-      if (isAuthenticated && profileEmail) {
-        setUserAvatars((prev) => ({ ...prev, [profileEmail]: dataUrl }));
-      }
-    };
+    reader.onload = () => setAvatar(String(reader.result || ""));
     reader.readAsDataURL(file);
+    // Upload to cloud if logged in
+    const { data: sess } = await supabase.auth.getSession();
+    const uid = sess.session?.user.id;
+    if (!uid) return;
+    const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+    const path = `${uid}/avatar-${Date.now()}.${ext}`;
+    const { error: upErr } = await supabase.storage.from("avatars").upload(path, file, { upsert: true, contentType: file.type });
+    if (upErr) { console.error(upErr); return; }
+    const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
+    const url = pub.publicUrl;
+    setAvatar(url);
+    await supabase.from("profiles").update({ avatar_url: url }).eq("id", uid);
   };
+
 
   const aiScrollRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
