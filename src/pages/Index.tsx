@@ -910,47 +910,68 @@ const Index = () => {
     }
   };
 
-  const handleAuthSubmit = () => {
-    const name = authName.trim();
+  const handleAuthSubmit = async () => {
+    setAuthError("");
+    setAuthMessage("");
     const email = authEmail.trim().toLowerCase();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || authPassword.length < 6) {
-      setAuthError("To‘g‘ri email va kamida 6 belgili parol kiriting.");
-      return;
-    }
-    if (authMode === "login") {
-      const user = registeredUsers[email];
-      if (!user || user.password !== authPassword) {
-        setAuthError("Email yoki parol noto‘g‘ri. Avval ro‘yxatdan o‘ting yoki ma’lumotlarni tekshiring.");
+
+    if (showForgot) {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        setAuthError("To'g'ri email kiriting.");
         return;
       }
-      setUserName(user.name);
-      setProfileName(user.name);
-      setProfileEmail(email);
-      setAvatar(userAvatars[email] || null);
-      setIsAuthenticated(true);
-      try { localStorage.setItem("edusat:session", JSON.stringify({ email, name: user.name })); } catch { /* ignore */ }
+      setAuthLoading(true);
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/`,
+      });
+      setAuthLoading(false);
+      if (error) { setAuthError(error.message); return; }
+      setAuthMessage("Parolni tiklash uchun havola emailingizga yuborildi.");
+      return;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || authPassword.length < 6) {
+      setAuthError("To'g'ri email va kamida 6 belgili parol kiriting.");
+      return;
+    }
+    setAuthLoading(true);
+    if (authMode === "login") {
+      const { error } = await supabase.auth.signInWithPassword({ email, password: authPassword });
+      setAuthLoading(false);
+      if (error) {
+        setAuthError(error.message.includes("Invalid") ? "Email yoki parol noto'g'ri." : error.message);
+        return;
+      }
       setActive("profile");
-      setAuthError("");
       setAuthOpen(false);
       completeActivity(50);
       return;
     }
+    // register
+    const name = authName.trim();
     if (name.length < 2) {
-      setAuthError("Ro‘yxatdan o‘tish uchun ismni kiriting.");
+      setAuthLoading(false);
+      setAuthError("Ro'yxatdan o'tish uchun ismni kiriting.");
       return;
     }
-    const nextName = name || email.split("@")[0] || "Foydalanuvchi";
-    setRegisteredUsers((current) => ({ ...current, [email]: { name: nextName, password: authPassword } }));
-    setUserName(nextName);
-    setProfileName(nextName);
-    setProfileEmail(email);
-    setIsAuthenticated(true);
-    try { localStorage.setItem("edusat:session", JSON.stringify({ email, name: nextName })); } catch { /* ignore */ }
+    const { error } = await supabase.auth.signUp({
+      email,
+      password: authPassword,
+      options: {
+        emailRedirectTo: `${window.location.origin}/`,
+        data: { display_name: name },
+      },
+    });
+    setAuthLoading(false);
+    if (error) {
+      setAuthError(error.message.includes("registered") ? "Bu email allaqachon ro'yxatdan o'tgan." : error.message);
+      return;
+    }
     setActive("profile");
-    setAuthError("");
     setAuthOpen(false);
-    completeActivity(authMode === "register" ? 100 : 50);
+    completeActivity(100);
   };
+
 
   const isFavorite = (id: string) => favorites.some((item) => item.id === id);
   const toggleFavorite = (item: { id: string; title: string; category: string; section: SectionId }) => {
