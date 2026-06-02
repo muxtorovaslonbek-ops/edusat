@@ -210,14 +210,20 @@ export default function SpeakingTutor({ userName = "" }: Props) {
   const speak = useCallback((text: string): Promise<void> => {
     return new Promise((resolve) => {
       if (!("speechSynthesis" in window)) { resolve(); return; }
-      window.speechSynthesis.cancel();
-      const utter = buildUtter(text);
-      utter.onstart = () => setIsSpeaking(true);
-      utter.onend = () => { setIsSpeaking(false); resolve(); };
-      utter.onerror = () => { setIsSpeaking(false); resolve(); };
-      window.speechSynthesis.speak(utter);
+      try { window.speechSynthesis.cancel(); } catch {}
+      // Chrome needs a microtask break after cancel() before speak() fires reliably
+      setTimeout(() => {
+        const utter = buildUtter(text);
+        let resolved = false;
+        const done = () => { if (resolved) return; resolved = true; setIsSpeaking(false); resolve(); };
+        utter.onstart = () => setIsSpeaking(true);
+        utter.onend = done;
+        utter.onerror = done;
+        try { window.speechSynthesis.speak(utter); } catch { done(); }
+      }, 60);
     });
   }, [buildUtter]);
+
 
   const stopRecog = useCallback(() => {
     if (recogRef.current) {
