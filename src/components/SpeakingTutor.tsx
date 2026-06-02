@@ -111,11 +111,21 @@ export default function SpeakingTutor({ userName = "" }: Props) {
 
   useEffect(() => {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-    const load = () => setVoices(window.speechSynthesis.getVoices());
+    const load = () => {
+      const v = window.speechSynthesis.getVoices();
+      if (v.length) setVoices(v);
+    };
     load();
     window.speechSynthesis.onvoiceschanged = load;
-    return () => { window.speechSynthesis.onvoiceschanged = null; };
+    // Some browsers need polling before voices are exposed
+    const id = window.setInterval(() => {
+      const v = window.speechSynthesis.getVoices();
+      if (v.length) { setVoices(v); window.clearInterval(id); }
+    }, 250);
+    window.setTimeout(() => window.clearInterval(id), 5000);
+    return () => { window.speechSynthesis.onvoiceschanged = null; window.clearInterval(id); };
   }, []);
+
 
   const voicePick = useMemo(() => {
     if (!voices.length) return { voice: null as SpeechSynthesisVoice | null, confident: false };
@@ -153,18 +163,19 @@ export default function SpeakingTutor({ userName = "" }: Props) {
     utter.lang = pickedVoice?.lang || langInfo.bcp;
     const params = VOICE_PARAMS[age][tone];
     let pitch = params.pitch;
+    // Only nudge pitch when the picked voice doesn't clearly match the requested gender —
+    // heavy shifts make TTS sound robotic/distorted.
     if (gender === "male") {
-      // Strong downward shift for male, even stronger if voice is not gender-confident
-      pitch = voiceConfident ? Math.max(0.1, params.pitch - 0.45) : Math.max(0.1, params.pitch - 0.85);
+      pitch = voiceConfident ? params.pitch : Math.max(0.4, params.pitch - 0.5);
     } else {
-      // Upward shift for female
-      pitch = voiceConfident ? Math.min(2.0, params.pitch + 0.15) : Math.min(2.0, params.pitch + 0.7);
+      pitch = voiceConfident ? params.pitch : Math.min(1.8, params.pitch + 0.4);
     }
-    utter.pitch = pitch;
-    utter.rate = Math.min(10, Math.max(0.1, params.rate * speed));
+    utter.pitch = Math.max(0.1, Math.min(2, pitch));
+    utter.rate = Math.min(2, Math.max(0.1, params.rate * speed));
     utter.volume = 1;
     return utter;
   }, [pickedVoice, voiceConfident, age, tone, gender, langInfo, speed]);
+
 
   // Preview voice when settings change
   const previewVoice = useCallback(() => {
@@ -199,14 +210,20 @@ export default function SpeakingTutor({ userName = "" }: Props) {
   const speak = useCallback((text: string): Promise<void> => {
     return new Promise((resolve) => {
       if (!("speechSynthesis" in window)) { resolve(); return; }
-      window.speechSynthesis.cancel();
-      const utter = buildUtter(text);
-      utter.onstart = () => setIsSpeaking(true);
-      utter.onend = () => { setIsSpeaking(false); resolve(); };
-      utter.onerror = () => { setIsSpeaking(false); resolve(); };
-      window.speechSynthesis.speak(utter);
+      try { window.speechSynthesis.cancel(); } catch {}
+      // Chrome needs a microtask break after cancel() before speak() fires reliably
+      setTimeout(() => {
+        const utter = buildUtter(text);
+        let resolved = false;
+        const done = () => { if (resolved) return; resolved = true; setIsSpeaking(false); resolve(); };
+        utter.onstart = () => setIsSpeaking(true);
+        utter.onend = done;
+        utter.onerror = done;
+        try { window.speechSynthesis.speak(utter); } catch { done(); }
+      }, 60);
     });
   }, [buildUtter]);
+
 
   const stopRecog = useCallback(() => {
     if (recogRef.current) {

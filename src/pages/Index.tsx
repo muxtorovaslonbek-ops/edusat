@@ -50,6 +50,7 @@ import bookShahzodaCover from "@/assets/books/kichkina-shahzoda.jpg";
 import bookBiologiyaCover from "@/assets/books/biologiya-super-qollanma.jpg";
 import SpeakingTutor from "@/components/SpeakingTutor";
 import ProctoredExam from "@/components/ProctoredExam";
+import { supabase } from "@/integrations/supabase/client";
 
 const sections = [
   { id: "home", label: "Bosh sahifa", icon: Home },
@@ -553,6 +554,9 @@ const Index = () => {
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
   const [authError, setAuthError] = useState("");
+  const [authMessage, setAuthMessage] = useState("");
+  const [authLoading, setAuthLoading] = useState(false);
+  const [showForgot, setShowForgot] = useState(false);
   const [registeredUsers, setRegisteredUsers] = useState<Record<string, { name: string; password: string }>>(() => {
     if (typeof window === "undefined") return {};
     try { return JSON.parse(localStorage.getItem("edusat:users") || "{}"); } catch { return {}; }
@@ -722,21 +726,34 @@ const Index = () => {
     setIntroVisible(false);
   };
 
-  // Restore session + avatar on first mount
+  // Restore Supabase session & profile
   useEffect(() => {
-    try {
-      const session = JSON.parse(localStorage.getItem("edusat:session") || "null");
-      if (session?.email && session?.name) {
-        setUserName(session.name);
-        setProfileName(session.name);
-        setProfileEmail(session.email);
-        setIsAuthenticated(true);
-        const savedAvatars = JSON.parse(localStorage.getItem("edusat:avatars") || "{}");
-        if (savedAvatars[session.email]) setAvatar(savedAvatars[session.email]);
+    const applySession = async (session: any) => {
+      const user = session?.user;
+      if (!user) {
+        setIsAuthenticated(false);
+        return;
       }
-    } catch { /* ignore */ }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+      setIsAuthenticated(true);
+      setProfileEmail(user.email || "");
+      const { data: prof } = await supabase
+        .from("profiles")
+        .select("display_name, avatar_url")
+        .eq("id", user.id)
+        .maybeSingle();
+      const name = prof?.display_name || user.user_metadata?.display_name || (user.email?.split("@")[0] ?? "Foydalanuvchi");
+      setUserName(name);
+      setProfileName(name);
+      setAvatar(prof?.avatar_url || null);
+    };
+    supabase.auth.getSession().then(({ data }) => applySession(data.session));
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      // Defer Supabase calls to avoid deadlock inside listener
+      setTimeout(() => applySession(session), 0);
+    });
+    return () => sub.subscription.unsubscribe();
   }, []);
+
 
   const todayQuote = useMemo(() => {
     const weekday = new Date().getDay(); // 0..6
@@ -792,19 +809,27 @@ const Index = () => {
 
   const completeActivity = (reward = 25) => setCoins((current) => current + reward);
 
-  const handleAvatar = (event: ChangeEvent<HTMLInputElement>) => {
+  const handleAvatar = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
+    // Optimistic local preview
     const reader = new FileReader();
-    reader.onload = () => {
-      const dataUrl = String(reader.result || "");
-      setAvatar(dataUrl);
-      if (isAuthenticated && profileEmail) {
-        setUserAvatars((prev) => ({ ...prev, [profileEmail]: dataUrl }));
-      }
-    };
+    reader.onload = () => setAvatar(String(reader.result || ""));
     reader.readAsDataURL(file);
+    // Upload to cloud if logged in
+    const { data: sess } = await supabase.auth.getSession();
+    const uid = sess.session?.user.id;
+    if (!uid) return;
+    const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+    const path = `${uid}/avatar-${Date.now()}.${ext}`;
+    const { error: upErr } = await supabase.storage.from("avatars").upload(path, file, { upsert: true, contentType: file.type });
+    if (upErr) { console.error(upErr); return; }
+    const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
+    const url = pub.publicUrl;
+    setAvatar(url);
+    await supabase.from("profiles").update({ avatar_url: url }).eq("id", uid);
   };
+
 
   const aiScrollRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -885,47 +910,68 @@ const Index = () => {
     }
   };
 
-  const handleAuthSubmit = () => {
-    const name = authName.trim();
+  const handleAuthSubmit = async () => {
+    setAuthError("");
+    setAuthMessage("");
     const email = authEmail.trim().toLowerCase();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || authPassword.length < 6) {
-      setAuthError("To‘g‘ri email va kamida 6 belgili parol kiriting.");
-      return;
-    }
-    if (authMode === "login") {
-      const user = registeredUsers[email];
-      if (!user || user.password !== authPassword) {
-        setAuthError("Email yoki parol noto‘g‘ri. Avval ro‘yxatdan o‘ting yoki ma’lumotlarni tekshiring.");
+
+    if (showForgot) {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        setAuthError("To'g'ri email kiriting.");
         return;
       }
-      setUserName(user.name);
-      setProfileName(user.name);
-      setProfileEmail(email);
-      setAvatar(userAvatars[email] || null);
-      setIsAuthenticated(true);
-      try { localStorage.setItem("edusat:session", JSON.stringify({ email, name: user.name })); } catch { /* ignore */ }
+      setAuthLoading(true);
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/`,
+      });
+      setAuthLoading(false);
+      if (error) { setAuthError(error.message); return; }
+      setAuthMessage("Parolni tiklash uchun havola emailingizga yuborildi.");
+      return;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || authPassword.length < 6) {
+      setAuthError("To'g'ri email va kamida 6 belgili parol kiriting.");
+      return;
+    }
+    setAuthLoading(true);
+    if (authMode === "login") {
+      const { error } = await supabase.auth.signInWithPassword({ email, password: authPassword });
+      setAuthLoading(false);
+      if (error) {
+        setAuthError(error.message.includes("Invalid") ? "Email yoki parol noto'g'ri." : error.message);
+        return;
+      }
       setActive("profile");
-      setAuthError("");
       setAuthOpen(false);
       completeActivity(50);
       return;
     }
+    // register
+    const name = authName.trim();
     if (name.length < 2) {
-      setAuthError("Ro‘yxatdan o‘tish uchun ismni kiriting.");
+      setAuthLoading(false);
+      setAuthError("Ro'yxatdan o'tish uchun ismni kiriting.");
       return;
     }
-    const nextName = name || email.split("@")[0] || "Foydalanuvchi";
-    setRegisteredUsers((current) => ({ ...current, [email]: { name: nextName, password: authPassword } }));
-    setUserName(nextName);
-    setProfileName(nextName);
-    setProfileEmail(email);
-    setIsAuthenticated(true);
-    try { localStorage.setItem("edusat:session", JSON.stringify({ email, name: nextName })); } catch { /* ignore */ }
+    const { error } = await supabase.auth.signUp({
+      email,
+      password: authPassword,
+      options: {
+        emailRedirectTo: `${window.location.origin}/`,
+        data: { display_name: name },
+      },
+    });
+    setAuthLoading(false);
+    if (error) {
+      setAuthError(error.message.includes("registered") ? "Bu email allaqachon ro'yxatdan o'tgan." : error.message);
+      return;
+    }
     setActive("profile");
-    setAuthError("");
     setAuthOpen(false);
-    completeActivity(authMode === "register" ? 100 : 50);
+    completeActivity(100);
   };
+
 
   const isFavorite = (id: string) => favorites.some((item) => item.id === id);
   const toggleFavorite = (item: { id: string; title: string; category: string; section: SectionId }) => {
@@ -1354,8 +1400,8 @@ const Index = () => {
                 {avatar ? "Rasmni o‘zgartirish" : "Rasm yuklash"}
                 <input type="file" accept="image/*" className="hidden" onChange={handleAvatar} />
               </label>
-              {avatar && <button className="rounded-2xl border border-border px-5 py-3 text-sm font-black text-foreground hover:bg-accent" onClick={() => { setAvatar(null); if (profileEmail) setUserAvatars((prev) => { const next = { ...prev }; delete next[profileEmail]; return next; }); }}>Rasmni olib tashlash</button>}
-              <button className="rounded-2xl border border-border px-5 py-3 text-sm font-black text-foreground transition-all hover:bg-accent hover:text-accent-foreground" onClick={() => { setIsAuthenticated(false); setUserName("Mehmon"); setProfileName("Mehmon"); setAvatar(null); setAuthEmail(""); setAuthPassword(""); setActive("home"); try { localStorage.removeItem("edusat:session"); } catch { /* ignore */ } }}>Profildan chiqish</button>
+              {avatar && <button className="rounded-2xl border border-border px-5 py-3 text-sm font-black text-foreground hover:bg-accent" onClick={async () => { setAvatar(null); const { data: sess } = await supabase.auth.getSession(); const uid = sess.session?.user.id; if (uid) await supabase.from("profiles").update({ avatar_url: null }).eq("id", uid); }}>Rasmni olib tashlash</button>}
+              <button className="rounded-2xl border border-border px-5 py-3 text-sm font-black text-foreground transition-all hover:bg-accent hover:text-accent-foreground" onClick={async () => { await supabase.auth.signOut(); setUserName("Mehmon"); setProfileName("Mehmon"); setAvatar(null); setAuthEmail(""); setAuthPassword(""); setActive("home"); }}>Profildan chiqish</button>
             </div>
           </div>
         </GlassCard>
@@ -1364,11 +1410,11 @@ const Index = () => {
           <div className="mb-5 grid gap-3 md:grid-cols-2">
             <label className="space-y-2 text-sm font-black text-foreground">
               Ism familiya
-              <input className="h-12 w-full rounded-2xl border border-input bg-card px-4 font-bold text-foreground outline-none focus:ring-2 focus:ring-ring" value={profileName} onChange={(event) => { setProfileName(event.target.value); setUserName(event.target.value || "Mehmon"); }} />
+              <input className="h-12 w-full rounded-2xl border border-input bg-card px-4 font-bold text-foreground outline-none focus:ring-2 focus:ring-ring" value={profileName} onChange={(event) => { setProfileName(event.target.value); setUserName(event.target.value || "Mehmon"); }} onBlur={async (event) => { const v = event.target.value.trim(); if (!v) return; const { data: sess } = await supabase.auth.getSession(); const uid = sess.session?.user.id; if (uid) await supabase.from("profiles").update({ display_name: v }).eq("id", uid); }} />
             </label>
             <label className="space-y-2 text-sm font-black text-foreground">
               Email
-              <input className="h-12 w-full rounded-2xl border border-input bg-card px-4 font-bold text-foreground outline-none focus:ring-2 focus:ring-ring" type="email" value={profileEmail} onChange={(event) => setProfileEmail(event.target.value)} />
+              <input className="h-12 w-full rounded-2xl border border-input bg-card px-4 font-bold text-foreground outline-none focus:ring-2 focus:ring-ring" type="email" value={profileEmail} readOnly />
             </label>
             <label className="space-y-2 text-sm font-black text-foreground md:col-span-2">
               Maqsad
@@ -2381,20 +2427,26 @@ const Index = () => {
     <div className="fixed inset-0 z-50 grid place-items-center bg-background/80 p-4 backdrop-blur-xl animate-fade-in-up">
       <form className="w-full max-w-md rounded-3xl border border-white/10 bg-card p-6 shadow-premium animate-scale-in" onSubmit={(event) => { event.preventDefault(); handleAuthSubmit(); }}>
         <div className="flex items-center justify-between">
-          <h3 className="text-2xl font-black text-foreground">{authMode === "login" ? t.login : t.register}</h3>
-          <button type="button" className="rounded-2xl p-2 text-muted-foreground transition-all hover:bg-primary/10 hover:text-primary" onClick={() => setAuthOpen(false)}><X /></button>
+          <h3 className="text-2xl font-black text-foreground">{showForgot ? "Parolni tiklash" : authMode === "login" ? t.login : t.register}</h3>
+          <button type="button" className="rounded-2xl p-2 text-muted-foreground transition-all hover:bg-primary/10 hover:text-primary" onClick={() => { setAuthOpen(false); setShowForgot(false); setAuthError(""); setAuthMessage(""); }}><X /></button>
         </div>
         <div className="mt-5 space-y-3 text-foreground">
-          {authMode === "register" && <input className="input-premium h-12 w-full rounded-2xl px-4 text-foreground placeholder:text-muted-foreground" placeholder="Ismingiz" value={authName} onChange={(e) => setAuthName(e.target.value)} autoComplete="name" />}
+          {!showForgot && authMode === "register" && <input className="input-premium h-12 w-full rounded-2xl px-4 text-foreground placeholder:text-muted-foreground" placeholder="Ismingiz" value={authName} onChange={(e) => setAuthName(e.target.value)} autoComplete="name" />}
           <input className="input-premium h-12 w-full rounded-2xl px-4 text-foreground placeholder:text-muted-foreground" placeholder="Email" type="email" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} autoComplete="email" />
-          <input className="input-premium h-12 w-full rounded-2xl px-4 text-foreground placeholder:text-muted-foreground" placeholder="Parol" type="password" value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} autoComplete={authMode === "login" ? "current-password" : "new-password"} />
+          {!showForgot && <input className="input-premium h-12 w-full rounded-2xl px-4 text-foreground placeholder:text-muted-foreground" placeholder="Parol" type="password" value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} autoComplete={authMode === "login" ? "current-password" : "new-password"} />}
           {authError && <p className="rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm font-bold text-destructive animate-fade-in-up">{authError}</p>}
-          <button type="submit" className="premium-button w-full rounded-2xl py-3 font-black">{authMode === "login" ? "Kirish" : "Ro‘yxatdan o‘tish"} +100 coin</button>
+          {authMessage && <p className="rounded-2xl border border-primary/40 bg-primary/10 px-4 py-3 text-sm font-bold text-primary animate-fade-in-up">{authMessage}</p>}
+          <button type="submit" disabled={authLoading} className="premium-button w-full rounded-2xl py-3 font-black disabled:opacity-60">{authLoading ? "Iltimos kuting..." : showForgot ? "Tiklash havolasini yuborish" : authMode === "login" ? "Kirish" : "Ro'yxatdan o'tish +100 coin"}</button>
         </div>
-        <button type="button" className="mt-4 text-sm font-bold text-primary transition-all hover:opacity-80" onClick={() => { setAuthError(""); setAuthMode(authMode === "login" ? "register" : "login"); }}>{authMode === "login" ? "Hisob yo‘qmi? Ro‘yxatdan o‘ting" : "Hisobingiz bormi? Kirish"}</button>
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+          <button type="button" className="text-sm font-bold text-primary transition-all hover:opacity-80" onClick={() => { setAuthError(""); setAuthMessage(""); setShowForgot(false); setAuthMode(authMode === "login" ? "register" : "login"); }}>{authMode === "login" ? "Hisob yo'qmi? Ro'yxatdan o'ting" : "Hisobingiz bormi? Kirish"}</button>
+          {!showForgot && authMode === "login" && <button type="button" className="text-sm font-bold text-muted-foreground transition-all hover:text-primary" onClick={() => { setShowForgot(true); setAuthError(""); setAuthMessage(""); }}>Parolni unutdingizmi?</button>}
+          {showForgot && <button type="button" className="text-sm font-bold text-muted-foreground transition-all hover:text-primary" onClick={() => { setShowForgot(false); setAuthError(""); setAuthMessage(""); }}>← Kirish sahifasiga qaytish</button>}
+        </div>
       </form>
     </div>
   ) : null;
+
 
   return (
     <main className="min-h-screen bg-background text-foreground">
