@@ -726,21 +726,34 @@ const Index = () => {
     setIntroVisible(false);
   };
 
-  // Restore session + avatar on first mount
+  // Restore Supabase session & profile
   useEffect(() => {
-    try {
-      const session = JSON.parse(localStorage.getItem("edusat:session") || "null");
-      if (session?.email && session?.name) {
-        setUserName(session.name);
-        setProfileName(session.name);
-        setProfileEmail(session.email);
-        setIsAuthenticated(true);
-        const savedAvatars = JSON.parse(localStorage.getItem("edusat:avatars") || "{}");
-        if (savedAvatars[session.email]) setAvatar(savedAvatars[session.email]);
+    const applySession = async (session: any) => {
+      const user = session?.user;
+      if (!user) {
+        setIsAuthenticated(false);
+        return;
       }
-    } catch { /* ignore */ }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+      setIsAuthenticated(true);
+      setProfileEmail(user.email || "");
+      const { data: prof } = await supabase
+        .from("profiles")
+        .select("display_name, avatar_url")
+        .eq("id", user.id)
+        .maybeSingle();
+      const name = prof?.display_name || user.user_metadata?.display_name || (user.email?.split("@")[0] ?? "Foydalanuvchi");
+      setUserName(name);
+      setProfileName(name);
+      setAvatar(prof?.avatar_url || null);
+    };
+    supabase.auth.getSession().then(({ data }) => applySession(data.session));
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      // Defer Supabase calls to avoid deadlock inside listener
+      setTimeout(() => applySession(session), 0);
+    });
+    return () => sub.subscription.unsubscribe();
   }, []);
+
 
   const todayQuote = useMemo(() => {
     const weekday = new Date().getDay(); // 0..6
