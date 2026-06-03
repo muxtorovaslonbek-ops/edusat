@@ -467,9 +467,45 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
   const levelLabel = ratio >= 0.9 ? "A+ • Mukammal" : ratio >= 0.7 ? "A • Yuqori" : ratio >= 0.5 ? "B • O'rta" : ratio >= 0.3 ? "C • Boshlang'ich" : "Boshlang'ich darajadan past";
   const fmtTime = (s: number) => `${String(Math.floor(s / 3600)).padStart(2, "0")}:${String(Math.floor((s % 3600) / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
+  // Reusable monitoring panel (camera + warning meters)
+  const MonitorPanel = (
+    <div className="rounded-2xl border border-border bg-background/60 p-3">
+      <p className="mb-2 inline-flex items-center gap-1 text-xs font-black text-foreground"><Camera className="h-3.5 w-3.5" /> Kamera nazorati</p>
+      <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-black">
+        <video ref={videoRef} autoPlay playsInline muted className="h-full w-full object-cover" />
+        {!stream && (
+          <div className="absolute inset-0 grid place-items-center text-center text-xs text-white/70 p-2">
+            Kamera o'chirilgan
+          </div>
+        )}
+        {status === "running" && (
+          <span className="absolute top-1 left-1 inline-flex items-center gap-1 rounded-full bg-rose-600 px-2 py-0.5 text-[10px] font-black text-white">
+            <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" /> REC
+          </span>
+        )}
+      </div>
+      {status === "running" && (
+        <div className="mt-2 space-y-1 text-[11px] font-bold">
+          <p className="flex justify-between"><span>Oynadan chiqish:</span><span className={tabWarnings > 0 ? "text-destructive" : "text-muted-foreground"}>{tabWarnings}/{MAX_WARNINGS}</span></p>
+          <p className="flex justify-between"><span>Qurilma ishlatish:</span><span className={deviceWarnings > 0 ? "text-destructive" : "text-muted-foreground"}>{deviceWarnings}/{MAX_WARNINGS}</span></p>
+          <p className="flex justify-between"><span><Headphones className="inline h-3 w-3" /> Audio qurilmalar:</span><span className={headphonesDetected ? "text-destructive" : "text-muted-foreground"}>{audioDevices.length}{headphonesDetected ? " ⚠️" : ""}</span></p>
+          <p className="flex justify-between"><span>🎤 Ovoz darajasi:</span><span className={voiceLevel > 0.12 ? "text-destructive" : "text-muted-foreground"}>{Math.round(voiceLevel * 100)}%</span></p>
+          <p className="flex justify-between"><span>🤖 AI nazorat:</span><span className={aiStatus === "ready" ? "text-primary" : aiStatus === "error" ? "text-destructive" : "text-muted-foreground"}>{aiStatus === "ready" ? "Faol" : aiStatus === "loading" ? "Yuklanmoqda…" : aiStatus === "error" ? "Xato" : "—"}</span></p>
+          {detectedObject && <p className="rounded-lg bg-destructive/10 px-2 py-1 text-center text-destructive">⚠️ {detectedObject}</p>}
+        </div>
+      )}
+      {status === "setup" && stream && (
+        <div className="mt-2 space-y-1 text-[11px] font-bold">
+          <p className="flex justify-between"><span>🤖 AI nazorat:</span><span className={aiStatus === "ready" ? "text-primary" : aiStatus === "error" ? "text-destructive" : "text-muted-foreground"}>{aiStatus === "ready" ? "Tayyor ✓" : aiStatus === "loading" ? "Yuklanmoqda…" : aiStatus === "error" ? "Xato" : "—"}</span></p>
+          <p className="flex justify-between"><span><Headphones className="inline h-3 w-3" /> Naushnik:</span><span className={headphonesDetected ? "text-destructive" : "text-primary"}>{headphonesDetected ? "Aniqlandi ⚠️" : "Yo'q ✓"}</span></p>
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-background/90 p-2 backdrop-blur-xl md:p-4">
-      <div className="relative w-full max-w-5xl max-h-[95vh] overflow-y-auto rounded-3xl border border-border bg-card p-4 shadow-premium md:p-6">
+      <div className={`relative w-full ${status === "running" ? "max-w-7xl" : "max-w-5xl"} max-h-[95vh] overflow-y-auto rounded-3xl border border-border bg-card p-4 shadow-premium md:p-6`}>
         <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border pb-4">
           <div>
             <p className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-black text-primary">
@@ -490,130 +526,117 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
           </div>
         </div>
 
-        {/* Camera + warnings panel */}
-        <div className="mt-4 grid gap-4 md:grid-cols-[240px,1fr]">
-          <div className="rounded-2xl border border-border bg-background/60 p-3">
-            <p className="mb-2 inline-flex items-center gap-1 text-xs font-black text-foreground"><Camera className="h-3.5 w-3.5" /> Kamera nazorati</p>
-            <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-black">
-              <video ref={videoRef} autoPlay playsInline muted className="h-full w-full object-cover" />
-              {!stream && (
-                <div className="absolute inset-0 grid place-items-center text-center text-xs text-white/70 p-2">
-                  Kamera o'chirilgan
+        {/* SETUP: camera + rules side by side */}
+        {status === "setup" && (
+          <div className="mt-4 grid gap-4 md:grid-cols-[240px,1fr]">
+            {MonitorPanel}
+            <div className="space-y-3">
+              <div className="rounded-2xl border border-border bg-background/60 p-4 text-sm text-foreground">
+                <p className="font-black mb-2">📋 Imtihon qoidalari:</p>
+                <ul className="list-disc pl-5 space-y-1 text-xs">
+                  <li>Test davomida <b>kamera va mikrofon yoqilgan</b> bo'lishi shart.</li>
+                  <li><b>Naushnik / headset</b> taqilgan bo'lsa, test boshlanmaydi.</li>
+                  <li>Brauzer oynasidan <b>chiqish taqiqlanadi</b> (3 ogohlantirishdan keyin diskvalifikatsiya).</li>
+                  <li>Telefon, kalkulyator yoki boshqa <b>qurilmalardan foydalanish taqiqlanadi</b>.</li>
+                  <li><b>Gaplashish, birovdan so'rash</b> — mikrofon orqali aniqlanadi.</li>
+                  <li>Ko'chirib olish (copy/paste), yangi tab ochish — taqiqlanadi.</li>
+                  <li>Qoida buzgan foydalanuvchining natijasi <b>bekor qilinadi</b>.</li>
+                </ul>
+              </div>
+              {cameraError && (
+                <div className="flex items-start gap-2 rounded-2xl border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+                  <AlertTriangle className="h-4 w-4 mt-0.5" /> <span>{cameraError}</span>
                 </div>
               )}
-              {status === "running" && (
-                <span className="absolute top-1 left-1 inline-flex items-center gap-1 rounded-full bg-rose-600 px-2 py-0.5 text-[10px] font-black text-white">
-                  <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" /> REC
-                </span>
-              )}
-            </div>
-            {status === "running" && (
-              <div className="mt-2 space-y-1 text-[11px] font-bold">
-                <p className="flex justify-between"><span>Oynadan chiqish:</span><span className={tabWarnings > 0 ? "text-destructive" : "text-muted-foreground"}>{tabWarnings}/{MAX_WARNINGS}</span></p>
-                <p className="flex justify-between"><span>Qurilma ishlatish:</span><span className={deviceWarnings > 0 ? "text-destructive" : "text-muted-foreground"}>{deviceWarnings}/{MAX_WARNINGS}</span></p>
-                <p className="flex justify-between"><span><Headphones className="inline h-3 w-3" /> Audio qurilmalar:</span><span className={headphonesDetected ? "text-destructive" : "text-muted-foreground"}>{audioDevices.length}{headphonesDetected ? " ⚠️" : ""}</span></p>
-                <p className="flex justify-between"><span>🎤 Ovoz darajasi:</span><span className={voiceLevel > 0.12 ? "text-destructive" : "text-muted-foreground"}>{Math.round(voiceLevel * 100)}%</span></p>
-                <p className="flex justify-between"><span>🤖 AI nazorat:</span><span className={aiStatus === "ready" ? "text-primary" : aiStatus === "error" ? "text-destructive" : "text-muted-foreground"}>{aiStatus === "ready" ? "Faol" : aiStatus === "loading" ? "Yuklanmoqda…" : aiStatus === "error" ? "Xato" : "—"}</span></p>
-                {detectedObject && <p className="rounded-lg bg-destructive/10 px-2 py-1 text-center text-destructive">⚠️ {detectedObject}</p>}
-              </div>
-            )}
-            {status === "setup" && stream && (
-              <div className="mt-2 space-y-1 text-[11px] font-bold">
-                <p className="flex justify-between"><span>🤖 AI nazorat:</span><span className={aiStatus === "ready" ? "text-primary" : aiStatus === "error" ? "text-destructive" : "text-muted-foreground"}>{aiStatus === "ready" ? "Tayyor ✓" : aiStatus === "loading" ? "Yuklanmoqda…" : aiStatus === "error" ? "Xato" : "—"}</span></p>
-                <p className="flex justify-between"><span><Headphones className="inline h-3 w-3" /> Naushnik:</span><span className={headphonesDetected ? "text-destructive" : "text-primary"}>{headphonesDetected ? "Aniqlandi ⚠️" : "Yo'q ✓"}</span></p>
-              </div>
-            )}
-          </div>
-
-          <div className="space-y-3">
-            {status === "setup" && (
-              <>
-                <div className="rounded-2xl border border-border bg-background/60 p-4 text-sm text-foreground">
-                  <p className="font-black mb-2">📋 Imtihon qoidalari:</p>
-                  <ul className="list-disc pl-5 space-y-1 text-xs">
-                    <li>Test davomida <b>kamera va mikrofon yoqilgan</b> bo'lishi shart.</li>
-                    <li><b>Naushnik / headset</b> taqilgan bo'lsa, test boshlanmaydi.</li>
-                    <li>Brauzer oynasidan <b>chiqish taqiqlanadi</b> (3 ogohlantirishdan keyin diskvalifikatsiya).</li>
-                    <li>Telefon, kalkulyator yoki boshqa <b>qurilmalardan foydalanish taqiqlanadi</b>.</li>
-                    <li><b>Gaplashish, birovdan so'rash</b> — mikrofon orqali aniqlanadi.</li>
-                    <li>Ko'chirib olish (copy/paste), yangi tab ochish — taqiqlanadi.</li>
-                    <li>Qoida buzgan foydalanuvchining natijasi <b>bekor qilinadi</b>.</li>
-                  </ul>
-                </div>
-                {cameraError && (
-                  <div className="flex items-start gap-2 rounded-2xl border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
-                    <AlertTriangle className="h-4 w-4 mt-0.5" /> <span>{cameraError}</span>
-                  </div>
-                )}
-                <div className="flex flex-wrap gap-2">
-                  {!stream ? (
-                    <button onClick={requestCamera} className="premium-button inline-flex items-center gap-2 rounded-2xl px-5 py-3 font-black">
-                      <Camera className="h-4 w-4" /> Kamera va mikrofonni yoqish
-                    </button>
-                  ) : (
-                    <button
-                      onClick={startExam}
-                      disabled={aiStatus !== "ready" || (headphonesDetected && !allowHeadphones)}
-                      className="premium-button inline-flex items-center gap-2 rounded-2xl px-5 py-3 font-black disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <ShieldCheck className="h-4 w-4" />
-                      {aiStatus !== "ready" ? "AI nazorat tayyorlanmoqda…" : (headphonesDetected && !allowHeadphones) ? "Naushnikni uzing" : "Imtihonni boshlash"}
-                    </button>
-                  )}
-                </div>
-              </>
-            )}
-
-            {status === "running" && (
-              <div className="space-y-3">
-                {lastWarning && (
-                  <div className="flex items-start gap-2 rounded-2xl border border-amber-500/60 bg-amber-500/15 p-3 text-sm font-bold text-amber-700 dark:text-amber-300">
-                    <AlertTriangle className="h-4 w-4 mt-0.5" /> <span>{lastWarning}</span>
-                  </div>
-                )}
-                <p className="text-sm font-bold text-foreground">Savollarga javob bering. Tugatgach <b>"Yakunlash"</b> tugmasini bosing.</p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Questions */}
-        {status === "running" && (
-          <div className="mt-4 grid gap-3 md:grid-cols-2">
-            {questions.map((q, i) => (
-              <div key={i} className="rounded-2xl border border-border bg-background/60 p-4">
-                <p className="text-[10px] font-black uppercase tracking-wider text-primary">{q.subject}</p>
-                <p className="mt-1 font-bold text-foreground">{i + 1}. {q.question}</p>
-                {q.options && q.options.length ? (
-                  <div className="mt-2 grid gap-2">
-                    {q.options.map((opt) => {
-                      const sel = answers[i] === opt;
-                      return (
-                        <button
-                          key={opt}
-                          type="button"
-                          onClick={() => setAnswers({ ...answers, [i]: opt })}
-                          className={`text-left rounded-xl border px-3 py-2 text-sm font-bold transition-all ${sel ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-foreground hover:border-primary/60"}`}
-                        >{opt}</button>
-                      );
-                    })}
-                  </div>
+              <div className="flex flex-wrap gap-2">
+                {!stream ? (
+                  <button onClick={requestCamera} className="premium-button inline-flex items-center gap-2 rounded-2xl px-5 py-3 font-black">
+                    <Camera className="h-4 w-4" /> Kamera va mikrofonni yoqish
+                  </button>
                 ) : (
-                  <input
-                    type="text"
-                    value={answers[i] || ""}
-                    onChange={(e) => setAnswers({ ...answers, [i]: e.target.value })}
-                    placeholder="Javobingizni yozing..."
-                    onPaste={(e) => { e.preventDefault(); addDeviceWarning("Javobni nusxalab qo'yish urinishi aniqlandi."); }}
-                    className="mt-2 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm font-bold text-foreground outline-none focus:border-primary"
-                  />
+                  <button
+                    onClick={startExam}
+                    disabled={aiStatus !== "ready" || (headphonesDetected && !allowHeadphones)}
+                    className="premium-button inline-flex items-center gap-2 rounded-2xl px-5 py-3 font-black disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <ShieldCheck className="h-4 w-4" />
+                    {aiStatus !== "ready" ? "AI nazorat tayyorlanmoqda…" : (headphonesDetected && !allowHeadphones) ? "Naushnikni uzing" : "Imtihonni boshlash"}
+                  </button>
                 )}
               </div>
-            ))}
-            <div className="md:col-span-2 flex justify-end">
-              <button onClick={finishExam} className="premium-button rounded-2xl px-6 py-3 font-black">
-                Imtihonni yakunlash
-              </button>
+            </div>
+          </div>
+        )}
+
+        {/* RUNNING: questions take main area, monitor moves to right rail */}
+        {status === "running" && (
+          <div className="mt-4 grid gap-4 lg:grid-cols-[1fr,280px]">
+            <div className="space-y-3 min-w-0">
+              {lastWarning && (
+                <div className="flex items-start gap-2 rounded-2xl border border-amber-500/60 bg-amber-500/15 p-3 text-sm font-bold text-amber-700 dark:text-amber-300">
+                  <AlertTriangle className="h-4 w-4 mt-0.5" /> <span>{lastWarning}</span>
+                </div>
+              )}
+              <p className="text-sm font-bold text-foreground">Savollarga javob bering. Tugatgach <b>"Yakunlash"</b> tugmasini bosing.</p>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                {questions.map((q, i) => (
+                  <div key={i} className="rounded-2xl border border-border bg-background/60 p-4">
+                    <p className="text-[10px] font-black uppercase tracking-wider text-primary">{q.subject}</p>
+                    <p className="mt-1 font-bold text-foreground">{i + 1}. {q.question}</p>
+                    {q.options && q.options.length ? (
+                      <div className="mt-2 grid gap-2">
+                        {q.options.map((opt) => {
+                          const sel = answers[i] === opt;
+                          return (
+                            <button
+                              key={opt}
+                              type="button"
+                              onClick={() => setAnswers({ ...answers, [i]: opt })}
+                              className={`text-left rounded-xl border px-3 py-2 text-sm font-bold transition-all ${sel ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-foreground hover:border-primary/60"}`}
+                            >{opt}</button>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <input
+                        type="text"
+                        value={answers[i] || ""}
+                        onChange={(e) => setAnswers({ ...answers, [i]: e.target.value })}
+                        placeholder="Javobingizni yozing..."
+                        onPaste={(e) => { e.preventDefault(); addDeviceWarning("Javobni nusxalab qo'yish urinishi aniqlandi."); }}
+                        className="mt-2 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm font-bold text-foreground outline-none focus:border-primary"
+                      />
+                    )}
+                  </div>
+                ))}
+                <div className="sm:col-span-2 flex justify-end">
+                  <button onClick={finishExam} className="premium-button rounded-2xl px-6 py-3 font-black">
+                    Imtihonni yakunlash
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Right sticky monitor rail (desktop / tablet landscape) */}
+            <aside className="hidden lg:block">
+              <div className="sticky top-2">
+                {MonitorPanel}
+              </div>
+            </aside>
+
+            {/* Mobile floating monitor chip */}
+            <div className="lg:hidden fixed bottom-3 right-3 z-[60] w-40 rounded-2xl border border-border bg-card/95 backdrop-blur-md shadow-premium overflow-hidden">
+              <div className="relative aspect-[4/3] bg-black">
+                <video autoPlay playsInline muted className="h-full w-full object-cover" ref={(el) => { if (el && stream && el.srcObject !== stream) el.srcObject = stream; }} />
+                <span className="absolute top-1 left-1 inline-flex items-center gap-1 rounded-full bg-rose-600 px-1.5 py-0.5 text-[9px] font-black text-white">
+                  <span className="h-1 w-1 rounded-full bg-white animate-pulse" /> REC
+                </span>
+              </div>
+              <div className="px-2 py-1.5 text-[10px] font-bold flex items-center justify-between">
+                <span className="text-muted-foreground">⚠️ {tabWarnings + deviceWarnings}/{MAX_WARNINGS * 2}</span>
+                <span className={aiStatus === "ready" ? "text-primary" : "text-muted-foreground"}>🤖 {aiStatus === "ready" ? "Faol" : "…"}</span>
+              </div>
             </div>
           </div>
         )}
