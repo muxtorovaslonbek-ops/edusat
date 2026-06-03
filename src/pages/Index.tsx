@@ -557,10 +557,10 @@ const Index = () => {
   const [authMessage, setAuthMessage] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
   const [showForgot, setShowForgot] = useState(false);
-  const [registeredUsers, setRegisteredUsers] = useState<Record<string, { name: string; password: string }>>(() => {
-    if (typeof window === "undefined") return {};
-    try { return JSON.parse(localStorage.getItem("edusat:users") || "{}"); } catch { return {}; }
-  });
+  // Legacy local user store removed — auth is handled by Supabase.
+  useEffect(() => {
+    try { localStorage.removeItem("edusat:users"); } catch { /* ignore */ }
+  }, []);
   const [userAvatars, setUserAvatars] = useState<Record<string, string>>(() => {
     if (typeof window === "undefined") return {};
     try { return JSON.parse(localStorage.getItem("edusat:avatars") || "{}"); } catch { return {}; }
