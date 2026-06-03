@@ -557,10 +557,10 @@ const Index = () => {
   const [authMessage, setAuthMessage] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
   const [showForgot, setShowForgot] = useState(false);
-  const [registeredUsers, setRegisteredUsers] = useState<Record<string, { name: string; password: string }>>(() => {
-    if (typeof window === "undefined") return {};
-    try { return JSON.parse(localStorage.getItem("edusat:users") || "{}"); } catch { return {}; }
-  });
+  // Legacy local user store removed — auth is handled by Supabase.
+  useEffect(() => {
+    try { localStorage.removeItem("edusat:users"); } catch { /* ignore */ }
+  }, []);
   const [userAvatars, setUserAvatars] = useState<Record<string, string>>(() => {
     if (typeof window === "undefined") return {};
     try { return JSON.parse(localStorage.getItem("edusat:avatars") || "{}"); } catch { return {}; }
@@ -665,9 +665,7 @@ const Index = () => {
   }, [lang]);
 
   // Persist registered users
-  useEffect(() => {
-    try { localStorage.setItem("edusat:users", JSON.stringify(registeredUsers)); } catch { /* ignore */ }
-  }, [registeredUsers]);
+  // (registeredUsers persistence removed — Supabase Auth is the source of truth)
 
   // Persist user avatars (per email)
   useEffect(() => {
@@ -847,12 +845,18 @@ const Index = () => {
     setAiLoading(true);
 
     try {
+      const { data: sess } = await supabase.auth.getSession();
+      const accessToken = sess.session?.access_token;
+      if (!accessToken) {
+        throw new Error("AI chatdan foydalanish uchun avval tizimga kiring.");
+      }
       const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-chat`;
       const resp = await fetch(CHAT_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: `Bearer ${accessToken}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
         },
         body: JSON.stringify({ messages: nextMessages }),
       });
