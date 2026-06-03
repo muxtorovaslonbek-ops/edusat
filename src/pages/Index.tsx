@@ -665,9 +665,7 @@ const Index = () => {
   }, [lang]);
 
   // Persist registered users
-  useEffect(() => {
-    try { localStorage.setItem("edusat:users", JSON.stringify(registeredUsers)); } catch { /* ignore */ }
-  }, [registeredUsers]);
+  // (registeredUsers persistence removed — Supabase Auth is the source of truth)
 
   // Persist user avatars (per email)
   useEffect(() => {
