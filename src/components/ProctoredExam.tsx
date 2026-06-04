@@ -158,7 +158,7 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
       const audioOnly = new MediaStream(s.getAudioTracks());
       setStream(videoOnly);
       setMicStream(audioOnly);
-      if (videoRef.current) { videoRef.current.srcObject = videoOnly; }
+      if (videoRef.current) { videoRef.current.srcObject = videoOnly; videoRef.current.play().catch(() => {}); }
 
       // Pre-load AI model so the test cannot start before surveillance is ready
       setAiStatus("loading");
@@ -324,6 +324,15 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
     };
   }, [status, micStream, addDeviceWarning]);
 
+  // Re-attach the camera stream whenever the video element re-mounts (e.g. setup → running)
+  useEffect(() => {
+    const v = videoRef.current;
+    if (v && stream && v.srcObject !== stream) {
+      v.srcObject = stream;
+      v.play().catch(() => {});
+    }
+  }, [stream, status]);
+
   // === AI camera surveillance: detect phones/headphones/extra people in webcam frame ===
   useEffect(() => {
     if (status !== "running" || !stream || !videoRef.current) return;
@@ -472,7 +481,19 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
     <div className="rounded-2xl border border-border bg-background/60 p-3">
       <p className="mb-2 inline-flex items-center gap-1 text-xs font-black text-foreground"><Camera className="h-3.5 w-3.5" /> Kamera nazorati</p>
       <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-black">
-        <video ref={videoRef} autoPlay playsInline muted className="h-full w-full object-cover" />
+        <video
+          autoPlay
+          playsInline
+          muted
+          className="h-full w-full object-cover"
+          ref={(el) => {
+            videoRef.current = el;
+            if (el && stream && el.srcObject !== stream) {
+              el.srcObject = stream;
+              el.play().catch(() => {});
+            }
+          }}
+        />
         {!stream && (
           <div className="absolute inset-0 grid place-items-center text-center text-xs text-white/70 p-2">
             Kamera o'chirilgan
