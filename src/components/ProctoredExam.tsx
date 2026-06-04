@@ -636,7 +636,7 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
             </div>
 
             {/* Side monitor rail — always visible next to the test */}
-            <aside className="order-1 md:order-2">
+            <aside className="order-1 md:order-2 md:h-[calc(100vh-1rem)]">
               <div className="md:sticky md:top-2 rounded-2xl border border-border bg-card/95 backdrop-blur-md shadow-premium overflow-hidden">
                 <div className="relative aspect-[4/3] bg-black">
                   <video
@@ -645,6 +645,7 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
                     muted
                     className="h-full w-full object-cover"
                     ref={(el) => {
+                      videoRef.current = el;
                       if (el && stream && el.srcObject !== stream) {
                         el.srcObject = stream;
                         el.play().catch(() => {});
