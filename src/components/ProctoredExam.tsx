@@ -589,33 +589,30 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
           </div>
         )}
 
-        {/* RUNNING: questions take main area, monitor moves to right rail */}
+        {/* RUNNING: questions take full width; monitor is a floating PiP that's always visible */}
         {status === "running" && (
-          <div className="mt-4 grid gap-4 lg:grid-cols-[1fr,280px]">
-            <div className="space-y-3 min-w-0">
+          <div className="mt-4">
+            <div className="space-y-3 min-w-0 pb-48 sm:pb-4 sm:pr-[15rem]">
               {lastWarning && (
                 <div className="flex items-start gap-2 rounded-2xl border border-amber-500/60 bg-amber-500/15 p-3 text-sm font-bold text-amber-700 dark:text-amber-300">
                   <AlertTriangle className="h-4 w-4 mt-0.5" /> <span>{lastWarning}</span>
                 </div>
               )}
-              <p className="text-sm font-bold text-foreground">Savollarga javob bering. Tugatgach <b>"Yakunlash"</b> tugmasini bosing.</p>
-
+{/* ... keep existing code (questions list and submit button) */}
               <div className="grid gap-3 sm:grid-cols-2">
                 {questions.map((q, i) => (
-                  <div key={i} className="rounded-2xl border border-border bg-background/60 p-4">
-                    <p className="text-[10px] font-black uppercase tracking-wider text-primary">{q.subject}</p>
-                    <p className="mt-1 font-bold text-foreground">{i + 1}. {q.question}</p>
-                    {q.options && q.options.length ? (
-                      <div className="mt-2 grid gap-2">
-                        {q.options.map((opt) => {
-                          const sel = answers[i] === opt;
+                  <div key={i} className="rounded-2xl border border-border bg-card p-3">
+                    <p className="text-sm font-black text-foreground">{i + 1}. {q.question}</p>
+                    {q.options ? (
+                      <div className="mt-2 grid gap-1.5">
+                        {q.options.map((opt, oi) => {
+                          const id = `q${i}-o${oi}`;
+                          const checked = answers[i] === opt;
                           return (
-                            <button
-                              key={opt}
-                              type="button"
-                              onClick={() => setAnswers({ ...answers, [i]: opt })}
-                              className={`text-left rounded-xl border px-3 py-2 text-sm font-bold transition-all ${sel ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-foreground hover:border-primary/60"}`}
-                            >{opt}</button>
+                            <label key={id} htmlFor={id} className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-bold cursor-pointer transition-colors ${checked ? "border-primary bg-primary/10 text-foreground" : "border-border bg-background text-muted-foreground hover:bg-card"}`}>
+                              <input id={id} type="radio" name={`q-${i}`} className="accent-primary" checked={checked} onChange={() => setAnswers({ ...answers, [i]: opt })} />
+                              <span>{opt}</span>
+                            </label>
                           );
                         })}
                       </div>
@@ -639,24 +636,34 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
               </div>
             </div>
 
-            {/* Right sticky monitor rail (desktop / tablet landscape) */}
-            <aside className="hidden lg:block">
-              <div className="sticky top-2">
-                {MonitorPanel}
-              </div>
-            </aside>
-
-            {/* Mobile floating monitor chip */}
-            <div className="lg:hidden fixed bottom-3 right-3 z-[60] w-40 rounded-2xl border border-border bg-card/95 backdrop-blur-md shadow-premium overflow-hidden">
+            {/* Floating Picture-in-Picture monitor — always visible, never blocks test */}
+            <div className="fixed bottom-3 right-3 z-[60] w-44 sm:w-56 rounded-2xl border border-border bg-card/95 backdrop-blur-md shadow-premium overflow-hidden">
               <div className="relative aspect-[4/3] bg-black">
-                <video autoPlay playsInline muted className="h-full w-full object-cover" ref={(el) => { if (el && stream && el.srcObject !== stream) el.srcObject = stream; }} />
+                <video
+                  autoPlay
+                  playsInline
+                  muted
+                  className="h-full w-full object-cover"
+                  ref={(el) => {
+                    if (el && stream && el.srcObject !== stream) {
+                      el.srcObject = stream;
+                      el.play().catch(() => {});
+                    }
+                  }}
+                />
                 <span className="absolute top-1 left-1 inline-flex items-center gap-1 rounded-full bg-rose-600 px-1.5 py-0.5 text-[9px] font-black text-white">
                   <span className="h-1 w-1 rounded-full bg-white animate-pulse" /> REC
                 </span>
               </div>
-              <div className="px-2 py-1.5 text-[10px] font-bold flex items-center justify-between">
-                <span className="text-muted-foreground">⚠️ {tabWarnings + deviceWarnings}/{MAX_WARNINGS * 2}</span>
-                <span className={aiStatus === "ready" ? "text-primary" : "text-muted-foreground"}>🤖 {aiStatus === "ready" ? "Faol" : "…"}</span>
+              <div className="px-2 py-1.5 text-[10px] font-bold space-y-0.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">⚠️ {tabWarnings + deviceWarnings}/{MAX_WARNINGS * 2}</span>
+                  <span className={aiStatus === "ready" ? "text-primary" : "text-muted-foreground"}>🤖 {aiStatus === "ready" ? "Faol" : "…"}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">🎤 {Math.round(voiceLevel * 100)}%</span>
+                  <span className={headphonesDetected ? "text-amber-500" : "text-muted-foreground"}>🎧 {headphonesDetected ? "Bor" : "Yo'q"}</span>
+                </div>
               </div>
             </div>
           </div>
