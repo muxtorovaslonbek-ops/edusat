@@ -158,7 +158,7 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
       const audioOnly = new MediaStream(s.getAudioTracks());
       setStream(videoOnly);
       setMicStream(audioOnly);
-      if (videoRef.current) { videoRef.current.srcObject = videoOnly; }
+      if (videoRef.current) { videoRef.current.srcObject = videoOnly; videoRef.current.play().catch(() => {}); }
 
       // Pre-load AI model so the test cannot start before surveillance is ready
       setAiStatus("loading");
