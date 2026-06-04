@@ -324,6 +324,15 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
     };
   }, [status, micStream, addDeviceWarning]);
 
+  // Re-attach the camera stream whenever the video element re-mounts (e.g. setup → running)
+  useEffect(() => {
+    const v = videoRef.current;
+    if (v && stream && v.srcObject !== stream) {
+      v.srcObject = stream;
+      v.play().catch(() => {});
+    }
+  }, [stream, status]);
+
   // === AI camera surveillance: detect phones/headphones/extra people in webcam frame ===
   useEffect(() => {
     if (status !== "running" || !stream || !videoRef.current) return;
