@@ -602,7 +602,7 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
               <div className="grid gap-3 sm:grid-cols-2">
                 {questions.map((q, i) => (
                   <div key={i} className="rounded-2xl border border-border bg-card p-3">
-                    <p className="text-sm font-black text-foreground">{i + 1}. {q.q}</p>
+                    <p className="text-sm font-black text-foreground">{i + 1}. {q.question}</p>
                     {q.options ? (
                       <div className="mt-2 grid gap-1.5">
                         {q.options.map((opt, oi) => {
