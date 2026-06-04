@@ -589,17 +589,16 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
           </div>
         )}
 
-        {/* RUNNING: questions take full width; monitor is a floating PiP that's always visible */}
+        {/* RUNNING: test shrinks, camera+monitor sits in a sticky side rail */}
         {status === "running" && (
-          <div className="mt-4">
-            <div className="space-y-3 min-w-0 pb-48 sm:pb-4 sm:pr-[15rem]">
+          <div className="mt-4 grid gap-4 grid-cols-1 md:grid-cols-[1fr,240px] lg:grid-cols-[1fr,280px]">
+            <div className="space-y-3 min-w-0 order-2 md:order-1">
               {lastWarning && (
                 <div className="flex items-start gap-2 rounded-2xl border border-amber-500/60 bg-amber-500/15 p-3 text-sm font-bold text-amber-700 dark:text-amber-300">
                   <AlertTriangle className="h-4 w-4 mt-0.5" /> <span>{lastWarning}</span>
                 </div>
               )}
-{/* ... keep existing code (questions list and submit button) */}
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-3">
                 {questions.map((q, i) => (
                   <div key={i} className="rounded-2xl border border-border bg-card p-3">
                     <p className="text-sm font-black text-foreground">{i + 1}. {q.question}</p>
@@ -628,7 +627,7 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
                     )}
                   </div>
                 ))}
-                <div className="sm:col-span-2 flex justify-end">
+                <div className="flex justify-end">
                   <button onClick={finishExam} className="premium-button rounded-2xl px-6 py-3 font-black">
                     Imtihonni yakunlash
                   </button>
@@ -636,36 +635,35 @@ export default function ProctoredExam({ testTitle, questions, onClose, onComplet
               </div>
             </div>
 
-            {/* Floating Picture-in-Picture monitor — always visible, never blocks test */}
-            <div className="fixed bottom-3 right-3 z-[60] w-44 sm:w-56 rounded-2xl border border-border bg-card/95 backdrop-blur-md shadow-premium overflow-hidden">
-              <div className="relative aspect-[4/3] bg-black">
-                <video
-                  autoPlay
-                  playsInline
-                  muted
-                  className="h-full w-full object-cover"
-                  ref={(el) => {
-                    if (el && stream && el.srcObject !== stream) {
-                      el.srcObject = stream;
-                      el.play().catch(() => {});
-                    }
-                  }}
-                />
-                <span className="absolute top-1 left-1 inline-flex items-center gap-1 rounded-full bg-rose-600 px-1.5 py-0.5 text-[9px] font-black text-white">
-                  <span className="h-1 w-1 rounded-full bg-white animate-pulse" /> REC
-                </span>
-              </div>
-              <div className="px-2 py-1.5 text-[10px] font-bold space-y-0.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">⚠️ {tabWarnings + deviceWarnings}/{MAX_WARNINGS * 2}</span>
-                  <span className={aiStatus === "ready" ? "text-primary" : "text-muted-foreground"}>🤖 {aiStatus === "ready" ? "Faol" : "…"}</span>
+            {/* Side monitor rail — always visible next to the test */}
+            <aside className="order-1 md:order-2">
+              <div className="md:sticky md:top-2 rounded-2xl border border-border bg-card/95 backdrop-blur-md shadow-premium overflow-hidden">
+                <div className="relative aspect-[4/3] bg-black">
+                  <video
+                    autoPlay
+                    playsInline
+                    muted
+                    className="h-full w-full object-cover"
+                    ref={(el) => {
+                      if (el && stream && el.srcObject !== stream) {
+                        el.srcObject = stream;
+                        el.play().catch(() => {});
+                      }
+                    }}
+                  />
+                  <span className="absolute top-1 left-1 inline-flex items-center gap-1 rounded-full bg-rose-600 px-2 py-0.5 text-[10px] font-black text-white">
+                    <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" /> REC
+                  </span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">🎤 {Math.round(voiceLevel * 100)}%</span>
-                  <span className={headphonesDetected ? "text-amber-500" : "text-muted-foreground"}>🎧 {headphonesDetected ? "Bor" : "Yo'q"}</span>
+                <div className="px-3 py-2 text-[11px] font-bold space-y-1">
+                  <p className="flex justify-between"><span className="text-muted-foreground">Oynadan chiqish:</span><span className={tabWarnings > 0 ? "text-destructive" : "text-muted-foreground"}>{tabWarnings}/{MAX_WARNINGS}</span></p>
+                  <p className="flex justify-between"><span className="text-muted-foreground">Qurilma:</span><span className={deviceWarnings > 0 ? "text-destructive" : "text-muted-foreground"}>{deviceWarnings}/{MAX_WARNINGS}</span></p>
+                  <p className="flex justify-between"><span className="text-muted-foreground">AI nazorat:</span><span className={aiStatus === "ready" ? "text-primary" : "text-muted-foreground"}>{aiStatus === "ready" ? "Faol" : "…"}</span></p>
+                  <p className="flex justify-between"><span className="text-muted-foreground">Mikrofon:</span><span className="text-muted-foreground">{Math.round(voiceLevel * 100)}%</span></p>
+                  <p className="flex justify-between"><span className="text-muted-foreground">Naushnik:</span><span className={headphonesDetected ? "text-amber-500" : "text-muted-foreground"}>{headphonesDetected ? "Aniqlandi" : "Yo'q"}</span></p>
                 </div>
               </div>
-            </div>
+            </aside>
           </div>
         )}
 
