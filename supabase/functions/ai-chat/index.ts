@@ -35,9 +35,24 @@ serve(async (req) => {
       });
     }
 
-    const { messages } = await req.json();
+    const body = await req.json();
+    const rawMessages = Array.isArray(body?.messages) ? body.messages : [];
+    const messages: { role: "user" | "assistant"; content: string }[] = [];
+    for (const m of rawMessages.slice(0, 50)) {
+      if (!m || typeof m !== "object") continue;
+      const role = (m as any).role;
+      const content = (m as any).content;
+      if ((role !== "user" && role !== "assistant") || typeof content !== "string") continue;
+      messages.push({ role, content: content.slice(0, 4000) });
+    }
+    if (messages.length === 0) {
+      return new Response(JSON.stringify({ error: "Invalid messages" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
