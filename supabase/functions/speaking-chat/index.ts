@@ -58,16 +58,35 @@ RULES:
 - No markdown, no lists, no emojis — this is SPOKEN conversation. Plain natural sentences only.`;
 };
 
+const ALLOWED_TUTOR_NAMES = new Set(["Emma", "Adam", "Anna", "Ivan", "Sophia", "Liam", "Mia", "Noah"]);
+
+function sanitizeName(s: unknown, max = 50): string {
+  if (typeof s !== "string") return "";
+  return s.replace(/[`"'\\\n\r\t\u0000-\u001F\u007F]/g, " ").replace(/\s+/g, " ").trim().slice(0, max);
+}
+
+function sanitizeMessages(input: unknown): { role: "user" | "assistant"; content: string }[] {
+  if (!Array.isArray(input)) return [];
+  const out: { role: "user" | "assistant"; content: string }[] = [];
+  for (const m of input.slice(0, 50)) {
+    if (!m || typeof m !== "object") continue;
+    const role = (m as any).role;
+    const content = (m as any).content;
+    if ((role !== "user" && role !== "assistant") || typeof content !== "string") continue;
+    out.push({ role, content: content.slice(0, 4000) });
+  }
+  return out;
+}
+
 async function handleChat(payload: any, apiKey: string) {
-  const {
-    messages = [],
-    tone = "warm",
-    age = "adult",
-    gender = "female",
-    lang = "en",
-    userName = "",
-    tutorName = "Emma",
-  } = payload;
+  const messages = sanitizeMessages(payload?.messages);
+  const tone = typeof payload?.tone === "string" ? payload.tone : "warm";
+  const age = typeof payload?.age === "string" ? payload.age : "adult";
+  const gender = typeof payload?.gender === "string" ? payload.gender : "female";
+  const lang = typeof payload?.lang === "string" ? payload.lang : "en";
+  const userName = sanitizeName(payload?.userName) || "friend";
+  const rawTutor = sanitizeName(payload?.tutorName);
+  const tutorName = ALLOWED_TUTOR_NAMES.has(rawTutor) ? rawTutor : "Emma";
 
   const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
@@ -83,6 +102,7 @@ async function handleChat(payload: any, apiKey: string) {
       ],
     }),
   });
+
 
   if (!response.ok) {
     if (response.status === 429) {
