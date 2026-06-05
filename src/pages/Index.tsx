@@ -787,7 +787,7 @@ const Index = () => {
 
   const AvatarBlock = ({ size = "md" }: { size?: "sm" | "md" | "lg" }) => {
     const dim = size === "lg" ? "h-28 w-28 text-4xl" : size === "sm" ? "h-11 w-11 text-base" : "h-14 w-14 text-xl";
-    if (avatar) return <img src={avatar} alt="Profil rasmi" className={`${dim} rounded-full border-2 border-primary/40 object-cover shadow-glow`} />;
+    if (avatar) return <img src={avatar} alt="Foydalanuvchi profil rasmi" className={`${dim} rounded-full border-2 border-primary/40 object-cover shadow-glow`} />;
     return <span className={`${dim} grid place-items-center rounded-full border-2 border-primary/40 bg-primary/15 font-black text-primary shadow-glow`}>{initials}</span>;
   };
   const Flag = ({ iso, className = "h-4 w-6" }: { iso: string; className?: string }) => (
@@ -2228,7 +2228,7 @@ const Index = () => {
               <input type="file" accept="image/*" className="mt-3 block w-full text-sm text-muted-foreground file:mr-4 file:rounded-2xl file:border-0 file:bg-primary file:px-4 file:py-2 file:text-sm file:font-black file:text-primary-foreground hover:file:bg-primary/90" onChange={handleJobCertificate} />
               {jobCertificate && (
                 <div className="mt-4">
-                  <img src={jobCertificate} alt="Sertifikat" className="max-h-56 w-full rounded-2xl border border-border/60 object-contain" />
+                  <img src={jobCertificate} alt="EduSat o'qituvchilari uchun ish faoliyati sertifikati namunasi" className="max-h-56 w-full rounded-2xl border border-border/60 object-contain" />
                   <button type="button" className="mt-3 rounded-2xl border border-border px-3 py-2 text-xs font-black text-foreground hover:bg-accent" onClick={() => setJobCertificate(null)}>Rasmni o‘chirish</button>
                 </div>
               )}
@@ -2418,7 +2418,7 @@ const Index = () => {
 
   const PersonCard = ({ name, role, image, link }: { name: string; role: string; image: string; link?: string }) => (
     <div className="rounded-3xl border border-border/60 bg-secondary/40 p-5 text-center">
-      <img src={image} alt={`${name} rasmi`} className="mx-auto h-32 w-32 rounded-full border-4 border-primary/30 object-cover shadow-glow" />
+      <img src={image} alt={`${name} — EduSat jamoasi a'zosi portret rasmi`} className="mx-auto h-32 w-32 rounded-full border-4 border-primary/30 object-cover shadow-glow" />
       <p className="mt-4 text-sm font-bold text-primary">{role}</p>
       <h4 className="mt-1 text-lg font-black text-foreground">{name}</h4>
       {link && <a href={link} target="_blank" rel="noreferrer" className="mt-3 inline-flex text-sm font-black text-primary">Telegram orqali bog‘lanish</a>}
