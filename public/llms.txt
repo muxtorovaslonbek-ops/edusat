@@ -1,0 +1,15 @@
+# EduSat
+
+> EduSat — Uzbek online ta'lim platformasi: SAT, IELTS, Multi-level tayyorgarligi, daraja aniqlash testlari, AI Speaking tutor va 3D qo'llanmalar.
+
+EduSat o'quvchilarga xalqaro imtihonlarga (Digital SAT, IELTS, Multi-level) tayyorgarlik ko'rish, maktab fanlarini mustahkamlash, AI yordamida ingliz tilida gaplashishni mashq qilish va o'z bilim darajasini aniqlash imkonini beradi. Platforma o'zbek tilida ishlaydi va dunyo bo'ylab o'qish/ishlash imkoniyatlarini ochishga qaratilgan.
+
+## Pages
+
+- [Bosh sahifa](/): EduSat haqida umumiy ma'lumot, kurslar, AI Speaking, daraja aniqlash testi va jamoa.
+- [Digital SAT Practice Test Guide](/digital-sat-practice-test): Digital SAT tuzilishi, 8 haftalik tayyorgarlik rejasi, Reading/Writing/Math strategiyalari va FAQ.
+
+## Optional
+
+- [Sitemap](/sitemap.xml): Sayt xaritasi.
+- [Robots](/robots.txt): Crawler qoidalari.
