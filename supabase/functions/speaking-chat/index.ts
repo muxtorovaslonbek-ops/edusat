@@ -130,9 +130,14 @@ async function handleChat(payload: any, apiKey: string) {
 }
 
 async function handleTranslate(payload: any, apiKey: string) {
-  const { text = "", from = "auto", to = "uz" } = payload;
-  const fromName = from === "auto" ? "the source language (auto-detect)" : (LANG_NAME[from] || from);
-  const toName = to === "uz" ? "Uzbek" : (LANG_NAME[to] || to);
+  const rawText = typeof payload?.text === "string" ? payload.text : "";
+  const text = rawText.slice(0, 2048);
+  const rawFrom = typeof payload?.from === "string" ? payload.from : "auto";
+  const rawTo = typeof payload?.to === "string" ? payload.to : "uz";
+  const from = (rawFrom === "auto" || LANG_NAME[rawFrom]) ? rawFrom : "auto";
+  const to = LANG_NAME[rawTo] ? rawTo : "uz";
+  const fromName = from === "auto" ? "the source language (auto-detect)" : LANG_NAME[from];
+  const toName = LANG_NAME[to];
 
   const sys = `You are a precise translator. Translate from ${fromName} to ${toName}.
 Return ONLY the translation as plain text — no quotes, no explanations, no labels, no original text.
@@ -196,7 +201,7 @@ serve(async (req) => {
     return await handleChat(payload, LOVABLE_API_KEY);
   } catch (e) {
     console.error("speaking-chat error:", e);
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Nomaʼlum xatolik" }), {
+    return new Response(JSON.stringify({ error: "Ichki server xatosi" }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }

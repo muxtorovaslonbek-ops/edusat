@@ -97,7 +97,7 @@ serve(async (req) => {
   } catch (e) {
     console.error("ai-chat error:", e);
     return new Response(
-      JSON.stringify({ error: e instanceof Error ? e.message : "Noma'lum xatolik" }),
+      JSON.stringify({ error: "Ichki server xatosi" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
