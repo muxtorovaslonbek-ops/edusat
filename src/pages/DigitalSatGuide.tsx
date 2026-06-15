@@ -17,7 +17,7 @@ const setMeta = (selector: string, attr: string, value: string) => {
 const DigitalSatGuide = () => {
   useEffect(() => {
     const prevTitle = document.title;
-    document.title = "Digital SAT Practice Test Guide — Strategies & Free Prep | EduSat";
+    document.title = "Digital SAT Practice Test Guide & Strategies | EduSat";
 
     const desc =
       "A complete Digital SAT practice test guide: structure, scoring, official practice tests, study schedule, and proven strategies to prepare for the SAT — by EduSat.";
