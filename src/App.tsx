@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import DigitalSatGuide from "./pages/DigitalSatGuide.tsx";
+import DesmosSatMathHacks from "./pages/DesmosSatMathHacks.tsx";
 
 const queryClient = new QueryClient();
 
@@ -18,6 +19,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/digital-sat-practice-test" element={<DigitalSatGuide />} />
+          <Route path="/blog/desmos-sat-math-hacks" element={<DesmosSatMathHacks />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
 
