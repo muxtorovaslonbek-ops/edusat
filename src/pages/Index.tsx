@@ -2591,10 +2591,10 @@ const Index = () => {
             </div>
             {/* Brand title */}
             <div className="relative animate-title-rise">
-              <h1 className="relative text-6xl font-black leading-[1.12] tracking-normal text-white sm:text-8xl drop-shadow-[0_8px_30px_rgba(124,92,255,0.4)]">
+              <p role="heading" aria-level={2} className="relative text-6xl font-black leading-[1.12] tracking-normal text-white sm:text-8xl drop-shadow-[0_8px_30px_rgba(124,92,255,0.4)]">
                 <span className="inline-block">EduSAT</span>{" "}
                 <span className="inline-block text-white">Academy</span>
-              </h1>
+              </p>
               {/* Underline accent */}
               <div className="mx-auto mt-3 h-1 w-24 rounded-full bg-gradient-to-r from-transparent via-[hsl(var(--premium-blue))] to-transparent animate-underline-grow" />
             </div>
