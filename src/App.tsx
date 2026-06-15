@@ -19,6 +19,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/digital-sat-practice-test" element={<DigitalSatGuide />} />
+          <Route path="/blog/desmos-sat-math-hacks" element={<DesmosSatMathHacks />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
 
