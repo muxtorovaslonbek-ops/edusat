@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import DigitalSatGuide from "./pages/DigitalSatGuide.tsx";
+import DesmosSatMathHacks from "./pages/DesmosSatMathHacks.tsx";
 
 const queryClient = new QueryClient();
 
