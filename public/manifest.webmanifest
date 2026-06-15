@@ -4,7 +4,7 @@
   "description": "Online ta'lim, daraja aniqlash testlari, AI Speaking va 3D qo'llanmalar.",
   "start_url": "/",
   "scope": "/",
-  "display": "minimal-ui",
+  "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0f172a",
   "theme_color": "#1e3a8a",
