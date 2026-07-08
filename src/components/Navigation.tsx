@@ -8,16 +8,20 @@ const Navigation = () => {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const location = useLocation();
 
-  const menuItems = [
+  const menuItems: Array<{
+    label: string;
+    href: string;
+    submenu?: { label: string; href: string; external?: boolean }[];
+  }> = [
     { label: "Bosh sahifa", href: "/" },
     {
       label: "Kurslar",
       href: "/courses",
       submenu: [
-        { label: "Ingliz tili", href: "/courses/english" },
-        { label: "SAT", href: "/courses/sat" },
-        { label: "IELTS", href: "/courses/ielts" },
-        { label: "Boshqa kurslar", href: "/courses/all" },
+        { label: "Ingliz tili", href: "/courses/english/", external: true },
+        { label: "Rus tili", href: "/courses/rus-tili/", external: true },
+        { label: "Matematika", href: "/courses/matematika/", external: true },
+        { label: "Kimyo", href: "/courses/kimyo/", external: true },
       ],
     },
     { label: "Digital SAT", href: "/digital-sat-practice-test" },
@@ -58,19 +62,29 @@ const Navigation = () => {
                 {/* Dropdown Menu */}
                 {item.submenu && (
                   <div className="absolute left-0 mt-0 w-48 bg-background border rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                    {item.submenu.map((subitem) => (
-                      <Link
-                        key={subitem.href}
-                        to={subitem.href}
-                        className={`block px-4 py-2 text-sm rounded-md transition-colors first:rounded-t-md last:rounded-b-md ${
-                          isActive(subitem.href)
-                            ? "bg-primary text-primary-foreground"
-                            : "text-foreground hover:bg-accent"
-                        }`}
-                      >
-                        {subitem.label}
-                      </Link>
-                    ))}
+                    {item.submenu.map((subitem) =>
+                      subitem.external ? (
+                        <a
+                          key={subitem.href}
+                          href={subitem.href}
+                          className="block px-4 py-2 text-sm rounded-md transition-colors first:rounded-t-md last:rounded-b-md text-foreground hover:bg-accent"
+                        >
+                          {subitem.label}
+                        </a>
+                      ) : (
+                        <Link
+                          key={subitem.href}
+                          to={subitem.href}
+                          className={`block px-4 py-2 text-sm rounded-md transition-colors first:rounded-t-md last:rounded-b-md ${
+                            isActive(subitem.href)
+                              ? "bg-primary text-primary-foreground"
+                              : "text-foreground hover:bg-accent"
+                          }`}
+                        >
+                          {subitem.label}
+                        </Link>
+                      )
+                    )}
                   </div>
                 )}
               </div>
@@ -122,20 +136,31 @@ const Navigation = () => {
                 {/* Mobile Dropdown */}
                 {item.submenu && openDropdown === item.href && (
                   <div className="pl-4 space-y-1">
-                    {item.submenu.map((subitem) => (
-                      <Link
-                        key={subitem.href}
-                        to={subitem.href}
-                        onClick={() => setIsOpen(false)}
-                        className={`block px-4 py-2 text-sm rounded-md transition-colors ${
-                          isActive(subitem.href)
-                            ? "bg-primary text-primary-foreground"
-                            : "text-foreground hover:bg-accent"
-                        }`}
-                      >
-                        {subitem.label}
-                      </Link>
-                    ))}
+                    {item.submenu.map((subitem) =>
+                      subitem.external ? (
+                        <a
+                          key={subitem.href}
+                          href={subitem.href}
+                          onClick={() => setIsOpen(false)}
+                          className="block px-4 py-2 text-sm rounded-md transition-colors text-foreground hover:bg-accent"
+                        >
+                          {subitem.label}
+                        </a>
+                      ) : (
+                        <Link
+                          key={subitem.href}
+                          to={subitem.href}
+                          onClick={() => setIsOpen(false)}
+                          className={`block px-4 py-2 text-sm rounded-md transition-colors ${
+                            isActive(subitem.href)
+                              ? "bg-primary text-primary-foreground"
+                              : "text-foreground hover:bg-accent"
+                          }`}
+                        >
+                          {subitem.label}
+                        </Link>
+                      )
+                    )}
                   </div>
                 )}
               </div>
