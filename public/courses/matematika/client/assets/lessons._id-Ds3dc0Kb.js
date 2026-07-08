@@ -1,1 +1,0 @@
-import{t as e}from"./jsx-runtime-DGeXAQPT.js";import{t}from"./link-DfXvwZHU.js";var n=e(),r=()=>(0,n.jsxs)(`div`,{className:`text-center py-16`,children:[(0,n.jsx)(`p`,{children:`Dars topilmadi`}),(0,n.jsx)(t,{to:`/lessons`,className:`text-primary`,children:`← Darslar`})]});export{r as notFoundComponent};

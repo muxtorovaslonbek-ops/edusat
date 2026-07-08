@@ -1,1 +1,0 @@
-import{t as e}from"./jsx-runtime-DGeXAQPT.js";import{t}from"./link-DfXvwZHU.js";var n=e(),r=()=>(0,n.jsxs)(`div`,{className:`text-center py-16`,children:[(0,n.jsx)(`h1`,{className:`text-3xl font-bold`,children:`Mavzu topilmadi`}),(0,n.jsx)(t,{to:`/library`,className:`mt-4 inline-block text-primary`,children:`← Kutubxonaga qaytish`})]});export{r as notFoundComponent};
