@@ -1,0 +1,1 @@
+import{t as e}from"./jsx-runtime-DGeXAQPT.js";var t=e(),n=()=>(0,t.jsx)(`div`,{className:`text-center py-16`,children:`Xato yuz berdi`});export{n as errorComponent};

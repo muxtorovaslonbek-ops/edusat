@@ -1,0 +1,1 @@
+import{t as e}from"./jsx-runtime-DGeXAQPT.js";var t=e(),n=({error:e})=>(0,t.jsxs)(`div`,{className:`text-center py-16`,children:[(0,t.jsx)(`h1`,{className:`text-2xl font-bold`,children:`Xato`}),(0,t.jsx)(`p`,{className:`text-muted-foreground`,children:e.message})]});export{n as errorComponent};
