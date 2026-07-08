@@ -62,19 +62,29 @@ const Navigation = () => {
                 {/* Dropdown Menu */}
                 {item.submenu && (
                   <div className="absolute left-0 mt-0 w-48 bg-background border rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                    {item.submenu.map((subitem) => (
-                      <Link
-                        key={subitem.href}
-                        to={subitem.href}
-                        className={`block px-4 py-2 text-sm rounded-md transition-colors first:rounded-t-md last:rounded-b-md ${
-                          isActive(subitem.href)
-                            ? "bg-primary text-primary-foreground"
-                            : "text-foreground hover:bg-accent"
-                        }`}
-                      >
-                        {subitem.label}
-                      </Link>
-                    ))}
+                    {item.submenu.map((subitem) =>
+                      subitem.external ? (
+                        <a
+                          key={subitem.href}
+                          href={subitem.href}
+                          className="block px-4 py-2 text-sm rounded-md transition-colors first:rounded-t-md last:rounded-b-md text-foreground hover:bg-accent"
+                        >
+                          {subitem.label}
+                        </a>
+                      ) : (
+                        <Link
+                          key={subitem.href}
+                          to={subitem.href}
+                          className={`block px-4 py-2 text-sm rounded-md transition-colors first:rounded-t-md last:rounded-b-md ${
+                            isActive(subitem.href)
+                              ? "bg-primary text-primary-foreground"
+                              : "text-foreground hover:bg-accent"
+                          }`}
+                        >
+                          {subitem.label}
+                        </Link>
+                      )
+                    )}
                   </div>
                 )}
               </div>
