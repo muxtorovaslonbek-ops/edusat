@@ -136,20 +136,31 @@ const Navigation = () => {
                 {/* Mobile Dropdown */}
                 {item.submenu && openDropdown === item.href && (
                   <div className="pl-4 space-y-1">
-                    {item.submenu.map((subitem) => (
-                      <Link
-                        key={subitem.href}
-                        to={subitem.href}
-                        onClick={() => setIsOpen(false)}
-                        className={`block px-4 py-2 text-sm rounded-md transition-colors ${
-                          isActive(subitem.href)
-                            ? "bg-primary text-primary-foreground"
-                            : "text-foreground hover:bg-accent"
-                        }`}
-                      >
-                        {subitem.label}
-                      </Link>
-                    ))}
+                    {item.submenu.map((subitem) =>
+                      subitem.external ? (
+                        <a
+                          key={subitem.href}
+                          href={subitem.href}
+                          onClick={() => setIsOpen(false)}
+                          className="block px-4 py-2 text-sm rounded-md transition-colors text-foreground hover:bg-accent"
+                        >
+                          {subitem.label}
+                        </a>
+                      ) : (
+                        <Link
+                          key={subitem.href}
+                          to={subitem.href}
+                          onClick={() => setIsOpen(false)}
+                          className={`block px-4 py-2 text-sm rounded-md transition-colors ${
+                            isActive(subitem.href)
+                              ? "bg-primary text-primary-foreground"
+                              : "text-foreground hover:bg-accent"
+                          }`}
+                        >
+                          {subitem.label}
+                        </Link>
+                      )
+                    )}
                   </div>
                 )}
               </div>
