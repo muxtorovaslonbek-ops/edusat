@@ -8,16 +8,20 @@ const Navigation = () => {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const location = useLocation();
 
-  const menuItems = [
+  const menuItems: Array<{
+    label: string;
+    href: string;
+    submenu?: { label: string; href: string; external?: boolean }[];
+  }> = [
     { label: "Bosh sahifa", href: "/" },
     {
       label: "Kurslar",
       href: "/courses",
       submenu: [
-        { label: "Ingliz tili", href: "/courses/english" },
-        { label: "SAT", href: "/courses/sat" },
-        { label: "IELTS", href: "/courses/ielts" },
-        { label: "Boshqa kurslar", href: "/courses/all" },
+        { label: "Ingliz tili", href: "/courses/english/", external: true },
+        { label: "Rus tili", href: "/courses/rus-tili/", external: true },
+        { label: "Matematika", href: "/courses/matematika/", external: true },
+        { label: "Kimyo", href: "/courses/kimyo/", external: true },
       ],
     },
     { label: "Digital SAT", href: "/digital-sat-practice-test" },
