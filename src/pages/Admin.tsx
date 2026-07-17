@@ -25,6 +25,7 @@ import { toast } from "sonner";
 type ProfileRow = {
   id: string;
   email: string | null;
+  display_name: string | null;
   role: string;
   created_at: string;
 };
@@ -39,7 +40,7 @@ export default function Admin() {
     setLoading(true);
     const { data, error } = await supabase
       .from("profiles")
-      .select("id, email, role, created_at")
+      .select("id, email, display_name, role, created_at")
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -105,6 +106,7 @@ export default function Admin() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>Ism</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Ro'yxatdan o'tgan sana</TableHead>
                     <TableHead>Rol</TableHead>
@@ -114,6 +116,7 @@ export default function Admin() {
                 <TableBody>
                   {users.map((u) => (
                     <TableRow key={u.id}>
+                      <TableCell>{u.display_name ?? "—"}</TableCell>
                       <TableCell>{u.email ?? "—"}</TableCell>
                       <TableCell>
                         {new Date(u.created_at).toLocaleDateString("uz-UZ")}
