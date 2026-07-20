@@ -5,9 +5,11 @@ import { useAuth } from "@/contexts/AuthContext";
 export function ProtectedRoute({
   children,
   requireAdmin = false,
+  redirectTo = "/auth",
 }: {
   children: ReactNode;
   requireAdmin?: boolean;
+  redirectTo?: string;
 }) {
   const { user, isAdmin, loading } = useAuth();
 
@@ -20,11 +22,11 @@ export function ProtectedRoute({
   }
 
   if (!user) {
-    return <Navigate to="/auth" replace />;
+    return <Navigate to={redirectTo} replace />;
   }
 
   if (requireAdmin && !isAdmin) {
-    return <Navigate to="/" replace />;
+    return <Navigate to={redirectTo} replace />;
   }
 
   return <>{children}</>;
