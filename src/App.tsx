@@ -11,6 +11,7 @@ import DigitalSatGuide from "./pages/DigitalSatGuide.tsx";
 import DesmosSatMathHacks from "./pages/DesmosSatMathHacks.tsx";
 import Auth from "./pages/Auth.tsx";
 import Admin from "./pages/Admin.tsx";
+import AdminLogin from "./pages/AdminLogin.tsx";
 
 const queryClient = new QueryClient();
 
@@ -26,10 +27,11 @@ const App = () => (
             <Route path="/digital-sat-practice-test" element={<DigitalSatGuide />} />
             <Route path="/blog/desmos-sat-math-hacks" element={<DesmosSatMathHacks />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/admin-login" element={<AdminLogin />} />
             <Route
               path="/admin"
               element={
-                <ProtectedRoute requireAdmin>
+                <ProtectedRoute requireAdmin redirectTo="/admin-login">
                   <Admin />
                 </ProtectedRoute>
               }
