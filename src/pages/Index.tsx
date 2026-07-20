@@ -76,6 +76,15 @@ const sections = [
 ] as const;
 
 const subjects = ["Matematika", "Ingliz tili", "Rus tili", "Biologiya", "Kimyo", "Fizika", "Tarix"];
+
+// Fanlar bo'yicha alohida joylashtirilgan kurs ilovalari (Vercel'da deploy qilingan).
+// Tugma bosilganda shu oynada (window.location.href) ochiladi.
+const COURSE_APP_URLS: Partial<Record<string, string>> = {
+  "Matematika": "https://edusat-matematika.vercel.app/",
+  "Ingliz tili": "https://edusat-english.vercel.app/",
+  "Rus tili": "https://edusat-rustili.vercel.app/",
+  "Kimyo": "https://edusat-kimyo.vercel.app/",
+};
 const science3d = ["Biologiya", "Kimyo", "Fizika", "Tarix", "Geografiya"];
 const levels = ["C", "C+", "B", "B+", "A", "A+"];
 const languageOptions: Array<{ code: Lang; label: string; flag: string; iso: string }> = [
@@ -1604,7 +1613,18 @@ const Index = () => {
             </div>
             <ProgressBar value={35 + index * 7} />
             <div className="mt-5 flex flex-wrap gap-2">
-              <button className="premium-button rounded-2xl px-4 py-2 text-sm font-black" onClick={() => completeActivity(20)}>Kursga kirish +20 coin</button>
+              <button
+                className="premium-button rounded-2xl px-4 py-2 text-sm font-black"
+                onClick={() => {
+                  completeActivity(20);
+                  const courseUrl = COURSE_APP_URLS[subject];
+                  if (courseUrl) {
+                    window.location.href = courseUrl;
+                  }
+                }}
+              >
+                Kursga kirish +20 coin
+              </button>
               <FavoriteButton item={{ id: `course-${subject}`, title: `${subject} kursi`, category: "Kurs", section: "courses" }} />
             </div>
           </GlassCard>
