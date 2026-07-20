@@ -77,7 +77,10 @@ const sections = [
 
 const subjects = ["Matematika", "Ingliz tili", "Rus tili", "Biologiya", "Kimyo", "Fizika", "Tarix"];
 
-// Fanlar bo'yicha alohida joylashtirilgan kurs ilovalari (Vercel'da deploy qilingan).
+// Telegram Login Widget uchun bot username (@ belgisisiz).
+// BotFather'da yaratgan bot nomini shu yerga yozing va bot sozlamalarida
+// "Domain" ni saytingiz domeniga (masalan edusat-uz.vercel.app) o'rnating.
+const TELEGRAM_BOT_USERNAME = "your_bot_username";
 // Tugma bosilganda shu oynada (window.location.href) ochiladi.
 const COURSE_APP_URLS: Partial<Record<string, string>> = {
   "Matematika": "https://edusat-matematika.vercel.app/",
@@ -609,6 +612,7 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [langOpen, setLangOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAdminUser, setIsAdminUser] = useState(false);
   const [active3dSubject, setActive3dSubject] = useState("Hammasi");
   const [activeLevelTest, setActiveLevelTest] = useState<string | null>(null);
   const [proctoredExam, setProctoredExam] = useState<string | null>(null);
@@ -760,19 +764,21 @@ const Index = () => {
       const user = session?.user;
       if (!user) {
         setIsAuthenticated(false);
+        setIsAdminUser(false);
         return;
       }
       setIsAuthenticated(true);
       setProfileEmail(user.email || "");
       const { data: prof } = await supabase
         .from("profiles")
-        .select("display_name, avatar_url")
+        .select("display_name, avatar_url, role")
         .eq("id", user.id)
         .maybeSingle();
       const name = prof?.display_name || user.user_metadata?.display_name || (user.email?.split("@")[0] ?? "Foydalanuvchi");
       setUserName(name);
       setProfileName(name);
       setAvatar(prof?.avatar_url || null);
+      setIsAdminUser((prof as any)?.role === "admin");
     };
     supabase.auth.getSession().then(({ data }) => applySession(data.session));
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -943,6 +949,50 @@ const Index = () => {
       setAiLoading(false);
     }
   };
+
+  // Telegram Login Widget'ni auth oynasi ochilganda joylashtirish
+  useEffect(() => {
+    if (!authOpen || showForgot) return;
+    const container = document.getElementById("telegram-login-container");
+    if (!container || TELEGRAM_BOT_USERNAME === "your_bot_username") return;
+    container.innerHTML = "";
+
+    (window as any).onTelegramAuth = async (tgUser: Record<string, unknown>) => {
+      setAuthError(""); setAuthMessage("");
+      setAuthLoading(true);
+      try {
+        const resp = await fetch(
+          "https://iokeamlqyiqemsbrhffs.supabase.co/functions/v1/telegram-auth",
+          { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(tgUser) }
+        );
+        const result = await resp.json();
+        if (!resp.ok || result.error) throw new Error(result.error || "Telegram orqali kirishda xatolik");
+        const { error } = await supabase.auth.verifyOtp({
+          email: result.email,
+          token: result.token,
+          type: "magiclink",
+        });
+        if (error) throw error;
+        setActive("profile");
+        setAuthOpen(false);
+        completeActivity(50);
+      } catch (e) {
+        setAuthError(e instanceof Error ? e.message : "Telegram orqali kirishda xatolik");
+      } finally {
+        setAuthLoading(false);
+      }
+    };
+
+    const script = document.createElement("script");
+    script.src = "https://telegram.org/js/telegram-widget.js?22";
+    script.async = true;
+    script.setAttribute("data-telegram-login", TELEGRAM_BOT_USERNAME);
+    script.setAttribute("data-size", "large");
+    script.setAttribute("data-radius", "16");
+    script.setAttribute("data-onauth", "onTelegramAuth(user)");
+    script.setAttribute("data-request-access", "write");
+    container.appendChild(script);
+  }, [authOpen, showForgot]);
 
   const handleAuthSubmit = async () => {
     setAuthError("");
@@ -1435,6 +1485,7 @@ const Index = () => {
                 <input type="file" accept="image/*" className="hidden" onChange={handleAvatar} />
               </label>
               {avatar && <button className="rounded-2xl border border-border px-5 py-3 text-sm font-black text-foreground hover:bg-accent" onClick={async () => { setAvatar(null); const { data: sess } = await supabase.auth.getSession(); const uid = sess.session?.user.id; if (uid) await supabase.from("profiles").update({ avatar_url: null }).eq("id", uid); }}>Rasmni olib tashlash</button>}
+              {isAdminUser && <a href="/admin" className="inline-flex items-center rounded-2xl bg-foreground px-5 py-3 text-sm font-black text-background transition-all hover:opacity-90">Admin panel</a>}
               <button className="rounded-2xl border border-border px-5 py-3 text-sm font-black text-foreground transition-all hover:bg-accent hover:text-accent-foreground" onClick={async () => { await supabase.auth.signOut(); setUserName("Mehmon"); setProfileName("Mehmon"); setAvatar(null); setAuthEmail(""); setAuthPassword(""); setActive("home"); }}>Profildan chiqish</button>
             </div>
           </div>
@@ -2482,6 +2533,32 @@ const Index = () => {
           {authError && <p className="rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm font-bold text-destructive animate-fade-in-up">{authError}</p>}
           {authMessage && <p className="rounded-2xl border border-primary/40 bg-primary/10 px-4 py-3 text-sm font-bold text-primary animate-fade-in-up">{authMessage}</p>}
           <button type="submit" disabled={authLoading} className="premium-button w-full rounded-2xl py-3 font-black disabled:opacity-60">{authLoading ? "Iltimos kuting..." : showForgot ? "Tiklash havolasini yuborish" : authMode === "login" ? "Kirish" : "Ro'yxatdan o'tish +100 coin"}</button>
+          {!showForgot && (
+            <>
+              <div className="flex items-center gap-3 py-1">
+                <span className="h-px flex-1 bg-border" />
+                <span className="text-xs font-bold text-muted-foreground">yoki</span>
+                <span className="h-px flex-1 bg-border" />
+              </div>
+              <button
+                type="button"
+                disabled={authLoading}
+                className="flex h-12 w-full items-center justify-center gap-3 rounded-2xl border border-border bg-card font-bold text-foreground transition-all hover:bg-accent disabled:opacity-60"
+                onClick={async () => {
+                  setAuthError(""); setAuthMessage("");
+                  const { error } = await supabase.auth.signInWithOAuth({
+                    provider: "google",
+                    options: { redirectTo: `${window.location.origin}/` },
+                  });
+                  if (error) setAuthError(error.message);
+                }}
+              >
+                <svg className="h-5 w-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.52 12.27c0-.85-.08-1.67-.22-2.45H12v4.64h6.47c-.28 1.5-1.13 2.77-2.4 3.62v3h3.88c2.27-2.09 3.57-5.17 3.57-8.81z"/><path fill="#34A853" d="M12 24c3.24 0 5.96-1.07 7.95-2.92l-3.88-3c-1.08.72-2.45 1.15-4.07 1.15-3.13 0-5.78-2.11-6.73-4.96H1.26v3.11C3.24 21.3 7.28 24 12 24z"/><path fill="#FBBC05" d="M5.27 14.27a7.2 7.2 0 010-4.54V6.62H1.26a12 12 0 000 10.76l4.01-3.11z"/><path fill="#EA4335" d="M12 4.77c1.77 0 3.35.61 4.6 1.8l3.44-3.44C17.95 1.19 15.24 0 12 0 7.28 0 3.24 2.7 1.26 6.62l4.01 3.11C6.22 6.88 8.87 4.77 12 4.77z"/></svg>
+                Google orqali {authMode === "login" ? "kirish" : "ro'yxatdan o'tish"}
+              </button>
+              <div id="telegram-login-container" className="flex justify-center pt-1" />
+            </>
+          )}
         </div>
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
           <button type="button" className="text-sm font-bold text-primary transition-all hover:opacity-80" onClick={() => { setAuthError(""); setAuthMessage(""); setShowForgot(false); setAuthMode(authMode === "login" ? "register" : "login"); }}>{authMode === "login" ? "Hisob yo'qmi? Ro'yxatdan o'ting" : "Hisobingiz bormi? Kirish"}</button>
